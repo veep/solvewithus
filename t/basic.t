@@ -1,3 +1,4 @@
+use common::sense;
 use Mojo::Base -strict;
 
 use Test::More tests => 4;
