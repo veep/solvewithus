@@ -4,7 +4,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 
 
-system("cd $FindBin::Bin/..; rm -f test.db; echo .schema | sqlite3 puzzles.db  |sqlite3 test.db");
+system("cd $FindBin::Bin/..; rm -f test.db*; echo .schema | sqlite3 puzzles.db  |sqlite3 test.db");
 
 use_ok 'SolveWith::Schema';
 my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../test.db');

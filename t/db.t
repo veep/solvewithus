@@ -3,7 +3,8 @@ use Test::More;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
-system("cd $FindBin::Bin/..; rm -f test.db; echo .schema | sqlite3 puzzles.db  |sqlite3 test.db");
+system("cd $FindBin::Bin/..;  echo .schema | sqlite3 puzzles.db > /tmp/tmpdb  ;rm -f  test.db*;echo '.read /tmp/tmpdb'| sqlite3 test.db");
+note `cd $FindBin::Bin/..;ls -l`;
 use_ok 'SolveWith::Schema';
 my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../test.db');
 ok($schema, "We got a schema");
@@ -69,6 +70,10 @@ my $test_team_name = 'Automated Test Team Name';
      ok ($puzzle, "puzzle created");
      is ($puzzle->display_name, 'puzzle 1', 'puzzle has right name');
      is ($puzzle->rounds->first->display_name,'round 1', 'can link from puzzle to round');
+     my $event_chat = $event->chat;
+     is (scalar $event_chat->messages,1,'one message in new event chat');
+     my $puzzle_chat = $event->chat;
+     is (scalar $puzzle_chat->messages,1,'one message in new puzzle chat');
 }
 
 
