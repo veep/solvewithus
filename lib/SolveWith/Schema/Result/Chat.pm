@@ -39,7 +39,12 @@ sub get_spreadsheet {
 
 sub set_spreadsheet {
     my ($self,$url) = @_;
-    return $self->create_related('messages' => { 'type' => 'spreadsheet', 'text' => $url });
+    return $self->add_of_type('spreadsheet',$url);
+}
+
+sub add_of_type {
+    my ($self, $type, $text) = @_;
+    my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text });
 }
 
 1;
