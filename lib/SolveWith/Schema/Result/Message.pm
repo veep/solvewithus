@@ -20,5 +20,10 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to('chat' => 'SolveWith::Schema::Result::Chat', 'chat_id');
 
-
+sub new {
+    use Time::HiRes;
+    my $self = shift;
+    $_[0]->{timestamp} = scalar Time::HiRes::time;
+    return $self->next::method( @_ );
+}
 1;
