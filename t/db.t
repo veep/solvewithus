@@ -76,5 +76,13 @@ my $test_team_name = 'Automated Test Team Name';
      is (scalar $puzzle_chat->messages,1,'one message in new puzzle chat');
 }
 
-
+{
+    my $team = $schema->resultset('Team')->search({ display_name => $test_team_name })->first;
+    my $event = $team->create_related('events', {display_name => 'event 1', state=>'open'});
+    $event->spreadsheet('http://prestemon.com/');
+    is ($event->spreadsheet, 'http://prestemon.com/', "spreadsheet works");
+    $event->spreadsheet('http://puzzles.prestemon.com/');
+    is ($event->spreadsheet, 'http://puzzles.prestemon.com/', "2nd spreadsheet works");
+    
+}
 done_testing;

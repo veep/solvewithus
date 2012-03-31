@@ -26,5 +26,21 @@ sub insert {
     );
     return $chat;
 }
+
+sub get_latest_of_type {
+    my ($self, $type) = @_;
+    return $self->search_related('messages', {type => $type}, {order_by => 'timestamp desc'})->first->text;
+}
+
+sub get_spreadsheet {
+    my $self = shift;
+    return $self->get_latest_of_type('spreadsheet');
+}
+
+sub set_spreadsheet {
+    my ($self,$url) = @_;
+    return $self->create_related('messages' => { 'type' => 'spreadsheet', 'text' => $url });
+}
+
 1;
 

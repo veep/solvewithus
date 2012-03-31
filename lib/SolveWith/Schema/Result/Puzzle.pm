@@ -26,5 +26,15 @@ sub new {
     return $self->next::method( @_ );
 }
 
+sub spreadsheet {
+    my $self = shift;
+    my $url = shift;
+    if (defined($url)) {
+        return $self->chat->set_spreadsheet($url);
+    } else {
+        return $self->chat->get_spreadsheet;
+    }
+}
+
 1;
 
