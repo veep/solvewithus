@@ -1,0 +1,13 @@
+% layout 'default';
+% title $event->display_name;
+<h2><%= $event->display_name %></h2>
+
+%= link_to 'back to full list of events' => '.'
+
+% if ($catchall) {
+   <ul>
+%   for my $puzzle (@$catchall) {
+<li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
+% }
+</ul>
+% }

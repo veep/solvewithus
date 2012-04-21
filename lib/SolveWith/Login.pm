@@ -5,8 +5,11 @@ use Mojo::Base 'Mojolicious::Controller';
 sub homepage {
   my $self = shift;
 
-  # Render template "example/welcome.html.ep" with message
-  $self->render(text => 'homepage');
+  return $self->redirect_to($self->url_for('event'));
+}
+
+sub welcome {
+    my $self = shift;
 }
 
 1;

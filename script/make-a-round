@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $event_id = shift;
+my $round_name = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $event = $schema->resultset('Event')->find($event_id) || die "No event found";
+
+my $round = $event->create_related('rounds',{
+    display_name => $round_name,
+    state => 'open',
+});
+die 'no round' unless $round;
+say $round->id;
+
+

@@ -1,0 +1,17 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $puzzle_id = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle found";
+
+my $url = $puzzle->spreadsheet;
+die 'no url' unless $url;
+say $url;
+
+

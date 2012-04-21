@@ -27,7 +27,7 @@ my $test_team_name = 'Automated Test Team Name';
     $team->delete if $team;
     $team = $schema->resultset('Team')->create({
         display_name => $test_team_name,
-        google_group => 'testgroupforsolvewith',
+        google_group => 'veep-and-veep@googlegroups.com',
     });
     ok ($team->id,"Team has an id");
     is ($team->display_name, "Automated Test Team Name", 'getter for user\'s display_name works');

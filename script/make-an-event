@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $team_id = shift;
+my $event_name = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $team = $schema->resultset('Team')->find($team_id) || die "No team found";
+
+my $event = $team->create_related('events',{
+    display_name => $event_name,
+    state => 'open',
+});
+die 'no event' unless $event;
+say $event->id;
+
+

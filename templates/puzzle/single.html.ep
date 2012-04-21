@@ -1,0 +1,53 @@
+% layout 'default';
+% title $puzzle->display_name;
+%= stylesheet begin
+
+
+   html, body, iframe {
+      margin:0; /* remove any margins of the IFrame and the body tag */
+      padding:0;
+      height: 100%; /* set height 100% so that it fills the entire view port*/
+   }
+
+.container-fluid, .row-fluid, #spreadsheet-div { height: 100% }
+
+#spreadsheet-iframe { 
+   width: 100%;
+   display: block;
+   border: 0px;
+}
+% end
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div id="everything" class="span3">
+      <!--Sidebar content-->
+      <div class="well" id="master-status">
+        <h3>Puzzle: <%= $puzzle->display_name %></h3>
+        Puzzle list: <%= link_to 'full list' => '/'; %>
+      </div>
+      <div id="open-puzzles">
+<h3>Other Puzzles</h3>
+<ul>
+% for my $round (sort {$a->id <=> $b->id } $puzzle->rounds ) {
+% for my $other_puzzle (sort {$a->id <=> $b->id } $round->puzzles ) {
+%   next if $other_puzzle->id == $puzzle->id;
+<li><%= link_to $other_puzzle->display_name => '/puzzle/' . $other_puzzle->id %>
+% }
+%}
+</ul>
+      </div>
+      <div id="chat-box" >
+This will be the chat text.
+      </div>
+      <div id="chat-input" class="well">
+        <label class="control-label" for="textarea">Chat about <%= $puzzle->display_name %></label>
+        <div class="controls">
+          <textarea class="input-xlarge" id="textarea" rows="3"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="span9" id="spreadsheet-div">
+      <iframe id="spreadsheet-iframe" src="<%== $puzzle->spreadsheet %>">
+    </div>
+  </div>
+</div>

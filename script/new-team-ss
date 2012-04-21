@@ -1,0 +1,18 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $team_id = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $team = $schema->resultset('Team')->find($team_id);
+die unless $team;
+
+$team->chat->messages->search({type => 'spreadsheet'})->delete;
+
+my $spreadsheet = SolveWith::Spreadsheet->new(group => $team->google_group);
+$team->chat->set_spreadsheet($spreadsheet->url);
+warn $team->chat->get_spreadsheet;

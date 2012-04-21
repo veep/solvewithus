@@ -1,0 +1,20 @@
+% layout 'default';
+% title 'All Events';
+<h2>Events</h2>
+
+<P>Events you have access to:
+
+<ul>
+% for my $team (@$teams) {
+   <li>For the team: <B><%= $team->display_name %></B> </li>
+   <ul>
+% for my $event ($team->events) {
+      <li> The event:
+%= link_to $event->id => begin
+<B><%= $event->display_name %></b> </li>
+% end
+% }
+   </ul>
+% }
+</ul>
+

@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $round_id = shift;
+my $puzzle_name = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $round = $schema->resultset('Round')->find($round_id) || die "No round found";
+
+my $puzzle = $round->add_to_puzzles({
+    display_name => $puzzle_name,
+    state => 'open',
+});
+die 'no puzzle' unless $puzzle;
+say $puzzle->id;
+
+

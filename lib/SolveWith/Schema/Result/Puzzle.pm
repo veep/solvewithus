@@ -1,6 +1,7 @@
 package SolveWith::Schema::Result::Puzzle;
 use common::sense;
 use base qw/DBIx::Class::Core/;
+use SolveWith::Spreadsheet;
 
 __PACKAGE__->table('puzzle');
 __PACKAGE__->add_columns(
@@ -31,9 +32,23 @@ sub spreadsheet {
     my $url = shift;
     if (defined($url)) {
         return $self->chat->set_spreadsheet($url);
-    } else {
-        return $self->chat->get_spreadsheet;
     }
+    my $ss = $self->chat->get_spreadsheet;
+    return $ss if $ss;
+    my $name = join(
+        ' - ',
+        $self->display_name,
+        $self->rounds->first->event->display_name,
+        $self->rounds->first->event->team->display_name,
+    );
+    warn $name;
+    $ss = SolveWith::Spreadsheet->new( ssname => $name,
+                                       group => $self->rounds->first->event->team->google_group,
+                                       mode => 'writer',
+                                   );
+    $url = $ss->url;
+    $self->chat->set_spreadsheet( $url );
+    return $url;
 }
 
 1;

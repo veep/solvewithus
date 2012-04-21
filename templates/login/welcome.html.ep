@@ -1,0 +1,12 @@
+% layout 'default';
+% title 'Welcome';
+<h2>Welcome</h2>
+
+<P>This is solvewith.us for group-solving puzzles.
+
+<P>This is currently a private site. You can
+email <a href="ecp@prestemon.com">ecp@prestemon.com</a> if you want to
+be kept up to date about its future.
+
+<P><a href="<%== url_for('login') %>">click here</a> to login if you are among the current testers.
+

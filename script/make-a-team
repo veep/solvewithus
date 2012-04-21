@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+
+my $team_name = shift;
+my $team_group = shift;
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $team = $schema->resultset('Team')->create({
+    display_name => $team_name,
+    google_group => $team_group,
+});
+say $team->id;
