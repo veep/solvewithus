@@ -3,11 +3,25 @@
 <h2><%= $event->display_name %></h2>
 
 %= link_to 'back to full list of events' => '.'
-
 % if ($catchall) {
-   <ul>
+    <ul>
 %   for my $puzzle (@$catchall) {
-<li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
+%       next if $puzzle->state eq 'dead';
+      <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
+%   }
+    </ul>
 % }
-</ul>
-% }
+
+% if ($rounds) {
+    <ul>
+%   for my $round_id (sort {$a <=> $b} keys %$rounds) {
+      <li><B><%= $$rounds{$round_id}{name} %></B></li>
+      <ul>
+%     for my $puzzle (@{$$rounds{$round_id}{puzzles}}) {
+%       next if $puzzle->state eq 'dead';
+        <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
+%     }
+      </ul>
+%   }
+    </ul>
+    % }

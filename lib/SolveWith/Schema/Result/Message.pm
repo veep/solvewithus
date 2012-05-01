@@ -14,11 +14,15 @@ __PACKAGE__->add_columns(
     'type',
     'text',
     'timestamp',
+    'user_id',
 );
 
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to('chat' => 'SolveWith::Schema::Result::Chat', 'chat_id');
+__PACKAGE__->belongs_to('user' => 'SolveWith::Schema::Result::User', 'user_id',
+                        { join_type => 'left' }
+                    );
 
 sub new {
     use Time::HiRes;

@@ -14,12 +14,19 @@ sub single {
       $team->has_access($self->session->{userid},$self->session->{token});
   $self->stash(event => $event);
   my @catchall_puzzles;
-  if (my $catchall = $event->rounds->search({display_name => '_catchall'})->first) {
-      foreach my $puzzle ($catchall->puzzles) {
-          push @catchall_puzzles, $puzzle;
+  my %round_puzzles;
+  foreach my $round ($event->rounds->all) {
+      if ($round->display_name eq '_catchall') {
+          foreach my $puzzle ($round->puzzles) {
+              push @catchall_puzzles, $puzzle;
+          }
+          next;
       }
+      $round_puzzles{$round->id}{name} = $round->display_name;
+      $round_puzzles{$round->id}{puzzles} = [$round->puzzles->all];
   }
   $self->stash(catchall => \@catchall_puzzles);
+  $self->stash(rounds => \%round_puzzles);
 }
 
 sub all {

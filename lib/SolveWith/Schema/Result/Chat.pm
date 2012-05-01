@@ -45,8 +45,8 @@ sub set_spreadsheet {
 }
 
 sub add_of_type {
-    my ($self, $type, $text) = @_;
-    my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text });
+    my ($self, $type, $text, $user_id) = @_;
+    my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text, 'user_id' => $user_id });
 }
 
 1;

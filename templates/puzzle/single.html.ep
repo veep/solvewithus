@@ -1,5 +1,6 @@
 % layout 'default';
 % title $puzzle->display_name;
+%= javascript '/puzzle.js' . '?' . scalar time
 %= stylesheet begin
 
 
@@ -9,13 +10,33 @@
       height: 100%; /* set height 100% so that it fills the entire view port*/
    }
 
-.container-fluid, .row-fluid, #spreadsheet-div { height: 100% }
+.container-fluid, .row-fluid, #spreadsheet-div, #everything { height: 100% }
 
 #spreadsheet-iframe { 
    width: 100%;
    display: block;
    border: 0px;
 }
+
+.chat-text {
+   overflow-y: scroll;
+   overflow-x: hidden;
+   padding: 0px 0px 0px 3px;
+   height: 200px;
+}
+
+.controls {
+    padding: 8px;
+    background-color: #EEEEEE;
+}
+
+.chat-input {
+   width: 90%;
+   padding: 0px;
+   margin: 0px;
+   border: 0px;
+}
+
 % end
 <div class="container-fluid">
   <div class="row-fluid">
@@ -31,18 +52,29 @@
 % for my $round (sort {$a->id <=> $b->id } $puzzle->rounds ) {
 % for my $other_puzzle (sort {$a->id <=> $b->id } $round->puzzles ) {
 %   next if $other_puzzle->id == $puzzle->id;
+%   next if $other_puzzle->state eq 'dead';
 <li><%= link_to $other_puzzle->display_name => '/puzzle/' . $other_puzzle->id %>
 % }
 %}
 </ul>
+
       </div>
       <div id="chat-box" >
-This will be the chat text.
-      </div>
-      <div id="chat-input" class="well">
-        <label class="control-label" for="textarea">Chat about <%= $puzzle->display_name %></label>
-        <div class="controls">
-          <textarea class="input-xlarge" id="textarea" rows="3"></textarea>
+        <h3><a href="#">Chat: <%= $event->display_name %></a></h3>
+        <div>
+          <div id="chat-text-event-<%= $event->id %>" class="chat-text">
+          </div>
+          <div class="controls">
+            <textarea class="chat-input" id="textarea-event-<%= $event->id %>" rows="2"></textarea>
+          </div>
+        </div>
+        <h3><a href="#">Chat: <%= $puzzle->display_name %></a></h3>
+        <div>
+          <div id="chat-text-puzzle-<%= $puzzle->id %>" class="chat-text">
+          </div>
+          <div class="controls">
+            <textarea class="chat-input" id="textarea-puzzle-<%= $puzzle->id %>" rows="2"></textarea>
+          </div>
         </div>
       </div>
     </div>
@@ -51,3 +83,4 @@ This will be the chat text.
     </div>
   </div>
 </div>
+

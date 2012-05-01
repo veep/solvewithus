@@ -26,6 +26,7 @@ sub startup {
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');
+  $r->route('/chat')->to(controller => 'updates', action => 'chat');
 
   $r->get('/oauth2callback' => sub {
               my $self = shift;
