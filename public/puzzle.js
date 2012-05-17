@@ -26,38 +26,52 @@ $(document).ready(
         $(window).resize(function() {
             resize_chat_box($("#chat-box"));
         });
-        $("#chat-box").accordion({
-            clearStyle: true,
-            fillSpace: true,
-            change: function(event, ui) { 
-                $(".ui-accordion-content").css({padding:'0px 0px 0px 0px'});
-                $(".ui-accordion-content").css({margin:'0px 0px 0px 0px'});
-                resize_chat_box($("#chat-box"));
+        $('[class*="collapse"]').on('shown hidden', function (event) {
+            if (event.type == 'hidden') {
+                $(this).prev().children(".ui-icon").addClass("ui-icon-plusthick").removeClass("ui-icon-minusthick");
+            } else {
+                $(this).prev().children(".ui-icon").addClass("ui-icon-minusthick").removeClass("ui-icon-plusthick");
             }
-
+            resize_chat_box($("#chat-box"));
         });
-        $("#chat-box").accordion("activate",1);
+        resize_chat_box($("#chat-box"));
     }
 );
 
 function resize_chat_box(cb) {
     var target = $(window).height();
     var outer_current = cb.height();
-    inner = cb.children('.ui-accordion-content-active').children('.chat-text').first();
-    inner_current = inner.height();
-    console.warn(inner_current);
+    openchats = cb.children().filter('[class*="in"]').filter('[class*="collapse"]').children('.chat-text');
+    var open_count = openchats.length;
+    if (open_count == 0) {
+        console.warn("0 open chats, returning");
+        return;
+    }
+    
+    var inner_current = 0;
+    openchats.each(
+        function() {
+            inner_current += $(this).height();
+        }
+    );
 
     cb.siblings().each(
         function() {
             target = target - $(this).outerHeight(true);
         }
     );
-    if (target < 200) {
-        target = 200;
-    }
-    console.warn([inner_current, target,outer_current].join(':'));
-    inner.height(inner_current + target - outer_current - 10 );
-    inner.scrollTop(inner.prop("scrollHeight") - inner.height() );
+    
+    console.warn([inner_current, target,outer_current,open_count].join(':'));
+    var final_size = Math.floor((inner_current + target - outer_current - 10)/open_count);
+    console.warn( "resizing to " + final_size);
+    
+    openchats.each(
+        function() {
+            $(this).height( final_size );
+            $(this).scrollTop($(this).prop("scrollHeight") - $(this).height() );
+        }
+    );
+            
 }
           
 var last_seen = new Object();

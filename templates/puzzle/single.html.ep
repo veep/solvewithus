@@ -1,5 +1,5 @@
 % layout 'default';
-% title $puzzle->display_name;
+% title $current->display_name;
 %= javascript '/puzzle.js' . '?' . scalar time
 %= stylesheet begin
 
@@ -22,7 +22,17 @@
    overflow-y: scroll;
    overflow-x: hidden;
    padding: 0px 0px 0px 3px;
-   height: 200px;
+   height: 300px;
+}
+
+.chat-name {
+  padding: 3px;
+  background-color: #DDDD00;
+}
+
+.chat-name-current {
+  padding: 3px;
+  background-color: #DDAA55;
 }
 
 .controls {
@@ -36,6 +46,7 @@
    margin: 0px;
    border: 0px;
 }
+span.ui-icon {float: left; margin: 0 4px;}
 
 % end
 <div class="container-fluid">
@@ -43,43 +54,53 @@
     <div id="everything" class="span3">
       <!--Sidebar content-->
       <div class="well" id="master-status">
-        <h3>Puzzle: <%= $puzzle->display_name %></h3>
+        <h3>Puzzle: <%= $current->display_name %></h3>
         Puzzle list: <%= link_to 'full list' => '/'; %>
       </div>
-      <div id="open-puzzles">
-<h3>Other Puzzles</h3>
-<ul>
-% for my $round (sort {$a->id <=> $b->id } $puzzle->rounds ) {
-% for my $other_puzzle (sort {$a->id <=> $b->id } $round->puzzles ) {
-%   next if $other_puzzle->id == $puzzle->id;
-%   next if $other_puzzle->state eq 'dead';
-<li><%= link_to $other_puzzle->display_name => '/puzzle/' . $other_puzzle->id %>
-% }
-%}
-</ul>
-
-      </div>
       <div id="chat-box" >
-        <h3><a href="#">Chat: <%= $event->display_name %></a></h3>
-        <div>
+        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>">
+          <span class="ui-icon ui-icon-plusthick"></span><%= $event->display_name %>
+        </div>
+        <div id="full-chat-event-<%= $event->id %>" class="collapse">
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
           </div>
           <div class="controls">
             <textarea class="chat-input" id="textarea-event-<%= $event->id %>" rows="2"></textarea>
           </div>
         </div>
-        <h3><a href="#">Chat: <%= $puzzle->display_name %></a></h3>
-        <div>
+% for my $round (sort  { ($a->{round} eq '_catchall' ? -1 : 0) || ($b->{round} eq '_catchall' ? 1 : 0) || ($a->{round}->id <=> $b->{round}->id )} @$tree) {
+% unless ($round->{round}->display_name eq '_catchall') {
+      <div><%= $round->{round}->display_name %></div>
+% }
+%   for my $puzzle_tree (sort {$a->{puzzle}->id <=> $b->{puzzle}->id} @{$round->{puzzles}}) {
+%       my $puzzle = $puzzle_tree->{puzzle};
+% if ($puzzle->id == $current->id) {
+        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
+          <span class="ui-icon ui-icon-minusthick"></span>
+% } else {
+        <div class="chat-name" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
+          <span class="ui-icon ui-icon-plusthick"></span>
+% }
+          <span><%= $puzzle->display_name %></span>
+        </div>
+% if ($puzzle->id == $current->id) {
+        <div id="full-chat-puzzle-<%= $puzzle->id %>" class="collapse in">
+% } else {
+        <div id="full-chat-puzzle-<%= $puzzle->id %>" class="collapse">
+% }
           <div id="chat-text-puzzle-<%= $puzzle->id %>" class="chat-text">
           </div>
           <div class="controls">
             <textarea class="chat-input" id="textarea-puzzle-<%= $puzzle->id %>" rows="2"></textarea>
           </div>
         </div>
+% }
+% }
+
       </div>
     </div>
     <div class="span9" id="spreadsheet-div">
-      <iframe id="spreadsheet-iframe" src="<%== $puzzle->spreadsheet %>">
+      <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet %>">
     </div>
   </div>
 </div>
