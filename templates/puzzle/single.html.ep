@@ -41,12 +41,11 @@
 }
 
 .chat-input {
-   width: 90%;
+   width: 100%;
    padding: 0px;
    margin: 0px;
    border: 0px;
 }
-span.ui-icon {float: left; margin: 0 4px;}
 
 % end
 <div class="container-fluid">
@@ -59,13 +58,18 @@ span.ui-icon {float: left; margin: 0 4px;}
       </div>
       <div id="chat-box" >
         <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>">
-          <span class="ui-icon ui-icon-plusthick"></span><%= $event->display_name %>
+          <i class="icon-minus"></i>
+          <%= $event->display_name %>
         </div>
-        <div id="full-chat-event-<%= $event->id %>" class="collapse">
+        <div id="full-chat-event-<%= $event->id %>" class="collapse in">
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
           </div>
-          <div class="controls">
-            <textarea class="chat-input" id="textarea-event-<%= $event->id %>" rows="2"></textarea>
+          <div class="control-group">
+            <div class="controls">
+              <div>
+                <textarea class="chat-input" rows="2" id="textarea-event-<%= $event->id %>"></textarea>
+              </div>
+            </div>
           </div>
         </div>
 % for my $round (sort  { ($a->{round} eq '_catchall' ? -1 : 0) || ($b->{round} eq '_catchall' ? 1 : 0) || ($a->{round}->id <=> $b->{round}->id )} @$tree) {
@@ -76,12 +80,22 @@ span.ui-icon {float: left; margin: 0 4px;}
 %       my $puzzle = $puzzle_tree->{puzzle};
 % if ($puzzle->id == $current->id) {
         <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
-          <span class="ui-icon ui-icon-minusthick"></span>
+          <i class="icon-minus"></i>
+          <span class="puzzle-name"><%= $puzzle->display_name %></span>
+          <span class="enter-specials"></span>
+          <span class="closed-chat-activity"><!-- ACT --></span>
+          <span class="switch-to-this-puzzle"><!-- GO --></span>
+          <span class="hide-puzzle"><!-- HIDE --></span>
 % } else {
         <div class="chat-name" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
-          <span class="ui-icon ui-icon-plusthick"></span>
+          <i class="icon-plus"></i>
+          <span class="puzzle-name"><%= $puzzle->display_name %></span>
+          <span class="enter-specials"><!-- SPECIAL --></span>
+          <span class="closed-chat-activity"></span>
+          <span class="switch-to-this-puzzle"></span>
+          <span class="hide-puzzle"></span>
+
 % }
-          <span><%= $puzzle->display_name %></span>
         </div>
 % if ($puzzle->id == $current->id) {
         <div id="full-chat-puzzle-<%= $puzzle->id %>" class="collapse in">
@@ -90,8 +104,10 @@ span.ui-icon {float: left; margin: 0 4px;}
 % }
           <div id="chat-text-puzzle-<%= $puzzle->id %>" class="chat-text">
           </div>
-          <div class="controls">
-            <textarea class="chat-input" id="textarea-puzzle-<%= $puzzle->id %>" rows="2"></textarea>
+          <div class="control-group">
+            <div class="controls">
+              <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $puzzle->id %>"></textarea>
+            </div>
           </div>
         </div>
 % }
