@@ -81,7 +81,8 @@ sub oauth_client {
     );
 
     if ($ws) {
-        $cl = $cl->web_server( redirect_uri => 'http://solvewith.us/oauth2callback' );
+        my $host = $self->req->url->to_abs->host || 'solvewith.us';
+        $cl = $cl->web_server( redirect_uri => 'http://' . $host . '/oauth2callback' );
     }
     return $cl;
 }
