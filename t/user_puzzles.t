@@ -13,10 +13,12 @@ ok($schema, "We got a schema");
 my $test_user_name = 'testuser@prestemon.com';
 my $user = $schema->resultset('User')->create({ google_name => $test_user_name, display_name => 'foo' });
 ok($user);
-$user->add_to_teams({display_name => 'team 7'})
-    ->create_related('events', {display_name => 'event 17'})
-    ->create_related('rounds', {display_name => 'round 12'})
-    ->add_to_puzzles({display_name => 'puzzle 3'});
+{
+    my $team = $user->add_to_teams({display_name => 'team 7'});
+    my $event = $team->create_related('events', {display_name => 'event 17'});
+    my $round = $event->create_related('rounds', {display_name => 'round 12'});
+    my $puzzle = $round->add_to_puzzles({display_name => 'puzzle 3'});
+}
 
 my $tree = $user->get_puzzle_tree;
 
