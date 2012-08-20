@@ -1,12 +1,15 @@
 % layout 'default';
 % title 'Welcome';
-<h2>Welcome</h2>
 
-<P>This is solvewith.us for group-solving puzzles.
+ <div class="container">
 
-<P>This is currently a private site. You can
-email <a href="ecp@prestemon.com">ecp@prestemon.com</a> if you want to
-be kept up to date about its future.
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit">
+        <h1>Welcome to Solvewith.us</h1>
+        <P>&nbsp;</P>
+        <p>We're in private test while we get everything working smoothly.</P>
+        <p>If you'd like to be notified when we open up the site to users, connect with your Google account and we'll email you with any news (and nothing else, of course).</p>
+        <P><a href="<%== url_for('login') %>" class="btn btn-primary btn-large">Connect with your Google account &raquo;</a></p>
+      </div>
 
-<P><a href="<%== url_for('login') %>">click here</a> to login if you are among the current testers.
-
+ </div>

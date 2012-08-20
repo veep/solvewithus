@@ -12,4 +12,8 @@ sub welcome {
     my $self = shift;
 }
 
+sub thanks {
+    my $self = shift;
+}
+
 1;

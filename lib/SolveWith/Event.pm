@@ -40,6 +40,9 @@ sub all {
       next unless $team->has_access($self->session->{userid},$self->session->{token});
       push @teams, $team;
   }
+  if (! @teams) {
+      return $self->redirect_to($self->url_for('thanks'));
+  }
   $self->stash(teams => \@teams);
 
 }

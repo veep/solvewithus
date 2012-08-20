@@ -20,6 +20,7 @@ sub startup {
 
   $r->route('/')->to(controller => 'login', action => 'homepage');
   $r->route('/welcome')->to(controller => 'login', action => 'welcome');
+  $r->route('/thanks')->to(controller => 'login', action => 'thanks');
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/:id', id => qr/\d+/)->name('event')->to(controller => 'event', action => 'single');
