@@ -14,6 +14,8 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(messages => 'SolveWith::Schema::Result::Message', 'chat_id');
+__PACKAGE__->might_have( puzzle => 'SolveWith::Schema::Result::Puzzle', 'chat_id');
+__PACKAGE__->might_have( event => 'SolveWith::Schema::Result::Event', 'chat_id');
 
 sub insert {
     my $self = shift;
