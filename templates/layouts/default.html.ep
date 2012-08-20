@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
   <head><title><%= title %></title>
-%= stylesheet '/bootstrap/css/bootstrap.css?v2'
+%= stylesheet '/bootstrap/css/bootstrap.css?v3'
 %= stylesheet 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/redmond/jquery-ui.css'
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.js'
-%= javascript '/bootstrap/js/bootstrap.js?v2'
+%= javascript '/bootstrap/js/bootstrap.js?v3'
 </head>
   <body><%= content %></body>
 </html>
