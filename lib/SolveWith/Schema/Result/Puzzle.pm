@@ -39,10 +39,10 @@ sub spreadsheet {
         ' - ',
         $self->display_name,
         $self->rounds->first->event->display_name,
-        $self->rounds->first->event->team->display_name,
     );
     warn $name;
     $ss = SolveWith::Spreadsheet->new( ssname => $name,
+                                       folder => $self->rounds->first->event->display_name,
                                        group => $self->rounds->first->event->team->google_group,
                                        mode => 'writer',
                                    );
