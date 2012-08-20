@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head><title><%= title %></title>
 %= stylesheet '/bootstrap/css/bootstrap.css?v3'
 %= stylesheet 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/redmond/jquery-ui.css'
