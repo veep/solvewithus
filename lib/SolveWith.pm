@@ -57,6 +57,7 @@ sub startup {
   $self->hook( after_static_dispatch => sub {
                    my $self = shift;
                    return if $self->req->url->path eq '/oauth2callback';
+                   return if $self->res->code;
                    my $onwelcome = $self->req->url->path eq '/welcome';
                    my $notoken = (not $self->session->{token} or length($self->session->{token}) == 0);
                    my $onroot = $self->req->url->path eq '/';
