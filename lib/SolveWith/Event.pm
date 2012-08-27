@@ -47,5 +47,22 @@ sub all {
 
 }
 
+sub add {
+    my $self = shift;
+    my $team_id = $self->param('team-id');
+    my $name = $self->param('event-name');
+    my $team = $self->db->resultset('Team')->find($team_id);
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if ($name && $team && $user && $team->has_access($self->session->{userid},$self->session->{token})) {
+        my $event = $team->find_or_create_related ('events', {
+            display_name => $name,
+        });
+        $event->state('open');
+        $self->stash(team => $team);
+        $self->render('event/oneteam');
+        return;
+    }
+    $self->render(text => 'There has been a problem.', status => 500);
+}
 
 1;

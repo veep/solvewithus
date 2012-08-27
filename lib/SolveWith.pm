@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious';
 use Net::OAuth2::Client;
 use JSON qw/decode_json/;
 use SolveWith::Schema;
+use Data::Dump qw/ddx/;
 
 has schema => sub {
   return SolveWith::Schema->connect('dbi:SQLite:puzzles.db');
@@ -23,6 +24,7 @@ sub startup {
   $r->route('/thanks')->to(controller => 'login', action => 'thanks');
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
+  $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
   $r->route('/event/:id', id => qr/\d+/)->name('event')->to(controller => 'event', action => 'single');
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
@@ -43,7 +45,7 @@ sub startup {
                       $user->update;
                       $self->session->{userid} = $user->id;
                   }
-                  use Data::Dump qw/ddx/; ddx $self->session;
+                  ddx $self->session;
               }
 
               my $nexturl = '/';

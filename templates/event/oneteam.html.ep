@@ -1,0 +1,10 @@
+       <h3><%= $team->display_name %></h3>
+       <ul>
+% for my $event ($team->events) {
+         <li>
+%= link_to event => { id => $event->id} => begin
+<B><%= $event->display_name %></b>
+         </li>
+% end
+% }
+       </ul>
