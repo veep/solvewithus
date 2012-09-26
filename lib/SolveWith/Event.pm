@@ -65,4 +65,41 @@ sub add {
     $self->render(text => 'There has been a problem.', status => 500);
 }
 
+sub modal {
+    my $self = shift;
+    my $event_id = $self->param('eventid');
+    my $event = $self->db->resultset('Event')->find($event_id);
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if ($event && $user && $event->team->has_access($self->session->{userid},$self->session->{token}) ) {
+        if ($self->param('formname') eq 'New Round' && $self->param('roundname') =~ /\S/) {
+            my $round = $event->find_or_create_related ('rounds', {
+                display_name => $self->param('roundname'),
+                state => 'open',
+            });
+            $self->render(text => 'OK', status => 200);
+            return;
+        }
+        if ($self->param('formname') eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {
+            my $round;
+            if ($self->param('roundid') == 0) {
+                $round = $event->find_or_create_related ('rounds', {
+                    display_name => '_catchall',
+                    state => 'open',
+                });
+            } else {
+                $round = $self->db->resultset('Round')->find($self->param('roundid'));
+            }
+            if ($round && $round->event->id == $event_id) {
+                my $puzzle = $round->add_to_puzzles({
+                    display_name => $self->param('puzzlename'),
+                    state => 'open',
+                });
+                $self->render(text => 'OK', status => 200);
+                return;
+            }
+        }
+    }
+    $self->render(text => 'There has been a problem.', status => 500);
+}
+
 1;

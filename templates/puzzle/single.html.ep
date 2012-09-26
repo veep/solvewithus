@@ -1,5 +1,5 @@
 % layout 'default';
-% title $current->display_name;
+% title $current->display_name . ' @ Solvewith.us';
 %= javascript '/puzzle.js' . '?' . scalar time
 %= stylesheet begin
 
@@ -53,66 +53,39 @@
     <div id="everything" class="span3">
       <!--Sidebar content-->
       <div class="well" id="master-status">
-        <h3>Puzzle: <%= $current->display_name %></h3>
-        Puzzle list: <%= link_to 'full list' => '/'; %>
+        <h3><%= link_to 'Solvewith.us' => '/'; %></h3>
+      </div>
+      <div class="well" id="master-status-box-<%= $event->id %>">
+        <div id="status-tree-<%= $event->id %>" class="status-tree">
+        </div>
       </div>
       <div id="chat-box" >
-        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>">
-          <i class="icon-minus"></i>
-          <%= $event->display_name %>
+        <!-- <div class="chat-name-current" data-target="#full-chat-event-<%= $event->id %>"> -->
+        <!--   <%= $event->display_name %> -->
+        <!-- </div> -->
+        <!-- <div id="full-chat-event-<%= $event->id %>" class="collapse in"> -->
+        <!--   <div id="chat-text-event-<%= $event->id %>" class="chat-text"> -->
+        <!--   </div> -->
+        <!--   <div class="control-group"> -->
+        <!--     <div class="controls"> -->
+        <!--       <div> -->
+        <!--         <textarea class="chat-input" rows="2" id="textarea-event-<%= $event->id %>"></textarea> -->
+        <!--       </div> -->
+        <!--     </div> -->
+        <!--   </div> -->
+        <!-- </div> -->
+        <div class="chat-name-current" data-target="#full-chat-puzzle-<%= $current->id %>">
+          <span class="puzzle-name"><%= $current->display_name %></span>
         </div>
-        <div id="full-chat-event-<%= $event->id %>" class="collapse in">
-          <div id="chat-text-event-<%= $event->id %>" class="chat-text">
+        <div id="full-chat-puzzle-<%= $current->id %>" class="collapse in">
+          <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
           </div>
           <div class="control-group">
             <div class="controls">
-              <div>
-                <textarea class="chat-input" rows="2" id="textarea-event-<%= $event->id %>"></textarea>
-              </div>
+              <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $current->id %>"></textarea>
             </div>
           </div>
         </div>
-% for my $round (sort  { ($a->{round} eq '_catchall' ? -1 : 0) || ($b->{round} eq '_catchall' ? 1 : 0) || ($a->{round}->id <=> $b->{round}->id )} @$tree) {
-% unless ($round->{round}->display_name eq '_catchall') {
-      <div><%= $round->{round}->display_name %></div>
-% }
-%   for my $puzzle_tree (sort {$a->{puzzle}->id <=> $b->{puzzle}->id} @{$round->{puzzles}}) {
-%       my $puzzle = $puzzle_tree->{puzzle};
-% if ($puzzle->id == $current->id) {
-        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
-          <i class="icon-minus"></i>
-          <span class="puzzle-name"><%= $puzzle->display_name %></span>
-          <span class="enter-specials"></span>
-          <span class="closed-chat-activity"><!-- ACT --></span>
-          <span class="switch-to-this-puzzle"><!-- GO --></span>
-          <span class="hide-puzzle"><!-- HIDE --></span>
-% } else {
-        <div class="chat-name" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $puzzle->id %>">
-          <i class="icon-plus"></i>
-          <span class="puzzle-name"><%= $puzzle->display_name %></span>
-          <span class="enter-specials"><!-- SPECIAL --></span>
-          <span class="closed-chat-activity"></span>
-          <span class="switch-to-this-puzzle"></span>
-          <span class="hide-puzzle"></span>
-
-% }
-        </div>
-% if ($puzzle->id == $current->id) {
-        <div id="full-chat-puzzle-<%= $puzzle->id %>" class="collapse in">
-% } else {
-        <div id="full-chat-puzzle-<%= $puzzle->id %>" class="collapse">
-% }
-          <div id="chat-text-puzzle-<%= $puzzle->id %>" class="chat-text">
-          </div>
-          <div class="control-group">
-            <div class="controls">
-              <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $puzzle->id %>"></textarea>
-            </div>
-          </div>
-        </div>
-% }
-% }
-
       </div>
     </div>
     <div class="span9" id="spreadsheet-div">

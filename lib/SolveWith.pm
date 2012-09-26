@@ -25,6 +25,7 @@ sub startup {
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
+  $r->route('/event/modal')->name('model')->to(controller => 'event', action => 'modal');
   $r->route('/event/:id', id => qr/\d+/)->name('event')->to(controller => 'event', action => 'single');
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])

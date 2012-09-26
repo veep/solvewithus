@@ -1,27 +1,102 @@
 % layout 'default';
 % title $event->display_name;
-<h2><%= $event->display_name %></h2>
+%= javascript '/event.js' . '?' . scalar time
 
-%= link_to 'back to full list of events' => '.'
-% if ($catchall) {
-    <ul>
-%   for my $puzzle (@$catchall) {
-%       next if $puzzle->state eq 'dead';
-      <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
-%   }
-    </ul>
-% }
-
-% if ($rounds) {
-    <ul>
-%   for my $round_id (sort {$a <=> $b} keys %$rounds) {
-      <li><B><%= $$rounds{$round_id}{name} %></B></li>
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div class="span3">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="btn-group">
+            <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
+              Misc
+              <span class="caret"></span>
+            </a>
+            <ul class="dropdown-menu">
+              <li><%= link_to '.' => begin %><i class="icon-arrow-left"></i> Back to event list<% end %></li>
+              <li><a href="#newRoundModal" data-toggle="modal"><i class="icon-folder-close"></i> Add a Round</a></li>
+              <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="span9">
+          <h2><%= $event->display_name %></h2>
+        </div>
+      </div>
+      
+      
+      % if ($catchall) {
       <ul>
-%     for my $puzzle (@{$$rounds{$round_id}{puzzles}}) {
-%       next if $puzzle->state eq 'dead';
+        %   for my $puzzle (@$catchall) {
+        %       next if $puzzle->state eq 'dead';
         <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
-%     }
+        %   }
       </ul>
+      % }
+      
+      % if ($rounds) {
+      <ul>
+        %   for my $round_id (sort {$a <=> $b} keys %$rounds) {
+          <li><B><%= $$rounds{$round_id}{name} %></B></li>
+          <ul>
+            %     for my $puzzle (@{$$rounds{$round_id}{puzzles}}) {
+            %       next if $puzzle->state eq 'dead';
+            <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
+            %     }
+          </ul>
+          %   }
+      </ul>
+      % }
+    </div>
+    <div class="span9">
+      <!--Body content-->
+    </div>
+  </div>
+</div>
+
+
+<div class="modal hide" id="newRoundModal" tabindex="-1" role="dialog" aria-labelledby="newRoundModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="newRoundModalLabel">Add a Round</h3>
+  </div>
+  <div class="modal-body">
+    <form id="newRoundForm" class="ModalForm">
+      <input type="text" name="roundname" placeholder="Round name">
+      <input type="hidden" name="formname" value="New Round">
+      <input type="hidden" name="eventid" value="<%= $event->id %>">
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    <button class="btn btn-primary submit-modal">Create</button>
+  </div>
+</div>
+
+<div class="modal hide" id="newPuzzleModal" tabindex="-1" role="dialog" aria-labelledby="newPuzzleModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="newPuzzleModalLabel">Add a Puzzle</h3>
+  </div>
+  <div class="modal-body">
+    <form id="newPuzzleForm" class="ModalForm">
+      <input type="text" name="puzzlename" placeholder="Puzzle name">
+      <input type="hidden" name="formname" value="New Puzzle">
+      <input type="hidden" name="eventid" value="<%= $event->id %>">
+      in <select name="roundid">
+        <option value="0">[No Round]</option>
+% if ($rounds) {
+%   my @round_ids = sort {$a <=> $b} keys %$rounds;
+%   for my $round_id (@round_ids) {
+        <option <%= ($round_id == $round_ids[-1] ? 'selected' : '') %> value="<%= $round_id %>"><%= $rounds->{$round_id}{name} %></option>
 %   }
-    </ul>
-    % }
+% }
+      </select>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    <button class="btn btn-primary submit-modal">Create</button>
+  </div>
+</div>
+

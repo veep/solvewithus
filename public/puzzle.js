@@ -23,6 +23,13 @@ $(document).ready(
                 return false;
             }
         );
+        $(".status-tree").each(
+            function() {
+                var pieces = $(this).attr("id").split("-");
+                var event_id =  pieces[pieces.length - 1];
+                setup_status_tree(event_id);
+            }
+        );
         $(window).resize(function() {
             resize_chat_box($("#chat-box"));
         });
@@ -80,6 +87,21 @@ var last_seen = new Object();
 last_seen.event = new Array();
 last_seen.puzzle = new Array();
 
+function setup_status_tree(event_id) {
+    status_tree(event_id);
+    setInterval(function() {status_tree(event_id);},5000);
+}
+
+function status_tree (event_id) {
+    $.getJSON( Array('','event','status',event_id).join('/'),
+               function (messages) {
+                   $.each(messages,
+                          function (index, msg) {
+                              
+
+                          });
+               });
+}
 
 function setup_chat_filler(type, puzzle_id) {
 //    console.log ("setup" + type + ' ' + puzzle_id);
