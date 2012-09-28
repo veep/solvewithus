@@ -12,7 +12,7 @@
    <li class="span4">
      <div class="thumbnail">
        <div class="caption">
-         <div class="team-info">
+         <div class="team-info" team_id="<%= $team->id %>">
 
 %= include 'event/oneteam', team => $team
          </div>

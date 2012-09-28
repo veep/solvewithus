@@ -65,6 +65,19 @@ sub add {
     $self->render(text => 'There has been a problem.', status => 500);
 }
 
+sub refresh {
+    my $self = shift;
+    my $team_id = $self->param('team-id');
+    my $team = $self->db->resultset('Team')->find($team_id);
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if ($team && $user && $team->has_access($self->session->{userid},$self->session->{token})) {
+        $self->stash(team => $team);
+        $self->render('event/oneteam');
+        return;
+    }
+    $self->render(text => 'There has been a problem.', status => 500);
+}
+
 sub modal {
     my $self = shift;
     my $event_id = $self->param('eventid');

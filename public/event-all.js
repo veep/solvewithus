@@ -16,6 +16,14 @@ $(function() {
         });
         return false;
     });
+    $(".team-info").each(
+        function(index,self) {
+            setInterval(function(){refreshTeam(self)},5000);
+        }
+    );
 });
 
-                                
+
+function refreshTeam(self) {
+    $(self).load("/event/refresh", {"team-id": $(self).attr("team_id") } );
+}
