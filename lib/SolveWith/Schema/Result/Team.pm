@@ -37,34 +37,53 @@ sub new {
     my $self = shift;
     my $chat = $_[0]->{-result_source}->schema->resultset('Chat')->create({});
     $_[0]->{chat_id} = $chat->id;
-    my $spreadsheet = SolveWith::Spreadsheet->new(group => $_[0]->{google_group});
-    $chat->set_spreadsheet($spreadsheet->url);
+    my $spreadsheet_url = SolveWith::Spreadsheet::team_auth_spreadsheet($_[0]->{google_group});
+    $chat->set_spreadsheet($spreadsheet_url);
+    my $share_folder = SolveWith::Spreadsheet::team_folder($_[0]->{google_group});
+    $chat->set_folder($share_folder);
     return $self->next::method( @_ );
 }
 
 sub has_access {
     my ($self, $userid, $token) = @_;
 
-    for my $user ($self->users) {
-        return 1 if $userid == $user->id;
+    my $debug = 0;
+    for my $team_user ($self->team_users) {
+        my $user = $team_user->user_id;
+        if ($userid == $user->id) {
+            warn "Returning " . $team_user->member . " from has_access for $userid\n" if $debug;
+            return $team_user->member;
+        }
     }
+    warn "User $userid not in group " . $self->google_group . " list\n" if $debug;
+
     my $spreadsheet = $self->chat->get_spreadsheet;
     return 0 unless $spreadsheet && $spreadsheet =~ /key=(.*)/;
+    my $key = $1;
 
+    warn "Got ss $spreadsheet\n" if $debug;
     my $success = 0;
-    eval {
-        my $response = SolveWith::Auth->new(access_token => $token)->make_request
-            ("https://docs.google.com/feeds/default/private/full/spreadsheet:$1?v=3");
-        if ($response->is_success) {
-            $success = 1;
-        }
-    };
-    warn $@ if $@;
-    if ($success == 1) {
-        $self->add_to_users($self->result_source->schema->resultset('User')->find($userid));
-        return 1;
+    my $this_user = $self->result_source->schema->resultset('User')->find($userid);
+    return 0 unless $this_user;
+
+    warn "Got user object\n" if $debug;
+    warn "\nRequesting drive info\n\n" if $debug;
+    my $response = SolveWith::Auth->new(access_token => $token)->make_request(
+        "https://www.googleapis.com/drive/v2/files/$key/permissions" );
+    warn $response->code if $debug;
+    if ($response->is_success) {
+        $success = 1;
+        warn "repsonse ok\n" if $debug;
+    } elsif ($response->code == 404) {
+        $success = 0;       # Normal failure;
+    } else {
+        die;
     }
-    return 0;
+    if ($success == 1) {
+        SolveWith::Spreadsheet::add_user_to_team($self->google_group, $this_user->google_name);
+    }
+    $self->add_to_users($this_user, {member => $success});
+    return $success;
 }
 
 1;

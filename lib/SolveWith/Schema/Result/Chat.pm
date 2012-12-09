@@ -46,6 +46,16 @@ sub set_spreadsheet {
     return $self->add_of_type('spreadsheet',$url);
 }
 
+sub get_folder {
+    my $self = shift;
+    return $self->get_latest_of_type('folder');
+}
+
+sub set_folder {
+    my ($self,$url) = @_;
+    return $self->add_of_type('folder',$url);
+}
+
 sub add_of_type {
     my ($self, $type, $text, $user_id) = @_;
     my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text, 'user_id' => $user_id });

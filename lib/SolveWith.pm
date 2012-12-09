@@ -23,6 +23,7 @@ sub startup {
   $r->route('/welcome')->to(controller => 'login', action => 'welcome');
   $r->route('/thanks')->to(controller => 'login', action => 'thanks');
   $r->route('/login')->to(controller => 'login', action => 'homepage');
+  $r->route('/reset')->name('reset')->to(controller => 'login', action => 'reset');
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
   $r->route('/event/refresh')->to(controller => 'event', action => 'refresh');
@@ -35,12 +36,18 @@ sub startup {
 
   $r->get('/oauth2callback' => sub {
               my $self = shift;
-              my $google =  oauth_client($self,1)->get_access_token($self->param('code'));
-              $self->session->{token} = $google->access_token;
-              $self->session->{last_google_auth} = scalar time;
-              my $user_info_response = $google->get('/oauth2/v1/userinfo');
-              if ($user_info_response->is_success) {
+              my $user_info_response;
+              eval {
+                  my $google =  oauth_client($self,1)->get_access_token($self->param('code'));
+                  $self->session->{token} = $google->access_token;
+                  $self->session->{last_google_auth} = scalar time;
+                  $user_info_response = $google->get('/oauth2/v1/userinfo');
+              };
+              warn $@ if $@;
+              if ($user_info_response &&  $user_info_response->is_success) {
                   my $user_info = decode_json( $user_info_response->decoded_content);
+                  ddx $user_info;
+                  die unless $user_info->{id};
                   if (my $user = $self->db->resultset('User')->find_or_create( {google_id => $user_info->{id}})) {
                       $user->display_name($user_info->{name});
                       $user->google_name($user_info->{email});
@@ -48,6 +55,9 @@ sub startup {
                       $self->session->{userid} = $user->id;
                   }
                   ddx $self->session;
+              } else {
+                  warn "Going to welcome";
+                  return $self->redirect_to('/welcome');
               }
 
               my $nexturl = '/';
@@ -55,18 +65,19 @@ sub startup {
                   $nexturl = $self->session->{nexturl};
                   delete $self->session->{nexturl};
               }
-              $self->redirect_to($nexturl);
+              return $self->redirect_to($nexturl);
           });
 
   $self->hook( after_static_dispatch => sub {
                    my $self = shift;
+#                   warn "checking " . $self->req->url->path ;
                    return if $self->req->url->path eq '/oauth2callback';
                    return if $self->res->code;
                    my $onwelcome = $self->req->url->path eq '/welcome';
+                   return if $onwelcome;
                    my $notoken = (not $self->session->{token} or length($self->session->{token}) == 0);
                    my $onroot = $self->req->url->path eq '/';
                    return $self->redirect_to('/welcome') if $notoken and $onroot;
-                   return if $onwelcome;
                    if ( $notoken ) {
                        my $url = oauth_client($self,1)->authorize_url;
                        $self->session->{nexturl} = $self->req->url->path;

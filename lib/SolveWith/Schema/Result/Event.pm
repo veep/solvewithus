@@ -29,16 +29,6 @@ sub get_puzzle_tree {
     return \@result;
 }
 
-sub spreadsheet {
-    my $self = shift;
-    my $url = shift;
-    if (defined($url)) {
-        return $self->chat->set_spreadsheet($url);
-    } else {
-        return $self->chat->get_spreadsheet;
-    }
-}
-
 sub new {
     my $self = shift;
     my $chat = $_[0]->{-result_source}->schema->resultset('Chat')->create({});

@@ -10,8 +10,16 @@ sub single {
   return $self->redirect_to($self->url_for('event')) unless $event;
   my $team = $event->team;
   return $self->redirect_to($self->url_for('event')) unless $team;
-  return $self->redirect_to($self->url_for('event')) unless 
-      $team->has_access($self->session->{userid},$self->session->{token});
+  my $access = 0;
+  eval {
+      $access = $team->has_access($self->session->{userid},$self->session->{token});
+  };
+  if ($@) {
+      warn $@;
+      return $self->redirect_to('reset');
+  }
+  return $self->redirect_to($self->url_for('event')) unless $access;
+
   $self->stash(event => $event);
   my @catchall_puzzles;
   my %round_puzzles;
@@ -37,14 +45,23 @@ sub all {
   my $user = $self->db->resultset('User')->find($self->session->{userid});
 
   while (my $team = $gs->next) {
-      next unless $team->has_access($self->session->{userid},$self->session->{token});
+      my $has_access = 0;
+      eval {
+          warn join(" ","Trying access with", $self->session->{userid}, $self->session->{token}, "\n");
+          $has_access = $team->has_access($self->session->{userid},$self->session->{token});
+      };
+      if ($@) {
+          warn $@;
+          return $self->redirect_to('reset');
+      }
+      next unless $has_access;
       push @teams, $team;
   }
   if (! @teams) {
       return $self->redirect_to($self->url_for('thanks'));
   }
+  $self->stash(user => $user);
   $self->stash(teams => \@teams);
-
 }
 
 sub add {
@@ -53,13 +70,24 @@ sub add {
     my $name = $self->param('event-name');
     my $team = $self->db->resultset('Team')->find($team_id);
     my $user = $self->db->resultset('User')->find($self->session->{userid});
-    if ($name && $team && $user && $team->has_access($self->session->{userid},$self->session->{token})) {
+    if ($name && $team && $user) {
+        my $access = 0;
+        eval {
+            $access = $team->has_access($self->session->{userid},$self->session->{token});
+        };
+        if ($@) {
+            warn $@;
+            return $self->redirect_to('reset');
+        }
+        unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
         my $event = $team->find_or_create_related ('events', {
             display_name => $name,
         });
         $event->state('open');
         $self->stash(team => $team);
         $self->render('event/oneteam');
+        SolveWith::Spreadsheet::event_folder($event);
         return;
     }
     $self->render(text => 'There has been a problem.', status => 500);
@@ -70,7 +98,17 @@ sub refresh {
     my $team_id = $self->param('team-id');
     my $team = $self->db->resultset('Team')->find($team_id);
     my $user = $self->db->resultset('User')->find($self->session->{userid});
-    if ($team && $user && $team->has_access($self->session->{userid},$self->session->{token})) {
+    if ($team && $user) {
+        my $access = 0;
+        eval {
+            $access = $team->has_access($self->session->{userid},$self->session->{token});
+        };
+        if ($@) {
+            warn $@;
+            return $self->redirect_to('reset');
+        }
+        unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
         $self->stash(team => $team);
         $self->render('event/oneteam');
         return;
@@ -83,13 +121,25 @@ sub modal {
     my $event_id = $self->param('eventid');
     my $event = $self->db->resultset('Event')->find($event_id);
     my $user = $self->db->resultset('User')->find($self->session->{userid});
-    if ($event && $user && $event->team->has_access($self->session->{userid},$self->session->{token}) ) {
+    if ($event && $user) {
+
+        my $access = 0;
+        eval {
+            $access = $event->team->has_access($self->session->{userid},$self->session->{token});
+        };
+        if ($@) {
+            warn $@;
+            return $self->redirect_to('reset');
+        }
+        unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
         if ($self->param('formname') eq 'New Round' && $self->param('roundname') =~ /\S/) {
             my $round = $event->find_or_create_related ('rounds', {
                 display_name => $self->param('roundname'),
                 state => 'open',
             });
             $self->render(text => 'OK', status => 200);
+            SolveWith::Spreadsheet::round_folder($round);
             return;
         }
         if ($self->param('formname') eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {
@@ -103,12 +153,16 @@ sub modal {
                 $round = $self->db->resultset('Round')->find($self->param('roundid'));
             }
             if ($round && $round->event->id == $event_id) {
-                my $puzzle = $round->add_to_puzzles({
+                my $puzzle = $self->db->resultset('Puzzle')->create({
                     display_name => $self->param('puzzlename'),
                     state => 'open',
                 });
-                $self->render(text => 'OK', status => 200);
-                return;
+                if ($puzzle) {
+                    $round->add_to_puzzles( $puzzle );
+                    $self->render(text => 'OK', status => 200);
+                    $puzzle->spreadsheet;
+                    return;
+                }
             }
         }
     }

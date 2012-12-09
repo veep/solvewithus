@@ -11,8 +11,16 @@ my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puz
 my $team = $schema->resultset('Team')->find($team_id);
 die unless $team;
 
-$team->chat->messages->search({type => 'spreadsheet'})->delete;
+my $url = SolveWith::Spreadsheet::team_auth_spreadsheet($team->google_group);
+if ($url) {
+    $team->chat->messages->search({type => 'spreadsheet'})->delete;
+    $team->chat->set_spreadsheet($url);
+    warn $team->chat->get_spreadsheet;
+}
 
-my $spreadsheet = SolveWith::Spreadsheet->new(group => $team->google_group);
-$team->chat->set_spreadsheet($spreadsheet->url);
-warn $team->chat->get_spreadsheet;
+my $share_folder = SolveWith::Spreadsheet::team_folder($team->{google_group});
+if ($share_folder) {
+    $team->chat->set_folder($share_folder->alternate);
+    warn $team->chat->get_folder;
+}
+

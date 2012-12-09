@@ -33,22 +33,16 @@ sub spreadsheet {
     if (defined($url)) {
         return $self->chat->set_spreadsheet($url);
     }
-    my $ss = $self->chat->get_spreadsheet;
-    return $ss if $ss;
-    my $name = join(
-        ' - ',
-        $self->display_name,
-        $self->rounds->first->event->display_name,
-        $self->rounds->first->event->team->display_name,
-    );
-    warn $name;
-    $ss = SolveWith::Spreadsheet->new( ssname => $name,
-                                       folder => $self->rounds->first->event->display_name,
-                                       group => $self->rounds->first->event->team->google_group,
-                                       mode => 'writer',
-                                   );
-    $url = $ss->url;
-    $self->chat->set_spreadsheet( $url );
+    $url = $self->chat->get_spreadsheet;
+    return $url if $url;
+
+    eval {
+        $url = SolveWith::Spreadsheet::puzzle_spreadsheet($self);
+    };
+    warn $@ if $@;
+    if ($url) {
+        $self->chat->set_spreadsheet( $url );
+    }
     return $url;
 }
 

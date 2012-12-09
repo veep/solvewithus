@@ -5,7 +5,7 @@
 <div class="container">
   <div class="well">
     <h2>Events</h2>
-    <P>Events you have access to:</P>
+    <P>Events you have access to as <B><%= $user->google_name %></B>:</P>
   </div>
 <ul class="thumbnails">
 % for my $team (@$teams) {

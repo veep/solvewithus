@@ -16,4 +16,11 @@ sub thanks {
     my $self = shift;
 }
 
+sub reset {
+    my $self = shift;
+    delete $self->session->{token};
+    return $self->redirect_to($self->url_for('event'));
+}
+
+
 1;

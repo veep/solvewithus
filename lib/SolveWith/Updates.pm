@@ -20,7 +20,11 @@ sub getnew {
     unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
     unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
     unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-    unless ($team->has_access($self->session->{userid},$self->session->{token})) { $self->render_exception('Bad updates request: no access'); return; }
+    my $access = 0;
+    eval {
+        $access = $team->has_access($self->session->{userid},$self->session->{token});
+    };
+    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
     my @types = qw/created chat spreadsheet url aha note/;
     my $messages_rs = $chat->search_related('messages',
@@ -55,7 +59,11 @@ sub event {
     unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
     $team = $item->team;
     unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-    unless ($team->has_access($self->session->{userid},$self->session->{token})) { $self->render_exception('Bad updates request: no access'); return; }
+    my $access = 0;
+    eval {
+        $access = $team->has_access($self->session->{userid},$self->session->{token});
+    };
+    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
     # Two cursors, event->chat->message > last order by id
     #              event->(puzzles)->chat->message > last order by id
@@ -123,7 +131,12 @@ sub chat {
     unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
     unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
     unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-    unless ($team->has_access($self->session->{userid},$self->session->{token})) { $self->render_exception('Bad updates request: no access'); return; }
+    my $access = 0;
+    eval {
+        $access = $team->has_access($self->session->{userid},$self->session->{token});
+    };
+    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
     $chat->add_of_type('chat',$text,$self->session->{userid});
     $self->render(text => 'OK', status => 200);
 }

@@ -17,6 +17,7 @@ sub make_request {
     my $ua = LWP::UserAgent->new;
     my $req = HTTP::Request->new('GET',$url);
     $self->sign_request($req);
+    warn $req->as_string;
     my $response= $ua->request($req);
     use Data::Dump qw/pp/;
     return $response;
