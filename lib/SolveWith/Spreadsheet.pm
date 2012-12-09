@@ -1,7 +1,6 @@
 package SolveWith::Spreadsheet;
 use strict;
 use Net::Google::DocumentsList;
-use Time::HiRes;
 
 my $debug = 1;
 
@@ -89,7 +88,6 @@ sub event_folder {
         'title-exact' => 'true',
         'category' => 'folder',
     });
-    warn Time::HiRes::time();
     if (! $event_folder) {
         $event_folder = $team_folder->add_item( { title => $event->display_name, kind => 'folder' } );
         warn "Creating '" . $event->display_name . "' in team\n" if $debug;
