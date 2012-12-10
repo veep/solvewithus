@@ -169,4 +169,27 @@ sub modal {
     $self->render(text => 'There has been a problem.', status => 500);
 }
 
+sub status {
+    my $self = shift;
+    my $id = $self->param('id');
+    my $puzzle_id = $self->param('puzzle_id');
+    my $event = $self->db->resultset('Event')->find($id);
+    my $team = $event->team if $event;
+    warn "no team" unless $team;
+    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
+        my $access = 0;
+    eval {
+        $access = $team->has_access($self->session->{userid},$self->session->{token});
+    };
+    warn "no access" unless $access;
+    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
+    my @results;
+    my $open_puzzles_html = $self->render('puzzle/tree_ul',
+                                          tree => $event->get_puzzle_tree,
+                                          current_id => $puzzle_id, partial => 1);
+    warn $open_puzzles_html;
+    push @results, {type => 'tree_html', content => $open_puzzles_html };
+    $self->render_json(\@results);
+}
 1;

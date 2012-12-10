@@ -26,8 +26,9 @@ $(document).ready(
         $(".status-tree").each(
             function() {
                 var pieces = $(this).attr("id").split("-");
-                var event_id =  pieces[pieces.length - 1];
-                setup_status_tree(event_id);
+                var event_id =  pieces[2];
+                var puzzle_id =  pieces[3];
+                setup_status_tree(event_id, puzzle_id, $(this));
             }
         );
         $(window).resize(function() {
@@ -35,9 +36,9 @@ $(document).ready(
         });
         $('[class*="collapse"]').on('shown hidden', function (event) {
             if (event.type == 'hidden') {
-                $(this).prev().children("i").addClass("icon-plus").removeClass("icon-minus");
+                $(this).prev().children("i").addClass("icon-chevron-right").removeClass("icon-chevron-down");
             } else {
-                $(this).prev().children("i").addClass("icon-minus").removeClass("icon-plus");
+                $(this).prev().children("i").addClass("icon-chevron-down").removeClass("icon-chevron-right");
             }
             resize_chat_box($("#chat-box"));
         });
@@ -87,18 +88,22 @@ var last_seen = new Object();
 last_seen.event = new Array();
 last_seen.puzzle = new Array();
 
-function setup_status_tree(event_id) {
-    status_tree(event_id);
-    setInterval(function() {status_tree(event_id);},5000);
+function setup_status_tree(event_id, puzzle_id, parent) {
+    setInterval(function() {status_tree(event_id, puzzle_id, parent);},10000);
 }
 
-function status_tree (event_id) {
-    $.getJSON( Array('','event','status',event_id).join('/'),
+function status_tree (event_id, puzzle_id, parent) {
+    var tree_ajax_url = Array('','event','status',event_id).join('/');
+    if (puzzle_id) {
+        tree_ajax_url = Array('','event','status',event_id,puzzle_id).join('/');
+    }
+    $.getJSON( tree_ajax_url,
                function (messages) {
                    $.each(messages,
-                          function (index, msg) {
-                              
-
+                          function (index, chunk) {
+                              if (chunk.type === 'tree_html') {
+                                  $("#open_puzzles").html(chunk.content);
+                              }
                           });
                });
 }
@@ -162,6 +167,9 @@ function render_msg (type, text, ts, author, div_id) {
     }
     if (type === 'chat') {
         result = ds + '<B>' + author + '</B>: ' + $('<div/>').text(text).html();
+    }
+    if (type === 'puzzle') {
+        result = '<B>' + name + '</B>: ' + text;
     }
     if (result.length) {
         var mydiv = $("#" + div_id);

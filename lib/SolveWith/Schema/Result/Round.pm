@@ -24,7 +24,11 @@ sub get_puzzle_tree {
     my $self = shift;
     my @result;
     foreach my $puzzle ($self->puzzles) {
-        push @result, {puzzle => $puzzle};
+        push @result, {puzzle => $puzzle,
+                       open_time => $puzzle->chat->get_first_timestamp,
+                       activity_time => $puzzle->chat->get_last_timestamp,
+                       state => $puzzle->state,
+                   };
     }
     return \@result;
 }

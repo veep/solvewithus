@@ -31,9 +31,23 @@ sub insert {
 
 sub get_latest_of_type {
     my ($self, $type) = @_;
-    my $first = $self->search_related('messages', {type => $type}, {order_by => 'timestamp desc'})->first;
-    return $first->text if $first;
+    my $latest = $self->search_related('messages', {type => $type}, {order_by => 'timestamp desc'})->first;
+    return $latest->text if $latest;
     return;
+}
+
+sub get_first_timestamp {
+    my ($self, $type) = @_;
+    my $first = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'timestamp'})->first;
+    return $first->timestamp if $first;
+    return 0;
+}
+
+sub get_last_timestamp {
+    my ($self, $type) = @_;
+    my $last = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'timestamp desc'})->first;
+    return $last->timestamp if $last;
+    return 0;
 }
 
 sub get_spreadsheet {
