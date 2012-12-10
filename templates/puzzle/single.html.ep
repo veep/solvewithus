@@ -83,7 +83,7 @@
           <li><%= $current->display_name %></li>
         </ul>
 <span data-toggle="collapse" data-target="#open_puzzles">
-  <i class="icon-chevron-right"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
+  <i class="icon-chevron-right chat-open-close"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
 </span>
 <div id="open_puzzles" class="collapse">
 %= include 'puzzle/tree_ul', tree => $tree, current_id => $current->id
