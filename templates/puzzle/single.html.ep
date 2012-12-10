@@ -25,14 +25,17 @@
    height: 300px;
 }
 
-.chat-name {
-  padding: 3px;
-  background-color: #DDDD00;
+.chat-header {
+   margin-bottom: 2px;
 }
 
-.chat-name-current {
-  padding: 3px;
-  background-color: #DDAA55;
+.chat-header .navbar-inner  {
+   padding-left: 2px;
+}
+
+.chat-header .nav > li > a   {
+  padding-left: 2px;
+  padding-right: 5px;
 }
 
 .controls {
@@ -48,15 +51,37 @@
 }
 
 % end
+
+<div class="modal hide" id="closeModal" tabindex="-1" role="dialog" aria-labelledby="closeModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="closeModalLabel">Close this puzzle?</h3>
+  </div>
+  <div class="modal-body">
+    <form id="closeForm" class="ModalForm form-inline" action="/puzzle/modal" method="GET">
+      <input type="text" name="solution" placeholder="Puzzle answer">
+      <button class="btn btn-primary">Mark Solved!</button>
+      <input type="hidden" name="formname" value="Close Puzzle">
+      <input type="hidden" name="puzzleid" value="<%= $current->id %>">
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Never Mind</button>
+    <button class="btn submit-modal">Just Delete</button>
+  </div>
+</div>
+
+
 <div class="container-fluid">
   <div class="row-fluid">
     <div id="everything" class="span3">
       <!--Sidebar content-->
-      <div class="well status-tree" id="master-status-<%= $event->id %>-<%= $current->id %>"> <!-- " -->
-        <P><B>
-<%= link_to 'Solvewith.us' => '/' %> /
-%= link_to $event->display_name => event => { id => $event->id}
-</B></P>
+      <div class="status-tree" id="master-status-<%= $event->id %>-<%= $current->id %>"> <!-- " -->
+        <ul class="breadcrumb">
+          <li><%= link_to $event->team->display_name => '/' %> <span class="divider">/</span></li>
+          <li><%= link_to $event->display_name => event => { id => $event->id} %> <span class="divider">/</span></li>
+          <li><%= $current->display_name %></li>
+        </ul>
 <span data-toggle="collapse" data-target="#open_puzzles">
   <i class="icon-chevron-right"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
 </span>
@@ -65,8 +90,17 @@
 </div>       <!-- open_puzzles -->
       </div> <!-- Master status -->
       <div id="chat-box" >
-        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>">
-          <i class="icon-chevron-down"></i> <%= $event->display_name %>
+        <div class="navbar chat-header">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li><a data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>" href="#" 
+                     onclick="return false;">
+                  <i class="chat-open-close icon-chevron-down"></i> 
+                  <%= $event->display_name %>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
         <div id="full-chat-event-<%= $event->id %>" class="collapse in">
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
@@ -79,16 +113,31 @@
             </div>
           </div>
         </div>
-        <div class="chat-name-current" data-toggle="collapse" data-target="#full-chat-puzzle-<%= $current->id %>">
-          <i class="icon-chevron-down"></i> <span class="puzzle-name"><%= $current->display_name %></span>
-          <div class="btn-group" style="float:right;">
-            <a class="btn btn-mini dropdown-toggle" data-toggle="dropdown" href="#"><span class="caret"></span> Actions</A>
-            <ul class="dropdown-menu">
-              <li>Add info</li>
-              <li>Close Puzzle - Solved</li>
-              <li>Close Puzzle - Dead</li>
+        <div class="navbar chat-header">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li>
+                <a data-toggle="collapse" data-target="#full-chat-puzzle-<%= $current->id %>" href="#" 
+                   onclick="return false;">
+                  <i class="chat-open-close icon-chevron-down">
+                  </i>
+                  <%= $current->display_name %>
+                </a>
+              </li>
             </ul>
-          </div> <!-- btn-group -->
+            <ul class="nav pull-right" style="margin-right: -20px;">
+              <li>
+                <a href="#infoModal" onclick="return false;" data-toggle="modal">
+                  <i class="icon-th-list"></i>
+                </a>
+              </li>
+              <li>
+                <a href="#" onclick="$('#closeModal').modal();return false;">
+                  <i class="icon-remove"></i>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
         <div id="full-chat-puzzle-<%= $current->id %>" class="collapse in">
           <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
@@ -106,3 +155,6 @@
     </div>
   </div>
 </div>
+
+
+

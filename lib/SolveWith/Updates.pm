@@ -26,7 +26,7 @@ sub getnew {
     };
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
-    my @types = qw/created chat spreadsheet url aha note/;
+    my @types = qw/created chat spreadsheet url aha note puzzle state solution/;
     my $messages_rs = $chat->search_related('messages',
 #    my $messages_rs = $self->db->resultset('Message')->search(
                                             { type => \@types, 

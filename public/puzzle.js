@@ -34,17 +34,47 @@ $(document).ready(
         $(window).resize(function() {
             resize_chat_box($("#chat-box"));
         });
-        $('[class*="collapse"]').on('shown hidden', function (event) {
-            if (event.type == 'hidden') {
-                $(this).prev().children("i").addClass("icon-chevron-right").removeClass("icon-chevron-down");
+        $('[class*="collapse"]').on('show hide', function (event) {
+            if (event.type == 'hidden' || event.type == 'hide') {
+                $(this).prev().find(".chat-open-close").addClass("icon-chevron-right").removeClass("icon-chevron-down");
             } else {
-                $(this).prev().children("i").addClass("icon-chevron-down").removeClass("icon-chevron-right");
+                $(this).prev().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right");
             }
             resize_chat_box($("#chat-box"));
         });
         resize_chat_box($("#chat-box"));
         $('.dropdown-toggle').dropdown();
 
+
+        $('.submit-modal').click(function () {
+            var form_data = {};
+            form_data["action"] = $(this).text();
+            $(this).parent().siblings(".modal-body").children("form").children().each(function() {
+                form_data[$(this).attr("name")] = $(this).val();
+            });
+            $.post
+            (
+                '/puzzle/modal',
+                form_data
+            );
+            $(this).parent().parent().modal('hide');
+        });
+        
+        $('.ModalForm').submit(function(event) {
+            console.warn('modal form');
+            event.preventDefault();
+            var form_data = {};
+            form_data["action"] = 'Submit';
+            $(this).children().each(function() {
+                form_data[$(this).attr("name")] = $(this).val();
+            });
+            $.post
+            (
+                '/puzzle/modal', 
+                form_data
+            );
+            $(this).parent().parent().modal('hide');
+        });
     }
 );
 
@@ -169,7 +199,13 @@ function render_msg (type, text, ts, author, div_id) {
         result = ds + '<B>' + author + '</B>: ' + $('<div/>').text(text).html();
     }
     if (type === 'puzzle') {
-        result = '<B>' + name + '</B>: ' + text;
+        result = ds + text;
+    }
+    if (type === 'state' && text === 'closed') {
+        result = ds + '<B>Puzzle Closed</B>';
+    }
+    if (type === 'solution') {
+        result = ds + '<B>Solution</B>: ' + $('<div/>').text(text).html();
     }
     if (result.length) {
         var mydiv = $("#" + div_id);

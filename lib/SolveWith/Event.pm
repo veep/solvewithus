@@ -158,7 +158,7 @@ sub modal {
                     state => 'open',
                 });
                 if ($puzzle) {
-                    $round->add_to_puzzles( $puzzle );
+                    $round->add_puzzle( $puzzle );
                     $self->render(text => 'OK', status => 200);
                     $puzzle->spreadsheet;
                     return;

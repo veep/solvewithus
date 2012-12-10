@@ -24,18 +24,24 @@ sub startup {
   $r->route('/thanks')->to(controller => 'login', action => 'thanks');
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/reset')->name('reset')->to(controller => 'login', action => 'reset');
+
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
   $r->route('/event/refresh')->to(controller => 'event', action => 'refresh');
-  $r->route('/event/modal')->name('model')->to(controller => 'event', action => 'modal');
+  $r->route('/event/modal')->to(controller => 'event', action => 'modal');
+
   $r->route('/event/:id', id => qr/\d+/)->name('event')->to(controller => 'event', action => 'single');
   $r->route('/event/status/:id', id => qr/\d+/)->
              name('event_status')->to(controller => 'event', action => 'status');
   $r->route('/event/status/:id/:puzzle_id', id => qr/\d+/, puzzle_id => qr/\d+/)->
              name('event_status')->to(controller => 'event', action => 'status');
+
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
+  $r->route('/puzzle/modal')->to(controller => 'puzzle', action => 'modal');
+
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');
+
   $r->route('/chat')->to(controller => 'updates', action => 'chat');
 
   $r->get('/oauth2callback' => sub {
