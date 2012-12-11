@@ -40,11 +40,13 @@ $(document).ready(
             } else {
                 $(this).prev().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right");
             }
+        });
+        $('[class*="collapse"]').on('shown hidden', function (event) {
             resize_chat_box($("#chat-box"));
         });
+
         resize_chat_box($("#chat-box"));
         $('.dropdown-toggle').dropdown();
-
 
         $('.submit-modal').click(function () {
             var form_data = {};
