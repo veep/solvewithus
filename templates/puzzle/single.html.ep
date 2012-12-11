@@ -128,12 +128,12 @@
             <ul class="nav pull-right" style="margin-right: -20px;">
               <li>
                 <a href="#infoModal" onclick="return false;" data-toggle="modal">
-                  <i class="icon-th-list"></i>
+                  <span class="label label-info">Info</span>
                 </a>
               </li>
               <li>
                 <a href="#" onclick="$('#closeModal').modal();return false;">
-                  <i class="icon-remove"></i>
+                  <span class="label label-success">Close</span>
                 </a>
               </li>
             </ul>
