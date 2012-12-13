@@ -26,6 +26,17 @@ sub getnew {
     };
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
+    my @results;
+    if ($type eq 'puzzle') {
+        my $logged_in_row = $item->find_or_create_related('puzzle_users',{user_id => $self->session->{userid}});
+        $logged_in_row->set_column('timestamp',scalar time);
+        $logged_in_row->update;
+        my @logged_in = $item->search_related('puzzle_users',{timestamp => { '>', (time - 15)}});
+        my @names = sort map {$_->user_id->display_name || $_->user_id->google_name } @logged_in;
+        push @results, {type => 'loggedin', text=> decode('UTF-8', join(", ", @names))};
+
+    }
+
     my @types = qw/created chat spreadsheet url aha note puzzle state solution/;
     my $messages_rs = $chat->search_related('messages',
 #    my $messages_rs = $self->db->resultset('Message')->search(
@@ -33,7 +44,6 @@ sub getnew {
                                               id => { '>', $last_update}
                                           },
                                             {order_by => 'id'});
-    my @results;
     while (my $message = $messages_rs->next) {
         my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
         if (my $user = $message->user) {
@@ -128,14 +138,14 @@ sub chat {
         $team = $item->rounds->first->event->team if $item;
     }
     my $chat = $item->chat if $item;
-    unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
-    unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
-    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
+    unless ($item) { $self->render_exception('Bad chat request: no item'); return; }
+    unless ($chat) { $self->render_exception('Bad chat request: no chat'); return; }
+    unless ($team) { $self->render_exception('Bad chat request: no team'); return; }
     my $access = 0;
     eval {
         $access = $team->has_access($self->session->{userid},$self->session->{token});
     };
-    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+    unless ($access) { $self->render_exception('Bad chat request: no access'); return; }
 
     $chat->add_of_type('chat',$text,$self->session->{userid});
     $self->render(text => 'OK', status => 200);

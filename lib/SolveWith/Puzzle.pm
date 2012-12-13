@@ -45,7 +45,7 @@ sub modal {
     my $has_solution = 0; 
     if ($form and $form eq 'Close Puzzle') {
         if ($action eq 'Submit') {
-            $has_solution = defined($solution) and length($solution);
+            $has_solution = (defined($solution) &&  length($solution));
             if ($has_solution) {
                 $puzzle->chat->add_of_type('solution',$solution,$self->session->{userid});
             }

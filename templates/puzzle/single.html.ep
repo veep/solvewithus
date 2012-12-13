@@ -82,6 +82,7 @@
           <li><%= link_to $event->display_name => event => { id => $event->id} %> <span class="divider">/</span></li>
           <li><%= $current->display_name %></li>
         </ul>
+
 <span data-toggle="collapse" data-target="#open_puzzles">
   <i class="icon-chevron-right chat-open-close"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
 </span>
@@ -147,6 +148,8 @@
               <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $current->id %>"></textarea>
             </div>
           </div>
+        </div>
+        <div><span id="usersspan"></span>
         </div>
       </div>
     </div>

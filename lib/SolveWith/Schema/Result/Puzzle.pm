@@ -18,6 +18,8 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many('puzzle_rounds' => 'SolveWith::Schema::Result::PuzzleRound', 'puzzle_id');
 __PACKAGE__->many_to_many('rounds' => 'puzzle_rounds', 'round_id');
+__PACKAGE__->has_many('puzzle_users' => 'SolveWith::Schema::Result::UserPuzzle', 'puzzle_id');
+__PACKAGE__->many_to_many('users' => 'puzzle_users', 'user_id');
 __PACKAGE__->has_one(chat => 'SolveWith::Schema::Result::Chat', { 'foreign.id' => 'self.chat_id'} );
 
 sub new {

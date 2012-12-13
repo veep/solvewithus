@@ -159,6 +159,18 @@ function chat_filler (type, puzzle_id) {
                 function (messages) {
                     $.each(messages,
                            function (index,msg) {
+                               if (type === 'puzzle' && msg.type === 'loggedin') {
+                                   var usersspan = $("#usersspan");
+                                   var oldhtml = usersspan.html();
+                                   var newhtml = '<b>Here:</b> ' + msg.text;
+                                   if (!(oldhtml === newhtml)) {
+                                       usersspan.html(newhtml);
+                                       console.warn(oldhtml);
+                                       console.warn(newhtml);
+                                       resize_chat_box($("#chat-box"));
+                                   }                                       
+                                   return;
+                               }
                                if (type === 'puzzle') { 
                                    if (last_seen.puzzle[puzzle_id] === undefined || 
                                        last_seen.puzzle[puzzle_id] < msg.id) {
