@@ -11,7 +11,7 @@
         <P><a href="<%== url_for('login') %>" class="btn btn-primary btn-large">Connect with your Google account &raquo;</a></p>
       </div>
         <P>In case you're interested, Google will ask for the following permissions:
-          <ul><li>Your account info, so we can show your name to your teammates, and identify you by your unique google id number</li>
+          <ul><li>Your account info, so we can show your name to your teammates, and identify you by your unique Google ID number</li>
           <li>Your Google email address, so we can share docs with you. This works around a bug in Google Docs that would otherwise make you 'Anonymous'</li>
           <li>Your Google Drive metadata, so we can see if you have access to docs we share with your team's Google Group. This is, sadly, the best way to find out if you're in a Google Group.</li>
           </ul>
