@@ -45,12 +45,20 @@ sub getnew {
                                           },
                                             {order_by => 'id'});
     while (my $message = $messages_rs->next) {
-        my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
-        if (my $user = $message->user) {
-            $data->{author} = $user->display_name;
+        if ($message->type eq 'puzzle') {
+            push @results, { timestamp => $message->timestamp,
+                             text => $self->render("chat/puzzle-message", partial => 1, message => $message),
+                             type => 'rendered',
+                             id => $message->id,
+                         };
+        } else {
+            my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
+            if (my $user = $message->user) {
+                $data->{author} = $user->display_name;
+            }
+            $data->{text} = decode('UTF-8', $data->{text});
+            push @results, $data;
         }
-        $data->{text} = decode('UTF-8', $data->{text});
-        push @results, $data;
     }
     $self->render_json(\@results);
 }

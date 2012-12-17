@@ -50,6 +50,10 @@
    border: 0px;
 }
 
+.chat-date-time-string {
+   font-size: 80%;
+   color: #666;
+}
 % end
 
 <div class="modal hide" id="closeModal" tabindex="-1" role="dialog" aria-labelledby="closeModalLabel" aria-hidden="true">

@@ -46,7 +46,6 @@ $(document).ready(
         });
 
         resize_chat_box($("#chat-box"));
-        $('.dropdown-toggle').dropdown();
 
         $('.submit-modal').click(function () {
             var form_data = {};
@@ -192,19 +191,39 @@ function chat_filler (type, puzzle_id) {
                                          );
 
                            });
+                    // There's always one message for 'puzzle' type, the logged in users
+                    if( ( messages.length > 1) || (type != 'puzzle' && messages.length) ) {
+                        var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
+                        mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
+                    }
                 });
 }
 
+var last_daystring = new Object;
                                
 function render_msg (type, text, ts, author, div_id) {
     var result = '';
-    var d = new Date(ts*1000); 
-    var ds = d.getMonth()+1 + '/' + d.getDate() + ' ' +
+    var d = new Date(ts*1000);
+    var daystring = '<span style="background: #CCC">' + d.toDateString() + '</span><br/>' ;
+    var ds = '<span class="chat-date-time-string">' + 
         (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + 
         (d.getMinutes() < 10 ? 0 : '') + d.getMinutes() + ':' + 
-        (d.getSeconds() < 10 ? 0 : '') + d.getSeconds() + ': ';
+        (d.getSeconds() < 10 ? 0 : '') + d.getSeconds() + ': ' +
+        '</span>';
+    if (daystring != last_daystring[div_id]) {
+        ds = daystring + ds;
+        last_daystring[div_id] = daystring;
+    }
     if (type === 'created') {
         result = ds + 'Created';
+    }
+    if (type === 'rendered') {
+        result = ds + text;
+        $('.answer-button').click(function () {
+            var btn = $(this);
+            btn.button('loading');
+            btn.addClass('btn-link').removeClass('btn-success');
+        });
     }
     if (type === 'spreadsheet') {
         result = ds + '<A HREF="' + text + '">Spreadsheet assigned</A>';
@@ -224,7 +243,6 @@ function render_msg (type, text, ts, author, div_id) {
     if (result.length) {
         var mydiv = $("#" + div_id);
         mydiv.append('<br/>' + result );
-        mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
     }
 }
                   
