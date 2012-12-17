@@ -19,6 +19,7 @@ sub single {
   $self->stash( current => $puzzle);
   $self->stash( event => $event);
   $self->stash( tree => $event->get_puzzle_tree());
+  $self->stash( ss_url => $self->url_for('puzzle_ss', id => $id));
 }
 
 sub modal {
@@ -62,6 +63,27 @@ sub modal {
         }
     }
     return $self->render(text => 'There has been a problem.', status => 500);
+}
+
+sub spreadsheet_url {
+    my $self = shift;
+    my $id = $self->stash('id');
+    my $puzzle = $self->db->resultset('Puzzle')->find($id);
+    return $self->redirect_to('about:blank') unless $puzzle;
+    my $access = 0;
+    my $event;
+    eval {
+        $event = $puzzle->rounds->first->event;
+        $access = $event->team->has_access($self->session->{userid},$self->session->{token});
+    };
+    if ($@ or not $access) {
+        return $self->redirect_to('about:blank');
+    }
+    if ($puzzle->spreadsheet) {
+        return $self->redirect_to($puzzle->spreadsheet);
+    }
+    $self->res->headers->add('Refresh', '2; url=' . $self->url_for('puzzle_ss', id => $id));
+    $self->render(text => 'Hang on, Google Spreadsheets take time, like fine wine...');
 }
 
 1;

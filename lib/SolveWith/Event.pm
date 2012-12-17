@@ -160,7 +160,7 @@ sub modal {
                 if ($puzzle) {
                     $round->add_puzzle( $puzzle );
                     $self->render(text => 'OK', status => 200);
-                    $puzzle->spreadsheet;
+                    SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
                     return;
                 }
             }
@@ -188,7 +188,6 @@ sub status {
     my $open_puzzles_html = $self->render('puzzle/tree_ul',
                                           tree => $event->get_puzzle_tree,
                                           current_id => $puzzle_id, partial => 1);
-    warn $open_puzzles_html;
     push @results, {type => 'tree_html', content => $open_puzzles_html };
     $self->render_json(\@results);
 }

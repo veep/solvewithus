@@ -27,7 +27,7 @@
 % }
 </ul>
 %= javascript begin
-    $("#open_status_text").html("(<%= $open_count %> open, newest: <%= ($newest ? timediff($newest) : 'N/A') %>)");
+    $("#open_status_text").html("<B>: <%= $open_count %></B> (Newest: <%= ($newest ? (timediff($newest). ' old') : 'N/A') %>)");
 %end
 
 % sub timediff {

@@ -1,6 +1,7 @@
 package SolveWith::Spreadsheet;
 use strict;
 use Net::Google::DocumentsList;
+use Mojo::Home;
 
 my $debug = 1;
 
@@ -110,6 +111,17 @@ sub round_folder {
         warn "Creating '" . $round->display_name . "' in event\n" if $debug;
     }
     return $round_folder;
+}
+
+sub trigger_puzzle_spreadsheet {
+    my ($c, $puzzle) = @_;
+    my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
+    if ($c) {
+        $c->app->log->info("Starting SS for " . $puzzle->id . ' from ' . $rootdir);
+    } else {
+        warn ("Starting SS for " . $puzzle->id . ' from ' . $rootdir);
+    }
+    system("$rootdir/script/give-puzzle-ss " . $puzzle->id . "&");
 }
 
 sub puzzle_spreadsheet {

@@ -1,0 +1,54 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+use SolveWith::Spreadsheet;
+use Mail::SendEasy;
+use Fcntl qw(:flock);
+
+my $puzzle_id = shift;
+
+my $lock = $FindBin::Bin . '/give-puzzle-ss.lock';
+my $lock_fh;
+open ($lock_fh, ">>", $lock) || die "Can't open $lock";
+if (! flock($lock_fh, (LOCK_EX|LOCK_NB) )) {
+    warn "$$ Can't lock $lock\n";
+    exit 0;
+}
+warn "$$ Got lock\n";
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle found";
+
+my $url = $puzzle->spreadsheet;
+if ($url) {
+    print "$$ puzzle $puzzle_id has SS already\n";
+    exit 0;
+} else {
+    eval {
+        $url = SolveWith::Spreadsheet::puzzle_spreadsheet($puzzle);
+    };
+}
+
+if ($url) {
+    if (not $puzzle->spreadsheet) {
+        $puzzle->spreadsheet($url);
+    }
+} else {
+    my $mail = new Mail::SendEasy( smtp => 'localhost' );
+    my $status = $mail->send(
+        from    => '***REMOVED***' ,
+        from_title => 'Solvewith.us Spreadsheet Creation Script' ,
+        to      => 'ecp@prestemon.com' ,
+        subject => $puzzle->display_name . " SS creation failed" ,
+        msg     => "I could not create the SS for puzzle id $puzzle_id" ,
+    ) ;
+    print "$$ Email status: $status\n";
+    exit 1;
+}
+print "$$ $url\n";
+exit 0;
+
+

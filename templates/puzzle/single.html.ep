@@ -154,7 +154,7 @@
       </div>
     </div>
     <div class="span9" id="spreadsheet-div">
-      <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet %>">
+      <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet // $ss_url %>">
     </div>
   </div>
 </div>

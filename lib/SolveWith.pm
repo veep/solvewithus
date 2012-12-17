@@ -37,6 +37,7 @@ sub startup {
              name('event_status')->to(controller => 'event', action => 'status');
 
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
+  $r->route('/puzzle/ss/:id', id => qr/\d+/)->name('puzzle_ss')->to(controller => 'puzzle', action => 'spreadsheet_url');
   $r->route('/puzzle/modal')->to(controller => 'puzzle', action => 'modal');
 
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])

@@ -36,14 +36,8 @@ sub spreadsheet {
         return $self->chat->set_spreadsheet($url);
     }
     $url = $self->chat->get_spreadsheet;
-    return $url if $url;
-
-    eval {
-        $url = SolveWith::Spreadsheet::puzzle_spreadsheet($self);
-    };
-    warn $@ if $@;
-    if ($url) {
-        $self->chat->set_spreadsheet( $url );
+    if (! defined($url)) {
+        SolveWith::Spreadsheet::trigger_puzzle_spreadsheet(undef,$self);
     }
     return $url;
 }
