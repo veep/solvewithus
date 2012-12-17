@@ -53,6 +53,9 @@ sub getnew {
                          };
         } else {
             my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
+            if ($data->{type} eq 'chat') {
+                $data->{text} = $self->render("chat/chat-text", partial => 1, string => $data->{text});
+            }
             if (my $user = $message->user) {
                 $data->{author} = $user->display_name;
             }

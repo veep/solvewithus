@@ -1,0 +1,6 @@
+% use URI::Find::Schemeless;
+% my $finder = URI::Find::Schemeless->new(
+%             sub { my($uri, $orig_uri) = @_; return qq|<a target="_blank" href="$uri">$orig_uri</a>|; 
+%         });
+% $finder->find( \$string, \&Mojo::Util::html_escape);
+<%== $string %>

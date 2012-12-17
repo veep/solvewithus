@@ -229,7 +229,7 @@ function render_msg (type, text, ts, author, div_id) {
         result = ds + '<A HREF="' + text + '">Spreadsheet assigned</A>';
     }
     if (type === 'chat') {
-        result = ds + '<B>' + author + '</B>: ' + $('<div/>').text(text).html();
+        result = ds + '<B>' + author + '</B>: ' + text;
     }
     if (type === 'puzzle') {
         result = ds + text;
