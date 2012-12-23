@@ -42,9 +42,9 @@ sub modal {
     }
     return $self->render(text => 'There has been a problem.', status => 500) unless $access;
 
-    my $solution = $self->param('solution');
-    my $has_solution = 0; 
     if ($form and $form eq 'Close Puzzle') {
+        my $solution = $self->param('solution');
+        my $has_solution = 0;
         if ($action eq 'Submit') {
             $has_solution = (defined($solution) &&  length($solution));
             if ($has_solution) {
@@ -61,6 +61,18 @@ sub modal {
             $puzzle->update;
             return $self->render(text => 'OK', status => 200);
         }
+    }
+    if ($form and $form eq 'Puzzle Info') {
+        my $url = $self->param('url');
+        if (defined($url) && $url =~ /\S/) {
+            my $url_encoded = $self->render("chat/chat-text", partial => 1, string => $url);
+            warn "$url $url_encoded";
+            my $old_url = $puzzle->chat->get_latest_of_type('puzzleurl');
+            if (!defined($old_url) or $old_url ne $url_encoded) {
+                $puzzle->chat->add_of_type('puzzleurl',$url_encoded,$self->session->{userid});
+            }
+        }
+        return $self->render(text => 'OK', status => 200);
     }
     return $self->render(text => 'There has been a problem.', status => 500);
 }

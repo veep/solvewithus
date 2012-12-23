@@ -37,7 +37,7 @@ sub getnew {
 
     }
 
-    my @types = qw/created chat spreadsheet url aha note puzzle state solution/;
+    my @types = qw/created chat spreadsheet url aha note puzzle puzzleurl state solution/;
     my $messages_rs = $chat->search_related('messages',
 #    my $messages_rs = $self->db->resultset('Message')->search(
                                             { type => \@types, 

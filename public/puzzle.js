@@ -5,7 +5,7 @@ $(document).ready(
                 var pieces = $(this).attr("id").split("-");
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
-                setup_chat_filler(type, puzzle_id);
+                setup_chat_filler(type, puzzle_id, this);
             }
         );
         $(".chat-input").keydown(
@@ -139,8 +139,13 @@ function status_tree (event_id, puzzle_id, parent) {
                });
 }
 
-function setup_chat_filler(type, puzzle_id) {
+function setup_chat_filler(type, puzzle_id, text_div) {
 //    console.log ("setup" + type + ' ' + puzzle_id);
+    $(text_div).parent().on('puzzleurl',function(event, url) {
+        console.warn(url);
+        $(this).children('.chat-status-banner').first()
+            .html('<B>URL</B>: ' + url);
+    });
     chat_filler(type,puzzle_id);
     setInterval(function() {chat_filler(type,puzzle_id);},5000);
 }
@@ -207,8 +212,8 @@ function render_msg (type, text, ts, author, div_id) {
     var daystring = '<span style="background: #CCC">' + d.toDateString() + '</span><br/>' ;
     var ds = '<span class="chat-date-time-string">' + 
         (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + 
-        (d.getMinutes() < 10 ? 0 : '') + d.getMinutes() + ':' + 
-        (d.getSeconds() < 10 ? 0 : '') + d.getSeconds() + ': ' +
+        (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + 
+        (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ': ' +
         '</span>';
     if (daystring != last_daystring[div_id]) {
         ds = daystring + ds;
@@ -235,9 +240,15 @@ function render_msg (type, text, ts, author, div_id) {
     if (type === 'solution') {
         result = ds + '<B>Solution</B>: ' + $('<div/>').text(text).html();
     }
+    if (type === 'puzzleurl') {
+        result = ds + 'Puzzle URL Set: ' + text;
+        var mydiv = $("#" + div_id);
+        mydiv.trigger(jQuery.Event("puzzleurl"),text);
+    }
     if (result.length) {
         var mydiv = $("#" + div_id);
         mydiv.append('<br/>' + result );
+        mydiv.trigger(jQuery.Event("newoutput"),type);
         if (type === 'rendered') {
             $('.answer-button').click(function () {
                 var btn = $(this);

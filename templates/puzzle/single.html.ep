@@ -29,6 +29,12 @@
    margin-bottom: 2px;
 }
 
+.chat-status-banner {
+   background-color: #CCC;
+   padding-left: 2px;
+   overflow: hidden;
+}
+
 .chat-header .navbar-inner  {
    padding-left: 2px;
 }
@@ -76,6 +82,24 @@
 </div>
 
 
+<div class="modal hide" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
+  <div class="modal-header">
+    <h3>Puzzle Information</h3>
+  </div>
+  <div class="modal-body">
+    <form id="infoForm" class="ModalForm form-inline" action="/puzzle/modal" method="GET">
+      <B>URL:</B> <input type="text" name="url" placeholder="Puzzle URL">
+      <input type="hidden" name="formname" value="Puzzle Info">
+      <input type="hidden" name="puzzleid" value="<%= $current->id %>">
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button class="btn" data-dismiss="modal" aria-hidden="true">Never Mind</button>
+    <button class="btn btn-primary submit-modal">Update Info</button>
+  </div>
+</div>
+
+
 <div class="container-fluid">
   <div class="row-fluid">
     <div id="everything" class="span3">
@@ -97,19 +121,21 @@
             </ul>
             <ul class="nav pull-right" style="margin-right: -20px;">
               <li>
-                <a href="#infoModal" onclick="return false;" data-toggle="modal">
-                  <span class="label label-info">Info</span>
-                </a>
+                <button type="button" class="btn btn-link" data-toggle="modal" data-target="#infoModal">
+                  Info
+                </button>
               </li>
               <li>
-                <a href="#" onclick="$('#closeModal').modal();return false;">
-                  <span class="label label-success">Close</span>
-                </a>
+                <button type="button" class="btn btn-link" data-toggle="modal" data-target="#closeModal">
+                  Close
+                </button>
               </li>
             </ul>
           </div>
         </div>
         <div id="full-chat-puzzle-<%= $current->id %>" class="collapse in">
+          <div class="chat-status-banner">
+          </div>
           <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
           </div>
           <div class="control-group">
