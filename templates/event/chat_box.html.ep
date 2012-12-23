@@ -1,0 +1,23 @@
+        <div class="navbar chat-header">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li><a data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>" href="#" 
+                     onclick="return false;">
+                  <i class="chat-open-close icon-chevron-down"></i> 
+                  <%= $event->display_name %>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div id="full-chat-event-<%= $event->id %>" class="collapse in">
+          <div id="chat-text-event-<%= $event->id %>" class="chat-text">
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <div>
+                <textarea class="chat-input" rows="2" id="textarea-event-<%= $event->id %>"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
