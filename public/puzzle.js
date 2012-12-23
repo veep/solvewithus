@@ -144,7 +144,7 @@ function setup_chat_filler(type, puzzle_id, text_div) {
     $(text_div).parent().on('puzzleurl',function(event, url) {
         console.warn(url);
         $(this).children('.chat-status-banner').first()
-            .html('<B>URL</B>: ' + url);
+            .html('<B>URL</B>:&nbsp;' + url);
     });
     chat_filler(type,puzzle_id);
     setInterval(function() {chat_filler(type,puzzle_id);},5000);
