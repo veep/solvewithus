@@ -113,8 +113,11 @@
               <li>
                 <a data-toggle="collapse" data-target="#full-chat-puzzle-<%= $current->id %>" href="#" 
                    onclick="return false;">
-                  <i class="chat-open-close icon-chevron-down">
-                  </i>
+                  <span class="chat-collapse-indicator">
+                    <i class="chat-open-close icon-chevron-down">
+                    </i>
+                    <span class="badge chat-unread-count"></span>
+                  </span>
                   <%= $current->display_name %>
                 </a>
               </li>

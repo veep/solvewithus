@@ -38,7 +38,8 @@ $(document).ready(
             if (event.type == 'hidden' || event.type == 'hide') {
                 $(this).prev().find(".chat-open-close").addClass("icon-chevron-right").removeClass("icon-chevron-down");
             } else {
-                $(this).prev().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right");
+                $(this).prev().find(".chat-unread-count").html('');
+                $(this).prev().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right").show();
             }
         });
         $('[class*="collapse"]').on('shown hidden', function (event) {
@@ -140,11 +141,23 @@ function status_tree (event_id, puzzle_id, parent) {
 }
 
 function setup_chat_filler(type, puzzle_id, text_div) {
-//    console.log ("setup" + type + ' ' + puzzle_id);
     $(text_div).parent().on('puzzleurl',function(event, url) {
-        console.warn(url);
         $(this).children('.chat-status-banner').first()
             .html('<B>URL</B>:&nbsp;' + url);
+    });
+    $(text_div).parent().on('newoutput',function(event, type) {
+        console.warn('triggered: ' + type);
+        $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
+            console.warn ('handler');
+            $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
+                console.warn ('inner handler');
+                if (parseInt($(span).text())) {
+                    $(span).text(parseInt($(span).text()) + 1);
+                } else {
+                    $(span).text('1');
+                }
+            });
+        });
     });
     chat_filler(type,puzzle_id);
     setInterval(function() {chat_filler(type,puzzle_id);},5000);
@@ -169,8 +182,6 @@ function chat_filler (type, puzzle_id) {
                                    var newhtml = '<b>Here:</b> ' + msg.text;
                                    if (!(oldhtml === newhtml)) {
                                        usersspan.html(newhtml);
-                                       console.warn(oldhtml);
-                                       console.warn(newhtml);
                                        resize_chat_box($("#chat-box"));
                                    }                                       
                                    return;
