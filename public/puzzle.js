@@ -219,11 +219,6 @@ function render_msg (type, text, ts, author, div_id) {
     }
     if (type === 'rendered') {
         result = ds + text;
-        $('.answer-button').click(function () {
-            var btn = $(this);
-            btn.button('loading');
-            btn.addClass('btn-link').removeClass('btn-success');
-        });
     }
     if (type === 'spreadsheet') {
         result = ds + '<A HREF="' + text + '">Spreadsheet assigned</A>';
@@ -243,6 +238,13 @@ function render_msg (type, text, ts, author, div_id) {
     if (result.length) {
         var mydiv = $("#" + div_id);
         mydiv.append('<br/>' + result );
+        if (type === 'rendered') {
+            $('.answer-button').click(function () {
+                var btn = $(this);
+                btn.button('loading');
+                btn.addClass('btn-link').removeClass('btn-success');
+            });
+        }
     }
 }
                   
