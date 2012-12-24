@@ -6,6 +6,7 @@
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.js'
 %= javascript '/bootstrap/js/bootstrap.js?v4'
+<link rel="icon" type="image/png" href="/brain64.png" />
 </head>
   <body><%= content %></body>
 </html>
