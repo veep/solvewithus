@@ -43,6 +43,9 @@ sub startup {
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');
 
+  $r->route('/stream/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
+      ->name('stream')->to(controller => 'updates', action => 'getstream');
+
   $r->route('/chat')->to(controller => 'updates', action => 'chat');
 
   $r->get('/oauth2callback' => sub {

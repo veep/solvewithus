@@ -19,7 +19,7 @@ $(document).ready(
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
                 $.post('/chat', { text: text, type: type, id: puzzle_id });
-                chat_filler(type,puzzle_id);
+//                chat_filler(type,puzzle_id);
                 return false;
             }
         );
@@ -140,17 +140,18 @@ function status_tree (event_id, puzzle_id, parent) {
                });
 }
 
+var event_source = new Object();
 function setup_chat_filler(type, puzzle_id, text_div) {
     $(text_div).parent().on('puzzleurl',function(event, url) {
         $(this).children('.chat-status-banner').first()
             .html('<B>URL</B>:&nbsp;' + url);
     });
     $(text_div).parent().on('newoutput',function(event, type) {
-        console.warn('triggered: ' + type);
+//        console.warn('triggered: ' + type);
         $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
-            console.warn ('handler');
+//            console.warn ('handler');
             $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
-                console.warn ('inner handler');
+//                console.warn ('inner handler');
                 if (parseInt($(span).text())) {
                     $(span).text(parseInt($(span).text()) + 1);
                 } else {
@@ -159,8 +160,61 @@ function setup_chat_filler(type, puzzle_id, text_div) {
             });
         });
     });
-    chat_filler(type,puzzle_id);
-    setInterval(function() {chat_filler(type,puzzle_id);},5000);
+//    chat_filler(type,puzzle_id);
+//    setInterval(function() {chat_filler(type,puzzle_id);},5000);
+    var last_seen_id = 0;
+    if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
+        last_seen_id = last_seen.puzzle[puzzle_id];
+    }
+    if (type === 'event' && last_seen.event[puzzle_id] > 0) {
+        last_seen_id = last_seen.event[puzzle_id];
+    }
+    event_source[ type + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,last_seen_id).join('/'));
+
+//    console.warn(event_source);
+    
+    // Incoming messages
+    event_source[ type + puzzle_id].onmessage = function(event) {
+        var msg = jQuery.parseJSON(event.data);
+        var last_seen_id = 0;
+        if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
+            last_seen_id = last_seen.puzzle[puzzle_id];
+        }
+        if (type === 'event' && last_seen.event[puzzle_id] > 0) {
+            last_seen_id = last_seen.event[puzzle_id];
+        }
+        if (type === 'puzzle' && msg.type === 'loggedin') {
+            var usersspan = $("#usersspan");
+            var oldhtml = usersspan.html();
+            var newhtml = '<b>Here:</b> ' + msg.text;
+            if (!(oldhtml === newhtml)) {
+                usersspan.html(newhtml);
+                resize_chat_box($("#chat-box"));
+            }                                       
+            return;
+        }
+        if (type === 'puzzle') { 
+            if (last_seen.puzzle[puzzle_id] === undefined || 
+                last_seen.puzzle[puzzle_id] < msg.id) {
+                last_seen.puzzle[puzzle_id] = msg.id;
+            } else {
+                return;
+            }
+        }
+        if (type === 'event') {
+            if (last_seen.event[puzzle_id] === undefined ||
+                last_seen.event[puzzle_id] < msg.id) {
+                last_seen.event[puzzle_id] = msg.id;
+            } else {
+                return;
+            }
+        }
+        render_msg(msg.type, msg.text, msg.timestamp, ( msg.author ? msg.author : ''),
+                   ['chat','text',type,puzzle_id].join('-') );
+        var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
+        mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
+    };
+
 }
 
 function chat_filler (type, puzzle_id) {
