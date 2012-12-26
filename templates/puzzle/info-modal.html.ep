@@ -70,8 +70,8 @@
     </label>
   </td>
 % if ($status_msg) {
-    <td><small><span style="white-space: nowrap;"><%= ( $latest_url->user_id ? $latest_url->user->display_name : 'someone' ) %></span></small></td> 
-    <td><small><span class="info-modal-timestamp" value="<%= $latest_url->timestamp %>"></span>
+    <td><small><span style="white-space: nowrap;"><%= ( $status_msg->user_id ? $status_msg->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $status_msg->timestamp %>"></span>
       </small>
     </td>
 % } else {
