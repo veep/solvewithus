@@ -2,7 +2,7 @@
 <input type="hidden" name="formname" value="Puzzle Info">
 <input type="hidden" name="puzzleid" value="<%= $current->id %>">
 <table class="table" style="margin: 0px;">
-  <tr><th>Type</th><th>Value</th><th>By</th><th>When</th><th>Actions</th></tr>
+  <thead><tr><th>Type</th><th>Value</th><th>By</th><th>When</th><th>Actions</th></tr></thead>
 % if ($latest_url) {
   <tr class="info"><td><B>URL</b></td>
     <td><%== $latest_url->text %></td>
@@ -23,11 +23,12 @@
 % }
 </tr>
 % while (my $message = $messages->next) {
-  <tr>
-    <th>
+  <tr class="<%= ($message->type eq 'solution' ? 'success' : 'info') %>" >
+    <td><b>
       <%= 'Solution' if $message->type eq 'solution' %>
       <%= 'Info' if $message->type eq 'puzzleinfo' %>
-    </th>
+      </b>
+    </td>
     <td><%= $message->text if $message->type eq 'solution' %><%== $message->text if $message->type eq 'puzzleinfo' %></td>
     <td><small><span style="white-space: nowrap;"><%= ( $message->user_id ? $message->user->display_name : 'someone' ) %></span></small></td> 
     <td><small><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span>
@@ -39,18 +40,6 @@
                     >Remove</a></td>
   </tr>
 %}
-<tr>
-  <td><select class="span2" name="newitemtype">
-      <option>Info</option>
-      <option>Solution</option>
-      </select>
-      </b>
-  </td>
-    <td><input class="input-xlarge" type="text" name="newitem" placeholder="Extra Puzzle Info"></td>
-    <td>&nbsp;</td>
-    <td>&nbsp;</td>
-    <td><button class="btn btn-mini">Add</button></td>
-</tr>
 <tr><td><b>Status</b></td>
   <td>
     <label class="radio inline">
@@ -79,6 +68,15 @@
   <td>&nbsp;</td>
 % }
   <td><button class="btn btn-mini">Change</button></td>
+</tr>
+<tr>
+  <td colspan="4"><select class="span2" name="newitemtype">
+      <option>Info</option>
+      <option>Solution</option>
+      </select>
+      </b>
+    <input class="input-xlarge" type="text" name="newitem" placeholder="Extra Puzzle Info"></td>
+    <td><button class="btn btn-mini">Add</button></td>
 </tr>
 </table>
 

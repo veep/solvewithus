@@ -4,7 +4,7 @@
 %= javascript '/chat.js' . '?' . scalar time
 
 <div class="modal hide" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
-  <form id="infoForm" class="modal-form" action="/puzzle/modal" data-remote="true" method="POST">
+  <form id="infoForm" class="modal-form form-inline" action="/puzzle/modal" data-remote="true" method="POST">
     <input type="hidden" name="last-button" value="">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
