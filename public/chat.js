@@ -43,7 +43,6 @@ function resize_chat_box(cb) {
     openchats = cb.children().filter('[class*="in"]').filter('[class*="collapse"]').children('.chat-text');
     var open_count = openchats.length;
     if (open_count == 0) {
-//        console.warn("0 open chats, returning");
         return;
     }
     
@@ -120,6 +119,10 @@ function setup_chat_filler(type, puzzle_id, text_div) {
     // Incoming messages
     event_source[ type + puzzle_id].onmessage = function(event) {
         var msg = jQuery.parseJSON(event.data);
+        if (! msg) {
+            console.warn(event.data);
+            return;
+        }
         var last_seen_id = 0;
         if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
             last_seen_id = last_seen.puzzle[puzzle_id];

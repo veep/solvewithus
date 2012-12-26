@@ -17,7 +17,6 @@
   <div id="open_puzzles" class="collapse">
 %= include 'puzzle/tree_ul', tree => $tree, current_id => ($current ? $current->id : 0 )
   </div>       <!-- open_puzzles -->
-</div> <!-- Master status -->
 
 %= javascript begin
 $(document).ready(
@@ -69,3 +68,4 @@ function status_tree (event_id, puzzle_id, parent) {
 }
 
 %end
+</div> <!-- Master status -->
