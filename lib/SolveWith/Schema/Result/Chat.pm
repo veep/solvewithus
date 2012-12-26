@@ -32,7 +32,7 @@ sub insert {
 sub get_latest_of_type {
     my ($self, $type) = @_;
     my $latest = $self->search_related('messages', {type => $type}, {order_by => 'timestamp desc'})->first;
-    return $latest->text if $latest;
+    return $latest if $latest;
     return;
 }
 
@@ -52,7 +52,9 @@ sub get_last_timestamp {
 
 sub get_spreadsheet {
     my $self = shift;
-    return $self->get_latest_of_type('spreadsheet');
+    my $latest = $self->get_latest_of_type('spreadsheet');
+    return $latest->text if $latest;
+    return;
 }
 
 sub set_spreadsheet {
@@ -62,7 +64,9 @@ sub set_spreadsheet {
 
 sub get_folder {
     my $self = shift;
-    return $self->get_latest_of_type('folder');
+    my $latest = $self->get_latest_of_type('folder');
+    return $latest->text if $latest;
+    return;
 }
 
 sub set_folder {
@@ -73,6 +77,18 @@ sub set_folder {
 sub add_of_type {
     my ($self, $type, $text, $user_id) = @_;
     my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text, 'user_id' => $user_id });
+}
+
+sub remove_message {
+    my ($self, $id, $user_id) = @_;
+    my $msg = $self->find_related('messages' => { 'id' => $id });
+    if (! $msg or $msg->type =~ /^removed_/) {
+        warn "Failed to remove message $id by $user_id";
+        return;
+    }
+    $msg->set_column('type','removed_' . $msg->type);
+    $msg->update;
+    return $self->add_of_type('removal',$id,$user_id);
 }
 
 1;

@@ -35,6 +35,7 @@ sub single {
   }
   $self->stash(catchall => \@catchall_puzzles);
   $self->stash(rounds => \%round_puzzles);
+  $self->stash( tree => $event->get_puzzle_tree());
 }
 
 sub all {

@@ -1,22 +1,27 @@
 <ul>
 % my $open_count = 0;
+% my $all_count = 0;
 % my $newest = 0;
 % for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
 %     my $round_name = $tree_round->{round}->display_name;
 %     my $shifted_ul = 0;
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
-%         if ($puzzle->{state} eq 'open') {
+%         $all_count++;
+%         if ($puzzle->{state} eq 'open' or ! $current_id) {
 %            if (! $shifted_ul and $round_name ne '_catchall' ) {
 <li><B><%= $round_name %></b>
 <ul>
 %                $shifted_ul=1;
 %            }
-%            $open_count++;
+%            $open_count++ if $puzzle->{state} eq 'open';
 %            $newest = $puzzle->{open_time} if $puzzle->{open_time} > $newest;
 %            if ($current_id and $puzzle->{puzzle}->id == $current_id) {
 <li><u><%= $puzzle->{puzzle}->display_name %></u>
-%            } else {
+%            } elsif ($puzzle->{state} eq 'open') {
 <li><%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %>
+%            } else {
+<li class="muted"><span class="label">Closed</span>
+<%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %>
 %            }
 (<%= timediff($puzzle->{open_time}) %>, idle <%= timediff($puzzle->{activity_time}) %>)</li>
 %         }
@@ -27,7 +32,7 @@
 % }
 </ul>
 %= javascript begin
-    $("#open_status_text").html("<B>: <%= $open_count %></B> (Newest: <%= ($newest ? (timediff($newest). ' old') : 'N/A') %>)");
+    $("#open_status_text").html("<B>: <%= $open_count . ($all_count > $open_count ? '/' . $all_count : '') %></B> (Newest: <%= ($newest ? (timediff($newest). ' old') : 'N/A') %>)");
 %end
 
 % sub timediff {

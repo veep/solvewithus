@@ -1,0 +1,67 @@
+html, body, iframe {
+    margin:0; /* remove any margins of the IFrame and the body tag */
+    padding:0;
+    height: 100%; /* set height 100% so that it fills the entire view port*/
+}
+
+.container-fluid, .row-fluid, #spreadsheet-div, #everything { height: 100% }
+
+#spreadsheet-iframe { 
+   width: 100%;
+   display: block;
+   border: 0px;
+}
+
+.chat-text {
+   overflow-y: scroll;
+   overflow-x: hidden;
+   padding: 0px 0px 0px 3px;
+   height: 300px;
+}
+
+.chat-header {
+   margin-bottom: 2px;
+}
+
+.chat-header .navbar-inner  {
+   padding-left: 2px;
+}
+
+.chat-header .nav > li > a   {
+  padding-left: 2px;
+  padding-right: 5px;
+}
+
+.controls {
+    padding: 8px;
+    background-color: #EEEEEE;
+}
+
+.chat-input {
+   width: 100%;
+   padding: 0px;
+   margin: 0px;
+   border: 0px;
+}
+
+.chat-date-time-string {
+   font-size: 80%;
+   color: #666;
+}
+
+.chat-bar-links {
+    margin-right: -15px; 
+    text-align: right; 
+    width: 30%; 
+    overflow: hidden; 
+    white-space: nowrap;
+}
+
+.table input[type="text"],input[type="select"] {
+    margin-bottom: 0px;
+}
+
+.navbar .btn {
+    margin-bottom: 3px;
+    margin-top: 0px;
+}

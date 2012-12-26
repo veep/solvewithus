@@ -1,55 +1,26 @@
 % layout 'default';
 % title $event->display_name;
 %= javascript '/event.js' . '?' . scalar time
+%= javascript '/chat.js' . '?' . scalar time
 
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span3">
-      <div class="row-fluid">
-        <div class="span3">
-          <div class="btn-group">
-            <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
-              Misc
-              <span class="caret"></span>
-            </a>
-            <ul class="dropdown-menu">
-              <li><%= link_to '.' => begin %><i class="icon-arrow-left"></i> Back to event list<% end %></li>
-              <li><a href="#newRoundModal" data-toggle="modal"><i class="icon-folder-close"></i> Add a Round</a></li>
-              <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
-            </ul>
-          </div>
-        </div>
-        <div class="span9">
-          <h2><%= $event->display_name %></h2>
-        </div>
+      <div class="btn-group">
+        <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
+          Misc
+          <span class="caret"></span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><%= link_to '.' => begin %><i class="icon-arrow-left"></i> Back to event list<% end %></li>
+          <li><a href="#newRoundModal" data-toggle="modal"><i class="icon-folder-close"></i> Add a Round</a></li>
+          <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
+        </ul>
       </div>
-      
-      
-      % if ($catchall) {
-      <ul>
-        %   for my $puzzle (@$catchall) {
-        %       next if $puzzle->state eq 'dead';
-        <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
-        %   }
-      </ul>
-      % }
-      
-      % if ($rounds) {
-      <ul>
-        %   for my $round_id (sort {$a <=> $b} keys %$rounds) {
-          <li><B><%= $$rounds{$round_id}{name} %></B></li>
-          <ul>
-            %     for my $puzzle (@{$$rounds{$round_id}{puzzles}}) {
-            %       next if $puzzle->state eq 'dead';
-            <li><A HREF="/puzzle/<%= $puzzle->id %>"><%= $puzzle->display_name %></a></li>
-            %     }
-          </ul>
-          %   }
-      </ul>
-      % }
+%= include 'event/chat_box', event => $event
     </div>
     <div class="span9">
-      <!--Body content-->
+%= include 'event/master_status_box', event => $event, current => undef
     </div>
   </div>
 </div>

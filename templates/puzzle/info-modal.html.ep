@@ -1,0 +1,109 @@
+% use Mojo::Util qw/html_escape/;
+<input type="hidden" name="formname" value="Puzzle Info">
+<input type="hidden" name="puzzleid" value="<%= $current->id %>">
+<table class="table" style="margin: 0px;">
+  <tr><th>Type</th><th>Value</th><th>By</th><th>When</th><th>Actions</th></tr>
+% if ($latest_url) {
+  <tr class="info"><td><B>URL</b></td>
+    <td><%== $latest_url->text %></td>
+    <td><small><span style="white-space: nowrap;"><%= ( $latest_url->user_id ? $latest_url->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $latest_url->timestamp %>"></span>
+      </small>
+    </td>
+    <td><a href="#" class="btn btn-mini"
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_url->id %> }, 
+                         function() {$('#infoModal').modal('hide');});return false;"
+                    >Remove</a></td>
+% } else {
+  <tr><td><b>URL</b></td>
+    <td><input class="input-xlarge" type="text" name="url" placeholder="Puzzle URL"></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td><button class="btn btn-mini">Add</button></td>
+% }
+</tr>
+% while (my $message = $messages->next) {
+  <tr>
+    <th>
+      <%= 'Solution' if $message->type eq 'solution' %>
+      <%= 'Info' if $message->type eq 'puzzleinfo' %>
+    </th>
+    <td><%= $message->text if $message->type eq 'solution' %><%== $message->text if $message->type eq 'puzzleinfo' %></td>
+    <td><small><span style="white-space: nowrap;"><%= ( $message->user_id ? $message->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span>
+      </small>
+    </td>
+    <td><a href="#" class="btn btn-mini"
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $message->id %> }, 
+                         function() {$('#infoModal').modal('hide');});return false;"
+                    >Remove</a></td>
+  </tr>
+%}
+<tr>
+  <td><select class="span2" name="newitemtype">
+      <option>Info</option>
+      <option>Solution</option>
+      </select>
+      </b>
+  </td>
+    <td><input class="input-xlarge" type="text" name="newitem" placeholder="Extra Puzzle Info"></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td><button class="btn btn-mini">Add</button></td>
+</tr>
+<tr><td><b>Status</b></td>
+  <td>
+    <label class="radio inline">
+      <input <%= 'checked' if ! $status_msg or $status_msg->text eq 'open' %>
+         type="radio" name="puzzle-status" id="puzzle-status-is-open" value="open">
+      Open
+    </label>
+    <label class="radio inline">
+      <input <%= 'checked' if $status_msg and $status_msg->text eq 'closed' %>
+         type="radio" name="puzzle-status" id="puzzle-status-is-closed" value="closed">
+      Closed
+    </label>
+    <label class="radio inline">
+      <input <%= 'checked' if $status_msg and $status_msg->text eq 'dead' %>
+         type="radio" name="puzzle-status" id="puzzle-status-is-dead" value="dead">
+      Dead
+    </label>
+  </td>
+% if ($status_msg) {
+    <td><small><span style="white-space: nowrap;"><%= ( $latest_url->user_id ? $latest_url->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $latest_url->timestamp %>"></span>
+      </small>
+    </td>
+% } else {
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+% }
+  <td><button class="btn btn-mini">Change</button></td>
+</tr>
+</table>
+
+%= javascript begin
+$('.info-modal-timestamp').each(
+  function() {
+    ts = $(this).attr("value");
+    if (ts > 0) {
+      var d = new Date(ts*1000);
+      result = '<span style="white-space: nowrap;">' + d.toDateString() + '</span> ' +         
+               '<span style="white-space: nowrap;">' +
+               (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + 
+               (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + 
+               (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + '</span>';
+      $(this).html(result);
+    }
+    $(this).removeClass('info-modal-timestamp');
+  });
+
+$('#infoModal').css({
+   width: 'auto',
+   'max-width': '50%',
+   'margin-left': function () {
+      return -($(this).width() / 2);
+   }
+});
+%end
+    

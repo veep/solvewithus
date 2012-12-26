@@ -68,7 +68,9 @@ sub getstream {
                   }
               });
     my $backlog_sent = 0;
-    my @types = qw/created chat spreadsheet url aha note puzzle puzzleurl state solution/;
+    my @types = qw/created chat spreadsheet url aha note puzzle puzzleinfo
+                   puzzleurl removed_puzzleurl removed_puzzleinfo removed_solution
+                   removal state solution/;
     # Subscribe to chat messages for this chat
     # Send chat messages that exist, update my cutoff to highest value
     my $chat;
@@ -78,6 +80,7 @@ sub getstream {
         $chat = $self->db->resultset('Puzzle')->find($id)->chat;
     }
 
+    my $last_update_time = 0;
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => sub {
             my $messages_rs = $chat->search_related('messages',
@@ -93,6 +96,32 @@ sub getstream {
                                      type => 'rendered',
                                      id => $message->id,
                                  };
+                } elsif ($message->type eq 'removal') {
+                    warn "ok";
+                    my $removed_message = $self->db->resultset('Message')->find($message->text);
+                    warn $removed_message;
+                    if (! $removed_message or
+                        $removed_message->chat->id ne $message->chat->id) {
+                        next;
+                    }
+                    if ($removed_message->type eq 'removed_puzzleurl') {
+                        my $latest_url_text = undef;
+                        my $latest_url = $chat->get_latest_of_type('puzzleurl');
+                        if ($latest_url) {
+                            $latest_url_text = $latest_url->text;
+                        }
+                        $output_hash = { timestamp => $message->timestamp,
+                                         type => 'puzzleurl_removal',
+                                         text => [ $removed_message->text, $latest_url_text ],
+                                         id => $message->id,
+                                     };
+                    } elsif ($removed_message->type eq 'removed_solution') {
+                        $output_hash = { timestamp => $message->timestamp,
+                                         type => 'solution_removal',
+                                         text => $removed_message->text,
+                                         id => $message->id,
+                                     };
+                    }
                 } else {
                     $output_hash = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
                     if ($output_hash->{type} eq 'chat') {
@@ -105,142 +134,147 @@ sub getstream {
                     $output_hash->{text} = decode('UTF-8', $output_hash->{text});
                 }
                 $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                $last_update_time = time;
                 $last_update = $message->id;
+            }
+            if (time - $last_update_time > 15) {
+                $last_update_time = time;
+                $self->write( "ping: $last_update_time\n\n");
             }
         }
     );
 };
 
-sub getnew {
-    my $self = shift;
-    my $type = $self->stash('type');
-    my $id = $self->stash('id');
-    my $last_update = $self->stash('last') || 0;
-    my ($item, $team);
+# sub getnew {
+#     my $self = shift;
+#     my $type = $self->stash('type');
+#     my $id = $self->stash('id');
+#     my $last_update = $self->stash('last') || 0;
+#     my ($item, $team);
 
-    if ($type eq 'event') {
-        $item = $self->db->resultset('Event')->find($id);
-        $team = $item->team if $item;
-    } elsif ($type eq 'puzzle') {
-        $item = $self->db->resultset('Puzzle')->find($id);
-        $team = $item->rounds->first->event->team if $item;
-    }
-    my $chat = $item->chat if $item;
-    unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
-    unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
-    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-    my $access = 0;
-    eval {
-        $access = $team->has_access($self->session->{userid},$self->session->{token});
-    };
-    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+#     if ($type eq 'event') {
+#         $item = $self->db->resultset('Event')->find($id);
+#         $team = $item->team if $item;
+#     } elsif ($type eq 'puzzle') {
+#         $item = $self->db->resultset('Puzzle')->find($id);
+#         $team = $item->rounds->first->event->team if $item;
+#     }
+#     my $chat = $item->chat if $item;
+#     unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
+#     unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
+#     unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
+#     my $access = 0;
+#     eval {
+#         $access = $team->has_access($self->session->{userid},$self->session->{token});
+#     };
+#     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
-    my @results;
-    if ($type eq 'puzzle') {
-        my $logged_in_row = $item->find_or_create_related('puzzle_users',{user_id => $self->session->{userid}});
-        $logged_in_row->set_column('timestamp',scalar time);
-        $logged_in_row->update;
-        my @logged_in = $item->search_related('puzzle_users',{timestamp => { '>', (time - 15)}});
-        my @names = sort map {$_->user_id->display_name || $_->user_id->google_name } @logged_in;
-        push @results, {type => 'loggedin', text=> decode('UTF-8', join(", ", @names))};
+#     my @results;
+#     if ($type eq 'puzzle') {
+#         my $logged_in_row = $item->find_or_create_related('puzzle_users',{user_id => $self->session->{userid}});
+#         $logged_in_row->set_column('timestamp',scalar time);
+#         $logged_in_row->update;
+#         my @logged_in = $item->search_related('puzzle_users',{timestamp => { '>', (time - 15)}});
+#         my @names = sort map {$_->user_id->display_name || $_->user_id->google_name } @logged_in;
+#         push @results, {type => 'loggedin', text=> decode('UTF-8', join(", ", @names))};
 
-    }
+#     }
 
-    my @types = qw/created chat spreadsheet url aha note puzzle puzzleurl state solution/;
-    my $messages_rs = $chat->search_related('messages',
-#    my $messages_rs = $self->db->resultset('Message')->search(
-                                            { type => \@types, 
-                                              id => { '>', $last_update}
-                                          },
-                                            {order_by => 'id'});
-    while (my $message = $messages_rs->next) {
-        if ($message->type eq 'puzzle') {
-            push @results, { timestamp => $message->timestamp,
-                             text => $self->render("chat/puzzle-message", partial => 1, message => $message),
-                             type => 'rendered',
-                             id => $message->id,
-                         };
-        } else {
-            my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
-            if ($data->{type} eq 'chat') {
-                $data->{text} = $self->render("chat/chat-text", partial => 1, string => $data->{text});
-            }
-            if (my $user = $message->user) {
-                $data->{author} = $user->display_name;
-            }
-            $data->{text} = decode('UTF-8', $data->{text});
-            push @results, $data;
-        }
-    }
-    $self->render_json(\@results);
-}
+#     my @types = qw/created chat spreadsheet url aha note puzzle puzzleurl state solution/;
+#     my $messages_rs = $chat->search_related('messages',
+# #    my $messages_rs = $self->db->resultset('Message')->search(
+#                                             { type => \@types, 
+#                                               id => { '>', $last_update}
+#                                           },
+#                                             {order_by => 'id'});
+#     while (my $message = $messages_rs->next) {
+#         if ($message->type eq 'puzzle') {
+#             push @results, { timestamp => $message->timestamp,
+#                              text => $self->render("chat/puzzle-message", partial => 1, message => $message),
+#                              type => 'rendered',
+#                              id => $message->id,
+#                          };
+#         } else {
+#             my $data = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
+#             if ($data->{type} eq 'chat') {
+#                 $data->{text} = $self->render("chat/chat-text", partial => 1, string => $data->{text});
+#             }
+#             if (my $user = $message->user) {
+#                 $data->{author} = $user->display_name;
+#             }
+#             $data->{text} = decode('UTF-8', $data->{text});
+#             push @results, $data;
+#         }
+#     }
+#     $self->render_json(\@results);
+# }
 
 
-sub event {
-    my $self = shift;
-    my $type = $self->stash('type');
-    my $id = $self->stash('id');
-    my $last_update = $self->stash('last') || 0;
-    my ($item, $team, $chat, @results);
+# sub event {
+#     my $self = shift;
+#     my $type = $self->stash('type');
+#     my $id = $self->stash('id');
+#     my $last_update = $self->stash('last') || 0;
+#     my ($item, $team, $chat, @results);
 
-    $item = $self->db->resultset('Event')->find($id);
-    unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
-    $chat = $item->chat;
-    unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
-    $team = $item->team;
-    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-    my $access = 0;
-    eval {
-        $access = $team->has_access($self->session->{userid},$self->session->{token});
-    };
-    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+#     $item = $self->db->resultset('Event')->find($id);
+#     unless ($item) { $self->render_exception('Bad updates request: no item'); return; }
+#     $chat = $item->chat;
+#     unless ($chat) { $self->render_exception('Bad updates request: no chat'); return; }
+#     $team = $item->team;
+#     unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
+#     my $access = 0;
+#     eval {
+#         $access = $team->has_access($self->session->{userid},$self->session->{token});
+#     };
+#     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
-    # Two cursors, event->chat->message > last order by id
-    #              event->(puzzles)->chat->message > last order by id
-    # feed out the results of both cursors, intermingled in order by message id (i.e. chronological order)
+#     # Two cursors, event->chat->message > last order by id
+#     #              event->(puzzles)->chat->message > last order by id
+#     # feed out the results of both cursors, intermingled in order by message id (i.e. chronological order)
 
-    my $event_messages_rs = $chat->search_related('messages',
-                                                  {
-#                                                      type => \@types,
-                                                      id => { '>', $last_update}
-                                                  },
-                                                  {order_by => 'id'});
-    my $puzzle_messages_rs = $self->db->resultset('Message')->search(
-        { 
-            'me.id' => { '>', $last_update },
-            'round_id.id' => $id,
-        },
-        {
-            join => {
-                'chat' => { 'puzzle' => { 'puzzle_rounds' => 'round_id' }}
-            },
-            order_by => 'me.id',
-        }
-    );
+#     my $event_messages_rs = $chat->search_related('messages',
+#                                                   {
+# #                                                      type => \@types,
+#                                                       id => { '>', $last_update}
+#                                                   },
+#                                                   {order_by => 'id'});
+#     my $puzzle_messages_rs = $self->db->resultset('Message')->search(
+#         { 
+#             'me.id' => { '>', $last_update },
+#             'round_id.id' => $id,
+#         },
+#         {
+#             join => {
+#                 'chat' => { 'puzzle' => { 'puzzle_rounds' => 'round_id' }}
+#             },
+#             order_by => 'me.id',
+#         }
+#     );
     
-    my $pmessage = $puzzle_messages_rs->next;
-    my $emessage = $event_messages_rs->next;
-    while ($pmessage || $emessage) {
-        my $data;
-        if (!$emessage or ($pmessage and $pmessage->id < $emessage->id)) {
-            $data = { map { ($_ => $pmessage->$_)} qw/type id text timestamp user/ };
-            $data->{parent} = ['puzzle', $pmessage->chat->puzzle->id];
-            $pmessage = $puzzle_messages_rs->next;
-        } else {
-            $data = { map { ($_ => $emessage->$_)} qw/type id text timestamp user/ };
-            $data->{parent} = ['event',$id];
-            $emessage = $event_messages_rs->next;
-        }
-        next unless $data;
-        if (my $user = $data->{user}) {
-            $data->{author} = $user->display_name;
-        }
-        delete $data->{user};
-        $data->{text} = decode('UTF-8', $data->{text});
-        push @results, $data;
-    }
-    $self->render_json(\@results);
-}
+#     my $pmessage = $puzzle_messages_rs->next;
+#     my $emessage = $event_messages_rs->next;
+#     while ($pmessage || $emessage) {
+#         my $data;
+#         if (!$emessage or ($pmessage and $pmessage->id < $emessage->id)) {
+#             $data = { map { ($_ => $pmessage->$_)} qw/type id text timestamp user/ };
+#             $data->{parent} = ['puzzle', $pmessage->chat->puzzle->id];
+#             $pmessage = $puzzle_messages_rs->next;
+#         } else {
+#             $data = { map { ($_ => $emessage->$_)} qw/type id text timestamp user/ };
+#             $data->{parent} = ['event',$id];
+#             $emessage = $event_messages_rs->next;
+#         }
+#         next unless $data;
+#         if (my $user = $data->{user}) {
+#             $data->{author} = $user->display_name;
+#         }
+#         delete $data->{user};
+#         $data->{text} = decode('UTF-8', $data->{text});
+#         push @results, $data;
+#     }
+#     $self->render_json(\@results);
+# }
 
 sub chat {
     my $self = shift;
