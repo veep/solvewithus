@@ -7,7 +7,7 @@
         <h1>Welcome to Solvewith.us</h1>
         <P>&nbsp;</P>
         <p>We're in private test while we get everything working smoothly.</P>
-        <p>If you'd like to be notified when we open up the site to users, connect with your Google account and we'll email you with any news (and nothing else, of course).</p>
+        <!-- <p>If you'd like to be notified when we open up the site to users, connect with your Google account and we'll email you with any news (and nothing else, of course).</p> -->
         <P><a href="<%== url_for('login') %>" class="btn btn-primary btn-large">Connect with your Google account &raquo;</a></p>
       </div>
         <P>In case you're interested, Google will ask for the following permissions:
