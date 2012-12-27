@@ -256,18 +256,18 @@ function render_msg (type, text, ts, author, div_id) {
         result = ds + '<B>Puzzle Marked Dead</B>';
     }
     if (type === 'solution') {
-        result = ds + '<span class="label label-success">Solution</span>: ' + $('<div/>').text(text).html();
+        result = ds + '<span class="label label-success">Solution</span> ' + $('<div/>').text(text).html();
     }
     if (type === 'puzzleurl') {
-        result = ds + '<span class="label label-info">URL</span>: ' + text;
+        result = ds + '<span class="label label-info">URL</span> ' + text;
         var mydiv = $("#" + div_id);
         mydiv.trigger(jQuery.Event("puzzleurl"),text);
     }
     if (type === 'puzzleinfo') {
-        result = ds + '<span class="label lable-info">Info</span>: ' + text;
+        result = ds + '<span class="label lable-info">Info</span> ' + text;
     }
     if (type === 'puzzleurl_removal') {
-        result = ds + '<span class="label label-important">URL Removed</span>: ' + text[0];
+        result = ds + '<span class="label label-important">URL Removed</span> ' + text[0];
         var mydiv = $("#" + div_id);
         mydiv.trigger(jQuery.Event("puzzleurl"), text[1]);
     }

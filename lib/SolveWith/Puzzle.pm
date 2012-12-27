@@ -71,6 +71,11 @@ sub modal {
                 $puzzle->chat->add_of_type('puzzleinfo',$encoded,$self->session->{userid});
             } elsif ($newitemtype eq 'Solution') {
                 $puzzle->chat->add_of_type('solution',$newitem,$self->session->{userid});
+                $event->chat->add_of_type('puzzle',join(
+                    '','<B>Puzzle Solved: </B><a href="/puzzle/',
+                $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
+                    ' Solution: ', Mojo::Util::html_escape($newitem)
+                ),$self->session->{userid});
             }
         }
         my $status_msg = $puzzle->chat->get_latest_of_type('state');
