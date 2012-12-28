@@ -39,7 +39,7 @@ $(document).ready(
                 var puzzle_id =  pieces[3];
                 setup_status_tree(event_id, puzzle_id, $(this));
                 if (! puzzle_id) {
-                    $(this).children('.collapse').collapse('show');
+/*                    $(this).children('.collapse').collapse('show'); */
                 }
             }
         );

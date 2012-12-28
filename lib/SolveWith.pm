@@ -15,7 +15,7 @@ sub startup {
   $self->helper(db => sub { $self->app->schema });
   $self->plugin('Config');
   $self->secret("***REMOVED***");
-
+  $self->sessions->default_expiration(3000000);
   # Routes
   my $r = $self->routes;
 
@@ -86,7 +86,6 @@ sub startup {
 
   $self->hook( after_static_dispatch => sub {
                    my $self = shift;
-#                   warn "checking " . $self->req->url->path ;
                    return if $self->req->url->path eq '/oauth2callback';
                    return if $self->res->code;
                    my $onwelcome = $self->req->url->path eq '/welcome';

@@ -5,6 +5,7 @@
 <div class="container">
   <div class="well">
     <h2>Events</h2>
+    <div class="pull-right"><a href="/reset" class="btn">Reset Login</a><br/>(may just return here)</div>
     <P>Events you have access to as <B><%= $user->google_name %></B>:</P>
   </div>
 <ul class="thumbnails">

@@ -17,10 +17,12 @@
           <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
         </ul>
       </div>
+%= include 'event/master_status_box', event => $event, current => undef
+      <div id="chat-box" >
 %= include 'event/chat_box', event => $event
+      </div>
     </div>
     <div class="span9">
-%= include 'event/master_status_box', event => $event, current => undef
     </div>
   </div>
 </div>
