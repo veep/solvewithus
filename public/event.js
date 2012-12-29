@@ -25,5 +25,16 @@ $(document).ready(
                     );
             $(this).parent().parent().modal('hide');
         });
+        $(".event-puzzle-table").each(
+            function(index,self) {
+                setInterval(function(){refresh_puzzles(self)},5000);
+                refresh_puzzles(self);
+            }
+        );
     }
 );
+
+
+function refresh_puzzles(self) {
+    $(self).load("/event/refresh-puzzle-table", {"event-id": $(self).attr("event_id") } )
+};

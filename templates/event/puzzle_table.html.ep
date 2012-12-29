@@ -1,0 +1,53 @@
+<table class="table table-bordered">
+<thead>
+  <tr><th class="lead">Puzzle</th><th class="lead">Solution</th><th class="lead">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
+</thead>
+<tbody>
+% my $open_count = 0;
+% my $all_count = 0;
+% for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+%     my $round_name = $tree_round->{round}->display_name;
+%     my $printed_round = 0;
+%     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
+%         $all_count++;
+%         if (! $printed_round and $round_name ne '_catchall' ) {
+<tr class="info"><td colspan="5"><B><%= $round_name %></b></td></tr>
+%           $printed_round=1;
+%         }
+%         $open_count++ if $puzzle->{state} eq 'open';
+%         if ($puzzle->{state} eq 'open') {
+<tr><td><%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %></td>
+  <td><%= join(', ', (map { $_->text } @{ $puzzle->{puzzle}->chat->get_all_of_type('solution') })) || ' ' %></td>
+  <td><%= join(', ',$puzzle->{puzzle}->users_live)%></td>
+%         } else {
+<tr class="warning muted">
+  <td>
+    <%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } => (class => 'muted')%>  <span class="label pull-right">Closed</span>
+  </td>
+  <td><%= join(', ', (map { $_->text } @{ $puzzle->{puzzle}->chat->get_all_of_type('solution') })) || '---' %></td>
+  <td><%= join(', ',$puzzle->{puzzle}->users_live)%></td>
+%         }
+<td><%= verbose_timediff($puzzle->{open_time}) %></td>
+%         if ($puzzle->{state} eq 'open') {
+<td><%= verbose_timediff($puzzle->{activity_time}, 1) %></td>
+%         } else {
+<td><%= verbose_timediff($puzzle->{puzzle}->chat->get_last_timestamp('state')) %></td>
+% }
+</tr>
+%     }
+% }
+</tbody>
+</table>
+
+% sub verbose_timediff {
+%    my $diff = time-shift;
+%    my $idle = shift;
+%    return ($idle ? ' ' : 'Just Now') if $diff < 30;
+%    my ($num, $unit) = (int(10*$diff/(60*60*24))/10, 'Day');
+%    ($num,$unit) = (int(10*$diff/(60*60))/10, 'Hour') if $diff < 60*60*24;
+%    ($num,$unit) = (int($diff/60),'Minute') if $diff < 60*60;
+%    ($num,$unit) = (int($diff),'Second') if $diff < 60;
+%    $unit .= 's' if $num ne '1';
+%    return "$num $unit Ago" unless $idle;
+%    return "$num $unit";
+% }

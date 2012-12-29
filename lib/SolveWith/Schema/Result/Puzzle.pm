@@ -42,5 +42,11 @@ sub spreadsheet {
     return $url;
 }
 
+sub users_live {
+    my $puzzle = shift;
+    my @logged_in = $puzzle->search_related('puzzle_users',{timestamp => { '>', (time - 15)}});
+    return sort map {$_->user_id->display_name // $_->user_id->google_name // $_->user_id } @logged_in;
+}
+
 1;
 

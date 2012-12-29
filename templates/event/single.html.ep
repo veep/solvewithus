@@ -6,6 +6,12 @@
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span3">
+%= include 'event/master_status_box', event => $event, current => undef
+      <div id="chat-box" >
+%= include 'event/chat_box', event => $event
+      </div>
+    </div>
+    <div class="span9">
       <div class="btn-group">
         <a class="btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
           Misc
@@ -17,12 +23,9 @@
           <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
         </ul>
       </div>
-%= include 'event/master_status_box', event => $event, current => undef
-      <div id="chat-box" >
-%= include 'event/chat_box', event => $event
+      <div class="event-puzzle-table" event_id="<%= $event->id %>">
+        <span class="muted">Loading...</span>
       </div>
-    </div>
-    <div class="span9">
     </div>
   </div>
 </div>

@@ -28,6 +28,7 @@ sub startup {
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
   $r->route('/event/refresh')->to(controller => 'event', action => 'refresh');
+  $r->route('/event/refresh-puzzle-table')->to(controller => 'event', action => 'puzzle_table');
   $r->route('/event/modal')->to(controller => 'event', action => 'modal');
 
   $r->route('/event/:id', id => qr/\d+/)->name('event')->to(controller => 'event', action => 'single');

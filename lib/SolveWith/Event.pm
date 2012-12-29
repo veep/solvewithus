@@ -192,4 +192,24 @@ sub status {
     push @results, {type => 'tree_html', content => $open_puzzles_html };
     $self->render_json(\@results);
 }
+
+sub puzzle_table {
+    my $self = shift;
+    my $event_id = $self->param('event-id');
+    unless ($event_id) { $self->render_exception('Bad updates request: no event_id'); return; }
+    my $event = $self->db->resultset('Event')->find($event_id);
+    unless ($event) { $self->render_exception('Bad updates request: no event'); return; }
+    my $team = $event->team if $event;
+    warn "no team" unless $team;
+    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
+        my $access = 0;
+    eval {
+        $access = $team->has_access($self->session->{userid},$self->session->{token});
+    };
+    warn "no access" unless $access;
+    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+
+    $self->stash(tree => $event->get_puzzle_tree);
+}
+
 1;
