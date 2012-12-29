@@ -79,40 +79,16 @@ last_seen.puzzle = new Array();
 
 var event_source = new Object();
 function setup_chat_filler(type, puzzle_id, text_div) {
-    $(text_div).parent().on('puzzleurl',function(event, url) {
-        if (url) {
-            $('#puzzle-link-default-' + puzzle_id).hide();
-            $('#puzzle-link-' + puzzle_id).html(url);
-        } else {
-            $('#puzzle-link-default-' + puzzle_id).show();
-            $('#puzzle-link-' + puzzle_id).html('');
-        }
-
-    });
-    $(text_div).parent().on('newoutput',function(event, type) {
-//        console.warn('triggered: ' + type);
-        $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
-//            console.warn ('handler');
-            $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
-//                console.warn ('inner handler');
-                if (parseInt($(span).text())) {
-                    $(span).text(parseInt($(span).text()) + 1);
-                } else {
-                    $(span).text('1');
-                }
-            });
-        });
-    });
 //    chat_filler(type,puzzle_id);
 //    setInterval(function() {chat_filler(type,puzzle_id);},5000);
-    var last_seen_id = 0;
-    if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
-        last_seen_id = last_seen.puzzle[puzzle_id];
-    }
-    if (type === 'event' && last_seen.event[puzzle_id] > 0) {
-        last_seen_id = last_seen.event[puzzle_id];
-    }
-    event_source[ type + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,last_seen_id).join('/'));
+    // var last_seen_id = 0;
+    // if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
+    //     last_seen_id = last_seen.puzzle[puzzle_id];
+    // }
+    // if (type === 'event' && last_seen.event[puzzle_id] > 0) {
+    //     last_seen_id = last_seen.event[puzzle_id];
+    // }
+    event_source[ type + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,0).join('/'));
 
 //    console.warn(event_source);
     
@@ -123,13 +99,20 @@ function setup_chat_filler(type, puzzle_id, text_div) {
             console.warn(event.data);
             return;
         }
-        var last_seen_id = 0;
-        if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
-            last_seen_id = last_seen.puzzle[puzzle_id];
+        // var last_seen_id = 0;
+        
+        // if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
+        //     last_seen_id = last_seen.puzzle[puzzle_id];
+        // }
+        // if (type === 'event' && last_seen.event[puzzle_id] > 0) {
+        //     last_seen_id = last_seen.event[puzzle_id];
+        // }
+        if (msg.type === 'done') {
+            var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
+            mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
+            return;
         }
-        if (type === 'event' && last_seen.event[puzzle_id] > 0) {
-            last_seen_id = last_seen.event[puzzle_id];
-        }
+            
         if (type === 'puzzle' && msg.type === 'loggedin') {
             var usersspan = $("#usersspan");
             var oldhtml = usersspan.html();
@@ -158,9 +141,31 @@ function setup_chat_filler(type, puzzle_id, text_div) {
         }
         render_msg(msg.type, msg.text, msg.timestamp, ( msg.author ? msg.author : ''),
                    ['chat','text',type,puzzle_id].join('-') );
-        var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
-        mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
     };
+    $(text_div).parent().on('puzzleurl',function(event, url) {
+        if (url) {
+            $('#puzzle-link-default-' + puzzle_id).hide();
+            $('#puzzle-link-' + puzzle_id).html(url);
+        } else {
+            $('#puzzle-link-default-' + puzzle_id).show();
+            $('#puzzle-link-' + puzzle_id).html('');
+        }
+
+    });
+    $(text_div).parent().on('newoutput',function(event, type) {
+//        console.warn('triggered: ' + type);
+        $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
+//            console.warn ('handler');
+            $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
+//                console.warn ('inner handler');
+                if (parseInt($(span).text())) {
+                    $(span).text(parseInt($(span).text()) + 1);
+                } else {
+                    $(span).text('1');
+                }
+            });
+        });
+    });
 
 }
 

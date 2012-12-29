@@ -88,7 +88,9 @@ sub getstream {
                                                       id => { '>', $last_update}
                                                   },
                                                     {order_by => 'id'});
+            my $sent = 0;
             while (my $message = $messages_rs->next) {
+                $sent = 1;
                 my $output_hash;
                 if ($message->type eq 'puzzle') {
                     $output_hash = { timestamp => $message->timestamp,
@@ -97,9 +99,7 @@ sub getstream {
                                      id => $message->id,
                                  };
                 } elsif ($message->type eq 'removal') {
-                    warn "ok";
                     my $removed_message = $self->db->resultset('Message')->find($message->text);
-                    warn $removed_message;
                     if (! $removed_message or
                         $removed_message->chat->id ne $message->chat->id) {
                         next;
@@ -134,12 +134,18 @@ sub getstream {
                     $output_hash->{text} = decode('UTF-8', $output_hash->{text});
                 }
                 $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+  #              warn ("data: " . $json->encode($output_hash) . "\n\n");
                 $last_update_time = time;
                 $last_update = $message->id;
+            }
+            if ($sent) {
+                $self->write( "data: " . $json->encode({type => 'done'}) . "\n\n");
+ #               warn ( "data: " . $json->encode({type => 'done'}) . "\n\n");
             }
             if (time - $last_update_time > 15) {
                 $last_update_time = time;
                 $self->write( "ping: $last_update_time\n\n");
+#                warn( "ping: $last_update_time\n\n");
             }
         }
     );
