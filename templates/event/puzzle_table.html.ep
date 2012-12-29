@@ -11,7 +11,7 @@
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         $all_count++;
 %         if (! $printed_round and $round_name ne '_catchall' ) {
-<tr class="info"><td colspan="5"><B><%= $round_name %></b></td></tr>
+<tr class="info"><td colspan="5"><B>Round: <%= $round_name %></b></td></tr>
 %           $printed_round=1;
 %         }
 %         $open_count++ if $puzzle->{state} eq 'open';
