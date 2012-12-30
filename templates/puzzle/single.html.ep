@@ -22,7 +22,7 @@
   <div class="row-fluid">
     <div id="everything" class="span3">
       <!--Sidebar content-->
-%= include 'event/master_status_box', event => $event, current => $current
+%= include 'event/master_status_box'
       <div id="chat-box" >
 %= include 'event/chat_box', event => $event
         <div class="navbar chat-header">

@@ -1,0 +1,59 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Schema;
+use SolveWith::Spreadsheet;
+use Mail::SendEasy;
+use Fcntl qw(:flock);
+use App::Daemon qw(daemonize);
+
+my ($type, $obj_id) = @ARGV;
+
+$App::Daemon::logfile    = $FindBin::Bin . "/../log/give-folder.log";
+$App::Daemon::pidfile    = $FindBin::Bin . "/give-folder-$type-$obj_id.pid";
+daemonize();
+
+my $lock = $FindBin::Bin . '/do-google-docs-stuff.lock';
+my $lock_fh;
+open ($lock_fh, ">>", $lock) || die "Can't open $lock";
+my $sleep = 0;
+while (1) {
+    if (flock($lock_fh, (LOCK_EX|LOCK_NB) )) {
+        last;
+    } else {
+        warn "$$ Can't lock $lock for $type $obj_id\n";
+        sleep 1;
+    }
+}
+warn "$$ Got lock for $type $obj_id\n";
+
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $url;
+eval {
+    if ($type eq 'event') {
+        my $event = $schema->resultset('Event')->find($obj_id) || die "No event found: $obj_id";
+        $url = SolveWith::Spreadsheet::event_folder($event);
+    } elsif ($type eq 'round') {
+        my $round = $schema->resultset('Round')->find($obj_id) || die "No round found: $obj_id";
+        $url = SolveWith::Spreadsheet::round_folder($round);
+    }
+};
+
+if (! $url) {
+    my $mail = new Mail::SendEasy( smtp => 'localhost' );
+    my $status = $mail->send(
+        from    => '***REMOVED***' ,
+        from_title => 'Solvewith.us Folder Creation Script' ,
+        to      => 'ecp@prestemon.com' ,
+        subject => "$type $obj_id foldre failed" ,
+        msg     => "I could not create the folder for $type $obj_id\n\n$@" ,
+    ) ;
+    print "$$ Email status: $status\n";
+    exit 1;
+}
+print "$$ " . $url->alternate . "\n";
+exit 0;
+
+

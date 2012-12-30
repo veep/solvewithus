@@ -6,9 +6,9 @@
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span3">
-%= include 'event/master_status_box', event => $event, current => undef
+%= include 'event/header_box'
       <div id="chat-box" >
-%= include 'event/chat_box', event => $event
+%= include 'event/chat_box'
       </div>
     </div>
     <div class="span9">

@@ -121,7 +121,23 @@ sub trigger_puzzle_spreadsheet {
     } else {
         warn ("Starting SS for " . $puzzle->id . ' from ' . $rootdir);
     }
-    system("$rootdir/script/give-puzzle-ss " . $puzzle->id . "&");
+    system("$rootdir/script/give-puzzle-ss " . $puzzle->id );
+}
+
+sub trigger_folder {
+    my ($c, $obj) = @_;
+    my $type = $obj->result_source->name;
+    if ($type ne 'event' and $type ne 'round') {
+        warn "BAD TRIGGER FOLDER TYPE: $type";
+        return;
+    }
+    my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
+    if ($c) {
+        $c->app->log->info("Starting Folder for $type " . $obj->id . ' from ' . $rootdir);
+    } else {
+        warn ("Starting SS for $type " . $obj->id . ' from ' . $rootdir);
+    }
+    system("$rootdir/script/give-folder $type " . $obj->id );
 }
 
 sub puzzle_spreadsheet {

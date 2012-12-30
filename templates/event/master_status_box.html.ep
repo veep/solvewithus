@@ -1,16 +1,9 @@
+%= include 'event/header_box', event => $event, current => $current
 % if ($current) {
 <div class="status-tree" id="master-status-<%= $event->id %>-<%= $current->id %>"> <!-- " -->
 % } else {
 <div class="status-tree" id="master-status-<%= $event->id %>"> <!-- " -->
 % }
-  <ul class="breadcrumb">
-    <li><%= link_to $event->team->display_name => '/' %> <span class="divider">/</span></li>
-    <li><%= link_to $event->display_name => event => { id => $event->id} %>
-% if ($current) {
-     <span class="divider">/</span></li>
-    <li><%= $current->display_name %>
-% }
-  </li></ul>
   <span data-toggle="collapse" data-target="#open_puzzles">
     <i class="icon-chevron-right chat-open-close"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
   </span>

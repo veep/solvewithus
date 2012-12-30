@@ -36,6 +36,7 @@ sub single {
   $self->stash(catchall => \@catchall_puzzles);
   $self->stash(rounds => \%round_puzzles);
   $self->stash( tree => $event->get_puzzle_tree());
+  $self->stash( current => undef);
 }
 
 sub all {
@@ -88,7 +89,7 @@ sub add {
         $event->state('open');
         $self->stash(team => $team);
         $self->render('event/oneteam');
-        SolveWith::Spreadsheet::event_folder($event);
+        SolveWith::Spreadsheet::trigger_folder($self, $event);
         return;
     }
     $self->render(text => 'There has been a problem.', status => 500);
@@ -140,7 +141,7 @@ sub modal {
                 state => 'open',
             });
             $self->render(text => 'OK', status => 200);
-            SolveWith::Spreadsheet::round_folder($round);
+            SolveWith::Spreadsheet::trigger_folder($self, $round);
             return;
         }
         if ($self->param('formname') eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {

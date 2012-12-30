@@ -7,17 +7,27 @@ use SolveWith::Schema;
 use SolveWith::Spreadsheet;
 use Mail::SendEasy;
 use Fcntl qw(:flock);
+use App::Daemon qw(daemonize);
 
 my $puzzle_id = shift;
 
-my $lock = $FindBin::Bin . '/give-puzzle-ss.lock';
+$App::Daemon::logfile    = $FindBin::Bin . "/../log/give-puzzle-ss.log";
+$App::Daemon::pidfile    = $FindBin::Bin . "/give-puzzle-ss-$puzzle_id.pid";
+daemonize();
+
+my $lock = $FindBin::Bin . '/do-google-docs-stuff.lock';
 my $lock_fh;
 open ($lock_fh, ">>", $lock) || die "Can't open $lock";
-if (! flock($lock_fh, (LOCK_EX|LOCK_NB) )) {
-    warn "$$ Can't lock $lock\n";
-    exit 0;
+my $sleep = 1;
+while (1) {
+    if (flock($lock_fh, (LOCK_EX|LOCK_NB) )) {
+        last;
+    } else {
+        warn "$$ Can't lock $lock for puzzle $puzzle_id\n";
+        sleep $sleep;
+    }
 }
-warn "$$ Got lock\n";
+warn "$$ Got lock for puzzle $puzzle_id\n";
 
 my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
 my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle found";
