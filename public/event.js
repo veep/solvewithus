@@ -32,9 +32,25 @@ $(document).ready(
                 refresh_puzzles(self, hide_closed_rows);
             }
         );
+        resize_ept();
+        $(window).resize(function() {
+            resize_ept();
+        });
+
     }
 );
 
+function resize_ept() {
+    var target = $(window).height();
+//    target=target-24;
+    $('.event-puzzle-table').siblings().each(
+        function() {
+            target = target - $(this).outerHeight(true);
+        }
+    );
+
+    $('.event-puzzle-table').height(target);
+}
 
 function refresh_puzzles(self, hide_closed) {
     $(self).load("/event/refresh-puzzle-table", {"event-id": $(self).attr("event_id"), "hide-closed": hide_closed},
