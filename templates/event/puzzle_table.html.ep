@@ -46,7 +46,7 @@
 % sub verbose_timediff {
 %    my $diff = time-shift;
 %    my $idle = shift;
-%    return ($idle ? ' ' : 'Just Now') if $diff < 30;
+%    return ($idle ? 'Active' : 'Just Now') if $diff < 30;
 %    my ($num, $unit) = (int(10*$diff/(60*60*24))/10, 'Day');
 %    ($num,$unit) = (int(10*$diff/(60*60))/10, 'Hour') if $diff < 60*60*24;
 %    ($num,$unit) = (int($diff/60),'Minute') if $diff < 60*60;
