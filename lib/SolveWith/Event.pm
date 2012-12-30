@@ -197,6 +197,7 @@ sub status {
 sub puzzle_table {
     my $self = shift;
     my $event_id = $self->param('event-id');
+    my $hide_closed = $self->param('hide-closed') || 'false';
     unless ($event_id) { $self->render_exception('Bad updates request: no event_id'); return; }
     my $event = $self->db->resultset('Event')->find($event_id);
     unless ($event) { $self->render_exception('Bad updates request: no event'); return; }
@@ -211,6 +212,7 @@ sub puzzle_table {
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
     $self->stash(tree => $event->get_puzzle_tree);
+    $self->stash(hide_closed => $hide_closed);
 }
 
 1;

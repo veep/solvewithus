@@ -1,3 +1,4 @@
+var hide_closed_rows = false;
 $(document).ready(
     function() {
         $('.submit-modal').click(function () {
@@ -27,14 +28,32 @@ $(document).ready(
         });
         $(".event-puzzle-table").each(
             function(index,self) {
-                setInterval(function(){refresh_puzzles(self)},5000);
-                refresh_puzzles(self);
+                setInterval(function(){refresh_puzzles(self, hide_closed_rows)},5000);
+                refresh_puzzles(self, hide_closed_rows);
             }
         );
     }
 );
 
 
-function refresh_puzzles(self) {
-    $(self).load("/event/refresh-puzzle-table", {"event-id": $(self).attr("event_id") } )
+function refresh_puzzles(self, hide_closed) {
+    $(self).load("/event/refresh-puzzle-table", {"event-id": $(self).attr("event_id"), "hide-closed": hide_closed},
+                 function() {
+                     apply_hide_closed_rows();
+                     $("#show-closed-button").click(function(button) {
+                         hide_closed_rows = ! hide_closed_rows;
+                         apply_hide_closed_rows();
+                     });
+                 });
 };
+
+function apply_hide_closed_rows() {
+    if (hide_closed_rows) {
+        $('.closed-row').hide();
+        $("#show-closed-button").html("Show Closed Puzzles");
+    } else {
+        $('.closed-row').show();
+        $("#show-closed-button").html("Hide Closed Puzzles");
+    }
+}
+        

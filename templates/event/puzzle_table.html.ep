@@ -1,6 +1,12 @@
 <table class="table table-bordered table-condensed">
 <thead>
-  <tr><th class="lead">Puzzle</th><th class="lead">Solution</th><th class="lead">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
+  <tr><th class="lead">
+      Puzzle 
+      <button id="show-closed-button" class="pull-right btn btn-mini">
+        
+      </button>
+    </th>
+    <th id="headers" class="lead">Solution</th><th class="lead">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
 </thead>
 <tbody>
 % my $open_count = 0;
@@ -8,7 +14,7 @@
 % for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
 %     my $round_name = $tree_round->{round}->display_name;
 %     if ($round_name ne '_catchall' ) {
-<tr class="info"><td colspan="5"><b>Round: <%= $round_name %></b></td></tr>
+<tr style="color: #333; background-color: #999;"><td colspan="5"><b>Round: <%= $round_name %></b></td></tr>
 %     }
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         $all_count++;
@@ -18,7 +24,7 @@
   <td><%= join(', ', (map { $_->text } @{ $puzzle->{puzzle}->chat->get_all_of_type('solution') })) || ' ' %></td>
   <td><%= join(', ',$puzzle->{puzzle}->users_live)%></td>
 %         } else {
-<tr class="warning muted">
+<tr class="warning muted closed-row" <%== $hide_closed eq 'true' ? 'style="display: none;"' : '' %> >
   <td>
     <%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } => (class => 'muted')%>  <span class="label pull-right">Closed</span>
   </td>
@@ -49,3 +55,4 @@
 %    return "$num $unit Ago" unless $idle;
 %    return "$num $unit";
 % }
+
