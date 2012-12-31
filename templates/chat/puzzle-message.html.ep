@@ -6,7 +6,12 @@
         data-loading-text="<%== $2 %>"
 >Click to show</button>
 % } elsif ($message->text =~ m{New Puzzle:.*(<a href="/puzzle/\d+">.*</a>).*? added to "(.*)"} ) {
-<span class="label label-info">Opened</span> "<%== $1 %>" in "<%== $2 %>" 
+<span class="label label-info">Opened</span> "<%== $1 %>"
+%   if ($2 ne '_catchall') {
+ in "<%== $2 %>"
+%   } else {
+ at the top level.
+%   }
 % } else {
 <%== $message->text %>
 % }
