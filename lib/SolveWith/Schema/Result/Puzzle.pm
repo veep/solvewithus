@@ -59,8 +59,9 @@ sub priority {
     if (defined($pri)) {
         if ($pri ne $cur_pri) {
             $self->chat->add_of_type('priority',$pri,$user_id);
+            return 1;
         }
-        return $pri;
+        return 0;
     }
     return $cur_pri;
 }

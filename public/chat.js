@@ -276,7 +276,7 @@ function render_msg (type, text, ts, author, div_id) {
         mydiv.trigger(jQuery.Event("puzzleurl"),text);
     }
     if (type === 'puzzleinfo') {
-        result = ds + '<span class="label lable-info">Info</span> ' + text;
+        result = ds + '<span class="label label-info">Info</span> ' + text;
     }
     if (type === 'puzzleurl_removal') {
         result = ds + '<span class="label label-important">URL Removed</span> ' + text[0];
@@ -285,6 +285,17 @@ function render_msg (type, text, ts, author, div_id) {
     }
     if (type === 'solution_removal') {
         result = ds + '<span class="label label-important">Solution Removed</span>: ' + $('<div/>').text(text).html();
+    }
+    if (type === 'puzzlejson') {
+        var obj = jQuery.parseJSON(text);
+        if (obj.type === 'priority') {
+            result = ds + '<span class="label label-info">Priority: ' 
+                + $('<div/>').text(obj.text).html().ucfirst()
+                + '</span> on "<a href="/puzzle/' + obj.puzzleid + '">' + obj.puzzle + '</a>"';
+            if (obj.round !== '') {
+                result = result + ' in "' + obj.round + '"'; 
+            }
+        }
     }
     if (result.length) {
         var mydiv = $("#" + div_id);

@@ -1,6 +1,7 @@
 package SolveWith::Puzzle;
 use Mojo::Base 'Mojolicious::Controller';
 use Mojo::DOM;
+use Mojo::JSON;
 
 sub single {
   my $self = shift;
@@ -28,6 +29,7 @@ sub modal {
     my $form = $self->param('formname');
     my $id = $self->param('puzzleid');
     my ($puzzle, $remove_id);
+    my $json = Mojo::JSON->new();
 
     if ($id) {
         $puzzle = $self->db->resultset('Puzzle')->find($id);
@@ -91,7 +93,22 @@ sub modal {
     if ($form and $form eq 'event_puzzle_priority') {
         my $pri = $self->param('priority');
         if ($pri) {
-            $puzzle->priority($pri, $self->session->{userid});
+            my $rv = $puzzle->priority($pri, $self->session->{userid});
+            if ($rv == 1) {
+                my $round_name = '';
+                my $round = $puzzle->rounds->first->display_name;
+                if ($round ne '_catchall') {
+                    $round_name = $round;
+                }
+                $event->chat->add_of_type('puzzlejson',
+                                          $json->encode({ type => 'priority',
+                                                          puzzle => Mojo::Util::html_escape($puzzle->display_name),
+                                                          puzzleid => $puzzle->id,
+                                                          round =>  Mojo::Util::html_escape($round_name),
+                                                          text => Mojo::Util::html_escape($pri)}),
+                                          ,$self->session->{userid},
+                                      );
+            }
             return $self->render(text => 'OK', status => 200);
         }
     }
