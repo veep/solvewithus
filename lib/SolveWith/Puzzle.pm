@@ -88,6 +88,13 @@ sub modal {
         }
         return $self->render(text => 'OK', status => 200);
     }
+    if ($form and $form eq 'event_puzzle_priority') {
+        my $pri = $self->param('priority');
+        if ($pri) {
+            $puzzle->priority($pri, $self->session->{userid});
+            return $self->render(text => 'OK', status => 200);
+        }
+    }
     if ($remove_id) {
         $puzzle->chat->remove_message($remove_id, $self->session->{userid});
         return $self->render(text => 'OK', status => 200);

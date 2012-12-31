@@ -33,7 +33,10 @@ $(document).ready(
             $(this).removeData('modal');
             $(this).find('.modal-body').html('');
         });
-
+        String.prototype.ucfirst = function()
+        {
+             return this.charAt(0).toUpperCase() + this.substr(1);
+        }
     }
 );
 
@@ -259,6 +262,10 @@ function render_msg (type, text, ts, author, div_id) {
     }
     if (type === 'state' && text === 'dead') {
         result = ds + '<B>Puzzle Marked Dead</B>';
+    }
+    if (type === 'priority') {
+        console.warn('priority!');
+        result = ds + '<span class="label label-info">Priority: ' + $('<div/>').text(text).html().ucfirst() + '</span> by ' + author;
     }
     if (type === 'solution') {
         result = ds + '<span class="label label-success">Solution</span> ' + $('<div/>').text(text).html();

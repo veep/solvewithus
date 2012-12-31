@@ -48,5 +48,22 @@ sub users_live {
     return sort map {$_->user_id->display_name // $_->user_id->google_name // $_->user_id } @logged_in;
 }
 
+sub priority {
+    my ($self, $pri, $user_id) = @_;
+    my $cur_pri = $self->chat->get_latest_of_type('priority');
+    if (defined($cur_pri)) {
+        $cur_pri = $cur_pri->text;
+    } else {
+        $cur_pri = 'normal';
+    }
+    if (defined($pri)) {
+        if ($pri ne $cur_pri) {
+            $self->chat->add_of_type('priority',$pri,$user_id);
+        }
+        return $pri;
+    }
+    return $cur_pri;
+}
+
 1;
 

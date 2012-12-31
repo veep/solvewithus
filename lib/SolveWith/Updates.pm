@@ -68,7 +68,7 @@ sub getstream {
                   }
               });
     my $backlog_sent = 0;
-    my @types = qw/created chat spreadsheet url aha note puzzle puzzleinfo
+    my @types = qw/created chat spreadsheet url aha note priority puzzle puzzleinfo
                    puzzleurl removed_puzzleurl removed_puzzleinfo removed_solution
                    removal state solution/;
     # Subscribe to chat messages for this chat
