@@ -5,7 +5,7 @@
 
 <div class="container-fluid">
   <div class="row-fluid">
-    <div class="span3">
+    <div class="span3 event-left-side">
 %= include 'event/header_box'
       <div id="chat-box" >
 %= include 'event/chat_box'
@@ -23,7 +23,7 @@
           <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
         </ul>
       </div>
-      <div class="event-puzzle-table" id="event-puzzle-table-<%= $event->id %>" style="overflow-y: auto;">
+      <div class="event-puzzle-table" id="event-puzzle-table-<%= $event->id %>">
         <span class="muted">Loading...</span>
       </div>
     </div>

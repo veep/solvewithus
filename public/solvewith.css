@@ -1,3 +1,5 @@
+@media screen {
+
 html, body, iframe {
     margin:0; /* remove any margins of the IFrame and the body tag */
     padding:0;
@@ -77,3 +79,78 @@ html, body, iframe {
 .btn-link.disabled:hover {
   text-decoration: none;
 }
+
+.round-row {
+    color: #333;
+    background-color: #999;
+}
+
+.event-puzzle-table {
+    overflow-y: auto;
+}
+
+
+}                               /* @media screen */
+
+@media print {
+
+.event-left-side {
+    display: none;
+}
+
+table {
+    border: 2px;
+    font-size: 80%;
+}
+.span9 {
+    height: auto;
+}
+
+.conatiner-fluid {
+    height: auto;
+}
+
+.event-puzzle-table {
+    display: block;
+    height: auto;
+    width: auto;
+}
+
+.modal {
+    display: none;
+}
+
+.btn-group {
+    display: none;
+}
+
+.btn-link.disabled {
+    background-color: white;
+    height: 10px;
+    font-size: 4px;
+}
+
+#show-closed-button {
+    display: none;
+}
+
+.round-row td{
+    color: green;
+    text-align: center;
+    font-size: 150%;
+}
+
+a {
+    text-decoration: none;
+    color:black;
+}
+
+.users-column-cell {
+    display: none;
+}
+
+.state-column-cell {
+    display: none;
+}
+
+}                               /* @media print*/
