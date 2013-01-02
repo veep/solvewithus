@@ -4,6 +4,7 @@ use Net::OAuth2::Client;
 use JSON qw/decode_json/;
 use SolveWith::Schema;
 use Data::Dump qw/ddx/;
+use CHI;
 
 has schema => sub {
   return SolveWith::Schema->connect('dbi:SQLite:puzzles.db');
@@ -118,6 +119,16 @@ sub oauth_client {
         $cl = $cl->web_server( redirect_uri => 'http://' . $host . '/oauth2callback' );
     }
     return $cl;
+}
+
+my $app_cache = undef;
+sub cache {
+    if (! $app_cache) {
+        my $app = shift;
+        warn "MODE: " . $app->mode;
+        $app_cache= CHI->new( driver => 'FastMmap', root_dir => '/tmp/' . $app->mode, cache_size => '1m');
+    }
+    return $app_cache;
 }
 
 1;

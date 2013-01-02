@@ -21,10 +21,13 @@ __PACKAGE__->has_many(rounds => 'SolveWith::Schema::Result::Round', 'event_id');
 __PACKAGE__->has_one(chat => 'SolveWith::Schema::Result::Chat', { 'foreign.id' => 'self.chat_id'} );
 
 sub get_puzzle_tree {
-    my $self = shift;
+    my ($self,$c) = @_;
     my @result;
-    foreach my $round ($self->rounds) {
-        push @result, {round => $round, puzzles => $round->get_puzzle_tree};
+    my @data = $self->result_source->schema->resultset('Round')->search( { event_id => $self->id}, {
+        prefetch => {'puzzle_rounds' => { 'puzzle_id' =>  'chat' }}
+    });
+    foreach my $round (@data) {
+        push @result, {round => $round, puzzles => $round->get_puzzle_tree($c)};
     }
     return \@result;
 }

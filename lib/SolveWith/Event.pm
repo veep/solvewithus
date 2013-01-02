@@ -35,7 +35,7 @@ sub single {
   }
   $self->stash(catchall => \@catchall_puzzles);
   $self->stash(rounds => \%round_puzzles);
-  $self->stash( tree => $event->get_puzzle_tree());
+  $self->stash( tree => $event->get_puzzle_tree($self->app));
   $self->stash( current => undef);
 }
 
@@ -188,7 +188,7 @@ sub status {
 
     my @results;
     my $open_puzzles_html = $self->render('puzzle/tree_ul',
-                                          tree => $event->get_puzzle_tree,
+                                          tree => $event->get_puzzle_tree($self->app),
                                           current_id => $puzzle_id, partial => 1);
     push @results, {type => 'tree_html', content => $open_puzzles_html };
     $self->render_json(\@results);
@@ -210,8 +210,7 @@ sub puzzle_table {
     };
     warn "no access" unless $access;
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
-
-    $self->stash(tree => $event->get_puzzle_tree);
+    $self->stash(tree => $event->get_puzzle_tree($self->app));
     $self->stash(hide_closed => $hide_closed);
 }
 

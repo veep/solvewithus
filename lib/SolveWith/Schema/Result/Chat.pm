@@ -31,27 +31,27 @@ sub insert {
 
 sub get_latest_of_type {
     my ($self, $type) = @_;
-    my $latest = $self->search_related('messages', {type => $type}, {order_by => 'timestamp desc'})->first;
+    my $latest = $self->search_related('messages', {type => $type}, {order_by => 'id desc', rows=>1})->single;
     return $latest if $latest;
     return;
 }
 
 sub get_all_of_type {
     my ($self, $type) = @_;
-    my @all = $self->search_related('messages', {type => $type}, {order_by => 'timestamp'})->all;
+    my @all = $self->search_related('messages', {type => $type}, {order_by => 'id'})->all;
     return \@all;
 }
 
 sub get_first_timestamp {
     my ($self, $type) = @_;
-    my $first = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'timestamp'})->first;
+    my $first = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'id', rows=>1})->single;
     return $first->timestamp if $first;
     return 0;
 }
 
 sub get_last_timestamp {
     my ($self, $type) = @_;
-    my $last = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'timestamp desc'})->first;
+    my $last = $self->search_related('messages', ($type ? {type => $type} : {}) , {order_by => 'id desc', rows=>1})->single;
     return $last->timestamp if $last;
     return 0;
 }
