@@ -10,6 +10,9 @@ has schema => sub {
   return SolveWith::Schema->connect('dbi:SQLite:puzzles.db');
 };
 
+my $code_version = 0;           # 0 means "always return scalar time"
+
+
 # This method will run once at server start
 sub startup {
   my $self = shift;
@@ -17,6 +20,16 @@ sub startup {
   $self->plugin('Config');
   $self->secret("***REMOVED***");
   $self->sessions->default_expiration(3000000);
+
+  if ($self->mode eq 'production') {
+      my $cmd = '/usr/bin/svnversion ' . $self->static->root;
+      my $svnrev = `$cmd`;
+      if ($svnrev =~ m,(\d+)\D*$,) {
+          $code_version=$1;
+          warn "Code version: $code_version\n";
+      }
+  }
+
   # Routes
   my $r = $self->routes;
 
@@ -128,6 +141,10 @@ sub cache {
         $app_cache= CHI->new( driver => 'FastMmap', root_dir => '/tmp/' . $app->mode, cache_size => '1m');
     }
     return $app_cache;
+}
+
+sub code_version {
+    return $code_version || scalar time;
 }
 
 1;

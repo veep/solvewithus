@@ -3,7 +3,7 @@
   <head><title><%= title %></title>
 %= stylesheet '/bootstrap/css/bootstrap.css?v4'
 %= stylesheet 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/themes/redmond/jquery-ui.css'
-%= stylesheet '/solvewith.css'  . '?' . scalar time, media => 'all'
+%= stylesheet '/solvewith.css'  . '?' . app->code_version , media => 'all'
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.17/jquery-ui.js'
 %= javascript '/bootstrap/js/bootstrap.js?v4'
