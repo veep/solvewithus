@@ -69,3 +69,11 @@ html, body, iframe {
 .breadcrumb {
     margin-bottom: 8px;
 }
+
+.btn-link.disabled {
+    color: gray;
+}
+
+.btn-link.disabled:hover {
+  text-decoration: none;
+}

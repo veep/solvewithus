@@ -34,7 +34,7 @@
   <td>
     <span class="btn-group">
       <a class="btn-mini btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
-        <%= ucfirst($puzzle->{priority}) %>
+        <%= ucfirst($puzzle->{priority}) . " Priority" %>
         <span class="caret"></span>
       </a>
       <ul class="dropdown-menu priority-picker" puzzle_id="<%= $puzzle->{id} %>">
@@ -44,17 +44,17 @@
         </ul>
     </span>
 </td>
-  <td><%= join(', ', @{ $puzzle->{solutions} }) || ' ' %></td>
+  <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || ' ' %></td>
   <td><%= join(', ', @{ $puzzle->{users_live}})%></td>
 %         } else {
-<tr class="warning muted closed-row">
+<tr class="muted closed-row">
   <td>
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } => (class => 'muted')%> 
   </td>
   <td>
-    <span class="label">Closed</span>
+    <button class="btn-mini btn-link disabled">Closed</button>
   </td>
-  <td><%= join(', ', @{ $puzzle->{solutions} }) || '---' %></td>
+  <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || '---' %></td>
   <td><%= join(', ', @{ $puzzle->{users_live}})%></td>
 %         }
 <td><%== verbose_timediff($puzzle->{open_time}) %></td>
