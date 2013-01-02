@@ -105,6 +105,10 @@ table {
 td {
     border: solid black 1px;
     font-size: 80%;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 4px;
+    padding-right: 6px;
 }
 .span9 {
     height: auto;
