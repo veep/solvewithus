@@ -1,7 +1,7 @@
 % layout 'default';
 % title $event->display_name;
-%= javascript '/event.js' . '?' . scalar time
-%= javascript '/chat.js' . '?' . scalar time
+%= javascript '/event.js' . '?' . app->code_version
+%= javascript '/chat.js' . '?' . app->code_version
 
 <div class="container-fluid">
   <div class="row-fluid">

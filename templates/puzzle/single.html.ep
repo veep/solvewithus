@@ -1,7 +1,7 @@
 % layout 'default';
 % title $current->display_name;
-%= javascript '/puzzle.js' . '?' . scalar time
-%= javascript '/chat.js' . '?' . scalar time
+%= javascript '/puzzle.js' . '?' . app->code_version
+%= javascript '/chat.js' . '?' . app->code_version
 
 <div class="modal hide" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
   <form id="infoForm" class="modal-form form-inline" action="/puzzle/modal" data-remote="true" method="POST">

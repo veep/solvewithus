@@ -1,6 +1,6 @@
 % layout 'default';
 % title 'All Events';
-%= javascript '/event-all.js' . '?' . scalar time
+%= javascript '/event-all.js' . '?' . app->code_version
 
 <div class="container">
   <div class="well">
