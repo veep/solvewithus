@@ -28,7 +28,7 @@ $(document).ready(
         });
         $(".event-puzzle-table").each(
             function(index,self) {
-                setInterval(function(){refresh_puzzles(self, hide_closed_rows)},5000);
+                setInterval(function(){refresh_puzzles(self, hide_closed_rows)},10000);
                 refresh_puzzles(self, hide_closed_rows);
             }
         );

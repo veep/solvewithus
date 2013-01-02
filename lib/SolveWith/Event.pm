@@ -210,8 +210,28 @@ sub puzzle_table {
     };
     warn "no access" unless $access;
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
-    $self->stash(tree => $event->get_puzzle_tree($self->app));
-    $self->stash(hide_closed => $hide_closed);
+    my $all_html;
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    $all_html = $cache->compute('puzzle_table '  . $event_id . ' all_html',
+                                {expires_in => 9, busy_lock => 10},
+                    sub {
+                        $self->stash(tree => $event->get_puzzle_tree($self->app));
+                        $self->stash(hide_closed => $hide_closed);
+                        return $self->render('event/puzzle_table', partial=>1);
+                    }
+                );
+    $self->stash(all_html => $all_html);
+    $self->render(inline => '<%== $all_html %>');
+}
+
+sub expire_puzzle_table_cache {
+    my (undef, $self,$event_id) = @_;
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    $cache->expire('puzzle_table '  . $event_id . ' all_html');
 }
 
 1;
