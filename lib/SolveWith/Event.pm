@@ -194,36 +194,19 @@ sub status {
     $self->render_json(\@results);
 }
 
-sub puzzle_table {
-    my $self = shift;
-    my $event_id = $self->param('event-id');
-    my $hide_closed = $self->param('hide-closed') || 'false';
-    unless ($event_id) { $self->render_exception('Bad updates request: no event_id'); return; }
-    my $event = $self->db->resultset('Event')->find($event_id);
-    unless ($event) { $self->render_exception('Bad updates request: no event'); return; }
-    my $team = $event->team if $event;
-    warn "no team" unless $team;
-    unless ($team) { $self->render_exception('Bad updates request: no team'); return; }
-        my $access = 0;
-    eval {
-        $access = $team->has_access($self->session->{userid},$self->session->{token});
-    };
-    warn "no access" unless $access;
-    unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
+sub get_puzzle_table_html {
+    my (undef, $self, $event) = @_;
     my $all_html;
     my $cache;
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
-    $all_html = $cache->compute('puzzle_table '  . $event_id . ' all_html',
-                                {expires_in => 9, busy_lock => 10},
-                    sub {
-                        $self->stash(tree => $event->get_puzzle_tree($self->app));
-                        $self->stash(hide_closed => $hide_closed);
-                        return $self->render('event/puzzle_table', partial=>1);
-                    }
-                );
-    $self->stash(all_html => $all_html);
-    $self->render(inline => '<%== $all_html %>');
+    return $cache->compute('puzzle_table '  . $event->id . ' all_html',
+                                {expires_in => 5, busy_lock => 10},
+                                sub {
+                                    $self->stash(tree => $event->get_puzzle_tree($self->app));
+                                    return $self->render('event/puzzle_table', partial=>1);
+                                }
+                            );
 }
 
 sub expire_puzzle_table_cache {

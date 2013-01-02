@@ -47,7 +47,7 @@
   <td><%= join(', ', @{ $puzzle->{solutions} }) || ' ' %></td>
   <td><%= join(', ', @{ $puzzle->{users_live}})%></td>
 %         } else {
-<tr class="warning muted closed-row" <%== $hide_closed eq 'true' ? 'style="display: none;"' : '' %> >
+<tr class="warning muted closed-row">
   <td>
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } => (class => 'muted')%> 
   </td>
@@ -82,17 +82,18 @@
 % }
 
 %= javascript begin
-   $(".priority-picker").children("li").children("a").click(function() {
-       $(this).parent().parent().prev().addClass("disabled");
-       jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 
-                                     puzzleid : $(this).parent().parent().attr('puzzle_id'),
-                                     priority: $(this).html().toLowerCase(),
-                                   },
-       function() {
-           $(".event-puzzle-table").each(
-               function(index,self) {
-                  refresh_puzzles(self, hide_closed_rows);
-               });
-       });
-    })
+$(".priority-picker").children("li").children("a").click(function() {
+    $(this).parent().parent().prev().addClass("disabled");
+    jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 
+                                   puzzleid : $(this).parent().parent().attr('puzzle_id'),
+                                   priority: $(this).html().toLowerCase()
+                                 }
+               );
+});
+apply_hide_closed_rows();
+$("#show-closed-button").click(function(button) {
+    hide_closed_rows = ! hide_closed_rows;
+    apply_hide_closed_rows();
+});
+
 %end

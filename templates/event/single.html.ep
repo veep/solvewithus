@@ -23,7 +23,7 @@
           <li><a href="#newPuzzleModal" data-toggle="modal"><i class="icon-plus-sign"></i> Add a Puzzle</a></li>
         </ul>
       </div>
-      <div class="event-puzzle-table" event_id="<%= $event->id %>" style="overflow-y: auto;">
+      <div class="event-puzzle-table" id="event-puzzle-table-<%= $event->id %>" style="overflow-y: auto;">
         <span class="muted">Loading...</span>
       </div>
     </div>

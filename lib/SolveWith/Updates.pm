@@ -1,6 +1,7 @@
 package SolveWith::Updates;
 use Mojo::Base 'Mojolicious::Controller';
 use Encode qw/encode decode/;
+use SolveWith::Event;
 
 sub _check_access {
     my $self = shift;
@@ -81,6 +82,7 @@ sub getstream {
     }
 
     my $last_update_time = 0;
+    my $last_puzzle_table_html = '';
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => sub {
             my $messages_rs = $chat->search_related('messages',
@@ -89,6 +91,22 @@ sub getstream {
                                                   },
                                                     {order_by => 'id'});
             my $sent = 0;
+            if ($type eq 'event') {
+                my $event = $self->db->resultset('Event')->find($id);
+                if ($event) {
+                    my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
+                    if ($table_html ne $last_puzzle_table_html) {
+                        $last_puzzle_table_html = $table_html;
+                        $last_update_time = time;
+                        my $output_hash = {
+                            type => 'div',
+                            divname => "event-puzzle-table-$id",
+                            divhtml => $table_html,
+                        };
+                        $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                    }
+                }
+            }
             while (my $message = $messages_rs->next) {
                 $sent = 1;
                 my $output_hash;

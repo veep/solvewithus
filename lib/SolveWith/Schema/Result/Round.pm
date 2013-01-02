@@ -38,7 +38,7 @@ sub get_puzzle_tree {
                                              ),
                    activity_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last ts',
                                                      '30',
-                                                     sub { $puzzle->chat->get_last_timestamp }
+                                                     sub { $puzzle->chat->get_last_timestamp(['chat','solution','puzzleinfo','created']); }
                                                  ),
                    state_change_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last state',
                                                          '30',

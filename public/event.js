@@ -26,12 +26,6 @@ $(document).ready(
                     );
             $(this).parent().parent().modal('hide');
         });
-        $(".event-puzzle-table").each(
-            function(index,self) {
-                setInterval(function(){refresh_puzzles(self, hide_closed_rows)},10000);
-                refresh_puzzles(self, hide_closed_rows);
-            }
-        );
         resize_ept();
         $(window).resize(function() {
             resize_ept();
@@ -51,17 +45,6 @@ function resize_ept() {
 
     $('.event-puzzle-table').height(target);
 }
-
-function refresh_puzzles(self, hide_closed) {
-    $(self).load("/event/refresh-puzzle-table", {"event-id": $(self).attr("event_id"), "hide-closed": hide_closed},
-                 function() {
-                     apply_hide_closed_rows();
-                     $("#show-closed-button").click(function(button) {
-                         hide_closed_rows = ! hide_closed_rows;
-                         apply_hide_closed_rows();
-                     });
-                 });
-};
 
 function apply_hide_closed_rows() {
     if (hide_closed_rows) {

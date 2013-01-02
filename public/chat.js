@@ -116,6 +116,12 @@ function setup_chat_filler(type, puzzle_id, text_div) {
             return;
         }
             
+        if (msg.type === 'div') {
+            var mydiv = $("#" + msg.divname);
+            mydiv.html( msg.divhtml );
+            return;
+        }
+            
         if (type === 'puzzle' && msg.type === 'loggedin') {
             var usersspan = $("#usersspan");
             var oldhtml = usersspan.html();
