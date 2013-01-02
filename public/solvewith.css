@@ -99,7 +99,11 @@ html, body, iframe {
 }
 
 table {
-    border: 2px;
+    border-collapse: collapse;
+}
+
+td {
+    border: solid black 1px;
     font-size: 80%;
 }
 .span9 {
