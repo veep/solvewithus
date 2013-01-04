@@ -80,12 +80,15 @@ sub getstream {
     } elsif ($type eq 'puzzle') {
         $chat = $self->db->resultset('Puzzle')->find($id)->chat;
     }
-
     my $last_update_time = 0;
     my $last_puzzle_table_html = '';
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
+
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => sub {
-            my $messages_rs = $chat->search_related('messages',
+            my @messages = $chat->search_related('messages',
                                                     { type => \@types, 
                                                       id => { '>', $last_update}
                                                   },
@@ -107,51 +110,19 @@ sub getstream {
                     }
                 }
             }
-            while (my $message = $messages_rs->next) {
+            for my $message (@messages) {
                 $sent = 1;
-                my $output_hash;
-                if ($message->type eq 'puzzle') {
-                    $output_hash = { timestamp => $message->timestamp,
-                                     text => $self->render("chat/puzzle-message", partial => 1, message => $message),
-                                     type => 'rendered',
-                                     id => $message->id,
-                                 };
-                } elsif ($message->type eq 'removal') {
-                    my $removed_message = $self->db->resultset('Message')->find($message->text);
-                    if (! $removed_message or
-                        $removed_message->chat->id ne $message->chat->id) {
-                        next;
-                    }
-                    if ($removed_message->type eq 'removed_puzzleurl') {
-                        my $latest_url_text = undef;
-                        my $latest_url = $chat->get_latest_of_type('puzzleurl');
-                        if ($latest_url) {
-                            $latest_url_text = $latest_url->text;
-                        }
-                        $output_hash = { timestamp => $message->timestamp,
-                                         type => 'puzzleurl_removal',
-                                         text => [ $removed_message->text, $latest_url_text ],
-                                         id => $message->id,
-                                     };
-                    } elsif ($removed_message->type eq 'removed_solution') {
-                        $output_hash = { timestamp => $message->timestamp,
-                                         type => 'solution_removal',
-                                         text => $removed_message->text,
-                                         id => $message->id,
-                                     };
-                    }
-                } else {
-                    $output_hash = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
-                    if ($output_hash->{type} eq 'chat') {
-                        $output_hash->{text} =
-                        $self->render("chat/chat-text", partial => 1, string => $output_hash->{text});
-                    }
-                    if (my $user = $message->user) {
-                        $output_hash->{author} = $user->display_name;
-                    }
-                    $output_hash->{text} = decode('UTF-8', $output_hash->{text});
-                }
-                $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                my $rendered = $cache->compute(join(' ',
+                                                    'rendered message',
+                                                    $message->id,
+                                                    $message->type,
+                                                ),
+                                               {expires_in => 900, expires_variance => 0.2},
+                                               sub {
+                                                   return _get_rendered_message($self, $message, $chat, $json);
+                                               }
+                                           );
+                $self->write( "data: $rendered\n\n");
   #              warn ("data: " . $json->encode($output_hash) . "\n\n");
                 $last_update_time = time;
                 $last_update = $message->id;
@@ -168,6 +139,54 @@ sub getstream {
         }
     );
 };
+
+sub _get_rendered_message {
+    my ($self, $message, $chat, $json) = @_;
+
+    my $output_hash;
+    if ($message->type eq 'puzzle') {
+        $output_hash = { timestamp => $message->timestamp,
+                         text => $self->render("chat/puzzle-message", partial => 1, message => $message),
+                         type => 'rendered',
+                         id => $message->id,
+                     };
+    } elsif ($message->type eq 'removal') {
+        my $removed_message = $self->db->resultset('Message')->find($message->text);
+        if (! $removed_message or
+            $removed_message->chat->id ne $message->chat->id) {
+            next;
+        }
+        if ($removed_message->type eq 'removed_puzzleurl') {
+            my $latest_url_text = undef;
+            my $latest_url = $chat->get_latest_of_type('puzzleurl');
+            if ($latest_url) {
+                $latest_url_text = $latest_url->text;
+            }
+            $output_hash = { timestamp => $message->timestamp,
+                             type => 'puzzleurl_removal',
+                             text => [ $removed_message->text, $latest_url_text ],
+                             id => $message->id,
+                         };
+        } elsif ($removed_message->type eq 'removed_solution') {
+            $output_hash = { timestamp => $message->timestamp,
+                             type => 'solution_removal',
+                             text => $removed_message->text,
+                             id => $message->id,
+                         };
+        }
+    } else {
+        $output_hash = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
+        if ($output_hash->{type} eq 'chat') {
+            $output_hash->{text} =
+            $self->render("chat/chat-text", partial => 1, string => $output_hash->{text});
+        }
+        if (my $user = $message->user) {
+            $output_hash->{author} = $user->display_name;
+        }
+        $output_hash->{text} = decode('UTF-8', $output_hash->{text});
+    }
+    return $json->encode($output_hash);
+}
 
 # sub getnew {
 #     my $self = shift;
