@@ -77,10 +77,17 @@
       </div>
     </div>
     <div class="span9" id="spreadsheet-div">
+      <div class="hide-chat-button">
+        <button type="button" class="btn btn-mini" onclick="$('#everything').toggle();$('#spreadsheet-div').toggleClass('span9').toggleClass('expanded-spreadsheet-div');resize_chat_box($('#chat-box'))" data-placement="right" rel="tooltip" title="Hide/Show&nbsp;Left&nbsp;Column">
+          &lt;&gt;
+        </button>
+%= javascript begin
+   $("button").tooltip();
+%end
+      </div>
       <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet // $ss_url %>">
     </div>
   </div>
 </div>
-
 
 

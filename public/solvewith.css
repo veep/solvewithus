@@ -8,6 +8,11 @@ html, body, iframe {
 
 .container-fluid, .row-fluid, #spreadsheet-div, #everything { height: 100% }
 
+.expanded-spreadsheet-div {
+   margin-left: 15px;
+   width: 100%;
+}
+
 #spreadsheet-iframe { 
    width: 100%;
    display: block;
@@ -34,6 +39,12 @@ html, body, iframe {
   padding-right: 5px;
 }
 
+.hide-chat-button {
+    position: relative;
+    left: -10px;
+    float: left;
+    height: 0px;
+}
 .controls {
     padding: 8px;
     background-color: #EEEEEE;
