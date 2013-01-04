@@ -1,13 +1,6 @@
 $(document).ready(
     function() {
-        $(".chat-text").each(
-            function() {
-                var pieces = $(this).attr("id").split("-");
-                var puzzle_id =  pieces[pieces.length - 1];
-                var type =  pieces[pieces.length - 2];
-                setup_chat_filler(type, puzzle_id, this);
-            }
-        );
+        setup_chat_text_boxes();
         $(".chat-input").keydown(
             function(event) {
                 if (event.keyCode != 13 || event.shiftKey || event.ctrlKey ) {
@@ -29,6 +22,7 @@ $(document).ready(
 
         resize_chat_box($("#chat-box"));
 
+        setInterval (check_eventsources, 10000);
         $('#infoModal').on('hidden', function() {
             $(this).removeData('modal');
             $(this).find('.modal-body').html('');
@@ -81,6 +75,30 @@ last_seen.puzzle = new Array();
 
 
 var event_source = new Object();
+
+function setup_chat_text_boxes () {
+    $(".chat-text").each(
+        function() {
+            var pieces = $(this).attr("id").split("-");
+            var puzzle_id =  pieces[pieces.length - 1];
+            var type =  pieces[pieces.length - 2];
+            setup_chat_filler(type, puzzle_id, this);
+        }
+    );
+}
+
+function check_eventsources() {
+    for (var es in event_source) {
+        if (event_source.hasOwnProperty(es)) {
+            if (event_source[es].readyState == EventSource.CLOSED) {
+                console.warn("trying to fix " + es);
+                setup_chat_text_boxes();
+                return;
+            }
+        }
+    }
+}
+
 function setup_chat_filler(type, puzzle_id, text_div) {
 //    chat_filler(type,puzzle_id);
 //    setInterval(function() {chat_filler(type,puzzle_id);},5000);
@@ -91,12 +109,13 @@ function setup_chat_filler(type, puzzle_id, text_div) {
     // if (type === 'event' && last_seen.event[puzzle_id] > 0) {
     //     last_seen_id = last_seen.event[puzzle_id];
     // }
-    event_source[ type + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,0).join('/'));
+    event_source[ type + ' ' + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,0).join('/'));
 
+    
 //    console.warn(event_source);
     
     // Incoming messages
-    event_source[ type + puzzle_id].onmessage = function(event) {
+    event_source[ type + ' ' + puzzle_id].onmessage = function(event) {
         var msg = jQuery.parseJSON(event.data);
         if (! msg) {
             console.warn(event.data);
