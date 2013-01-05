@@ -77,9 +77,9 @@
 %    my $diff = time-shift;
 %    my $idle = shift;
 %    return ($idle ? '<b>Active</b>' : '<b>Just Now</b>') if $diff < 60;
-%    my ($num, $unit) = (int(10*$diff/(60*60*24))/10, 'Day');
-%    ($num,$unit) = (int(10*$diff/(60*60))/10, 'Hour') if $diff < 60*60*24;
-%    ($num,$unit) = (int($diff/60),'Minute') if $diff < 60*60;
+%    my ($num, $unit) = (int($diff/(60*60*24)), 'Day');
+%    ($num,$unit) = (int(10*$diff/(60*60))/10, 'Hour') if $diff < 60*60*24*2;
+%    ($num,$unit) = (int($diff/60),'Minute') if $diff < 60*60*2;
 %    $unit .= 's' if $num ne '1';
 %    return "$num $unit Ago" unless $idle;
 %    return "$num $unit";
