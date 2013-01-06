@@ -21,7 +21,23 @@
 <tr class="round-row<%== ($only_closed_puzzles ? ' closed-row' : '') %>">
   <td colspan="6">
     <b>Round: <%= $round_name %></b>
-    <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round}->id %>">Kill Round</button>
+    <span class="round_priority">
+%        if (any {$_->{state} eq 'open'} @{ $tree_round->{puzzles}  }) {
+Set Open Puzzle Priorities:
+      <div class="btn-group">
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+          Low
+        </a>
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+          Normal
+        </a>
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+          High
+        </a>
+      </div>
+%        }
+      <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round}->id %>">Kill Round</button>
+    </span>
   </td>
 </tr>
 %     }
@@ -158,25 +174,34 @@ $(".priority-picker").children("li").children("a").click(function() {
                );
 });
 $(".kill_round_button").click(function () {
-    $(this).hide(500);
+    $(this).fadeTo('fast', 0.2);
     jQuery.post('/event/modal', { formname : 'kill_round', 
                                    roundid : $(this).attr('round_id'),
                                  }
                );
 });
 $(".revive_round_button").click(function () {
-    $(this).hide(500);
+    $(this).fadeTo('fast', 0.2);
     jQuery.post('/event/modal', { formname : 'revive_round', 
                                    roundid : $(this).attr('round_id'),
                                  }
                );
 });
 $(".revive_puzzle_button").click(function () {
-    $(this).hide(500);
+    $(this).fadeTo('fast', 0.2);
     jQuery.post('/puzzle/modal', { formname : 'revive_puzzle', 
                                    puzzleid : $(this).attr('puzzle_id'),
                                  }
                );
 });
+$(".set_round_priority").click(function () {
+    $(this).parent().parent().fadeTo('fast', 0.2);
+    jQuery.post('/event/modal', { formname : 'set_round_priority', 
+                                   roundid : $(this).attr('round_id'),                                                        
+                                  priority : $(this).text()
+                                 }
+               );
+});
+
     
 %end

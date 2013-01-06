@@ -115,7 +115,7 @@ html, body, iframe {
     background-color: #888;
 }
 
-.kill_round_button,.revive_round_button,.revive_puzzle_button {
+.round_priority,.revive_round_button,.revive_puzzle_button {
     float: right;
 }
 
@@ -182,7 +182,7 @@ td {
     display: none;
 }
 
-.kill_round_button {
+.round_priority {
     display: none;
 }
 

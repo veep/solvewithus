@@ -216,6 +216,22 @@ sub modal {
                 return;
             }
         }
+        if ($form eq 'set_round_priority' && $round_id) {
+            my $round = $self->db->resultset('Round')->find($round_id);
+            if ($round) {
+                my $priority = lc($self->param('priority'));
+                $priority=~s/\s+//g;
+                if ($priority) {
+                    for my $puzzle ($round->puzzles) {
+                        if ($puzzle->state eq 'open') {
+                            $puzzle->priority($priority,$self->session->{userid});
+                        }
+                    }
+                    $self->render(text => 'OK', status => 200);
+                    return;
+                }
+            }
+        }
         if ($form eq 'hide_closed') {
             $self->session->{hide_closed} = $self->param('hide_closed');
             $self->render(text => 'OK', status => 200);
