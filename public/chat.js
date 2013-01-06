@@ -64,6 +64,7 @@ function resize_chat_box(cb) {
         function() {
             $(this).height( final_size );
             $(this).scrollTop($(this).prop("scrollHeight") - $(this).height() );
+            $(this).scrollLeft(0);
         }
     );
             
@@ -132,6 +133,7 @@ function setup_chat_filler(type, puzzle_id, text_div) {
         if (msg.type === 'done') {
             var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
             mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
+            mydiv.scrollLeft(0);
             return;
         }
             
