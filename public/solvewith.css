@@ -96,6 +96,10 @@ html, body, iframe {
     background-color: #CCF;
 }
 
+.event-puzzle-table .row-high {
+    background-color: #F3F4A2;
+}
+
 .event-puzzle-table {
     overflow-y: auto;
 }
