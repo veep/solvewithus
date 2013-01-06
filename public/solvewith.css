@@ -96,6 +96,13 @@ html, body, iframe {
     background-color: #CCF;
 }
 
+.dead-row {
+    background-color: #EEE;
+}
+.dead-row.round-row {
+    background-color: #CCC;
+}
+
 .event-puzzle-table .row-high {
     background-color: #F3F4A2;
 }

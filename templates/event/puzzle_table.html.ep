@@ -86,7 +86,7 @@
 <table class="table table-bordered table-condensed dead-rounds">
 <thead>
   <caption>"Dead" Rounds and Puzzles</caption>
-  <tr><th class="lead">
+  <tr class="dead-row"><th class="lead">
       Puzzle 
       </button>
     </th>
