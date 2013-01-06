@@ -3,9 +3,6 @@
 <thead>
   <tr><th class="lead">
       Puzzle 
-      <button id="show-closed-button" class="pull-right btn btn-mini">
-        
-      </button>
     </th>
     <th class="lead state-column-cell">State</th>
     <th id="headers" class="lead">Solution</th><th class="lead users-column-cell">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
@@ -152,10 +149,6 @@
 
 %= javascript begin
 apply_hide_closed_rows();
-$("#show-closed-button").click(function(button) {
-    hide_closed_rows = ! hide_closed_rows;
-    apply_hide_closed_rows();
-});
 $(".priority-picker").children("li").children("a").click(function() {
     $(this).parent().parent().prev().addClass("disabled");
     jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 

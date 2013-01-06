@@ -30,7 +30,10 @@ $(document).ready(
         $(window).resize(function() {
             resize_ept();
         });
-
+        $("#show-closed-button").click(function(button) {
+            hide_closed_rows = ! hide_closed_rows;
+            apply_hide_closed_rows();
+        });
     }
 );
 
@@ -50,9 +53,11 @@ function apply_hide_closed_rows() {
     if (hide_closed_rows) {
         $('.closed-row').hide();
         $("#show-closed-button").html("Show Closed Puzzles");
+        $('.dead-rounds').hide();
     } else {
         $('.closed-row').show();
         $("#show-closed-button").html("Hide Closed Puzzles");
+        $('.dead-rounds').show();
     }
 }
         
