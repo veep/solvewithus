@@ -1,0 +1,6 @@
+% if ($hide_closed eq 'true') {
+%= javascript begin
+hide_closed_rows = true;
+apply_hide_closed_rows();
+%end
+%}
