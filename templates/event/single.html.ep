@@ -13,10 +13,10 @@
     </div>
     <div class="span9">
       <div class="btn-group">
-        <a class="btn add_a_round_button">
+        <a class="btn add_a_round_button disabled">
           Add a Round
         </a>
-        <a class="btn add_a_puzzle_button">
+        <a class="btn add_a_puzzle_button disabled">
           Add a Puzzle
         </a>
         <a id="show-closed-button" event_id="<%= $event->id %>" class="btn">
