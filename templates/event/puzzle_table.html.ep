@@ -109,6 +109,7 @@
 %     }
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         next if ($puzzle->{state} ne 'dead');
+%         next if ($round_name eq '_catchall' and scalar $puzzle->{puzzle}->rounds > 1);
 <tr class="dead-row">
   <td>
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>

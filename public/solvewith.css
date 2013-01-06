@@ -171,6 +171,10 @@ td {
     display: none;
 }
 
+.kill_round_button {
+    display: none;
+}
+
 .round-row td{
     color: green;
     text-align: center;
@@ -187,6 +191,10 @@ a {
 }
 
 .state-column-cell {
+    display: none;
+}
+
+table.dead-rounds {
     display: none;
 }
 

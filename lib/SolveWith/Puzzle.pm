@@ -114,6 +114,7 @@ sub modal {
         }
     }
     if ($form and $form eq 'revive_puzzle') {
+        $puzzle->chat->add_of_type('state','open',$self->session->{userid});
         $puzzle->set_column('state', 'open');
         $puzzle->update;
         return $self->render(text => 'OK', status => 200);
