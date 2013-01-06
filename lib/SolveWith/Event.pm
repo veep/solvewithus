@@ -121,10 +121,20 @@ sub refresh {
 sub modal {
     my $self = shift;
     my $event_id = $self->param('eventid');
-    my $event = $self->db->resultset('Event')->find($event_id);
+    my $round_id = $self->param('roundid');
+    my $event;
+    if ($event_id) {
+        $self->db->resultset('Event')->find($event_id);
+    }
+    if (!$event && $round_id) {
+        my $round = $self->db->resultset('Round')->find($round_id);
+        if ($round) {
+            $event = $round->event;
+        }
+    }
     my $user = $self->db->resultset('User')->find($self->session->{userid});
-    if ($event && $user) {
-
+    my $form = $self->param('formname') || '';
+    if ($event && $user && $form) {
         my $access = 0;
         eval {
             $access = $event->team->has_access($self->session->{userid},$self->session->{token});
@@ -135,7 +145,7 @@ sub modal {
         }
         unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
-        if ($self->param('formname') eq 'New Round' && $self->param('roundname') =~ /\S/) {
+        if ($form eq 'New Round' && $self->param('roundname') =~ /\S/) {
             my $round = $event->find_or_create_related ('rounds', {
                 display_name => $self->param('roundname'),
                 state => 'open',
@@ -144,15 +154,15 @@ sub modal {
             SolveWith::Spreadsheet::trigger_folder($self, $round);
             return;
         }
-        if ($self->param('formname') eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {
+        if ($form eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {
             my $round;
-            if ($self->param('roundid') == 0) {
+            if ($round_id == 0) {
                 $round = $event->find_or_create_related ('rounds', {
                     display_name => '_catchall',
                     state => 'open',
                 });
             } else {
-                $round = $self->db->resultset('Round')->find($self->param('roundid'));
+                $round = $self->db->resultset('Round')->find($round_id);
             }
             if ($round && $round->event->id == $event_id) {
                 my $puzzle = $self->db->resultset('Puzzle')->create({
@@ -165,6 +175,43 @@ sub modal {
                     SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
                     return;
                 }
+            }
+        }
+        if ($form eq 'kill_round' && $round_id) {
+            my $round = $self->db->resultset('Round')->find($round_id);
+            if ($round) {
+                $round->set_column('state','dead');
+                $round->update;
+              PUZ:
+                for my $puzzle ($round->puzzles) {
+                    next if ($puzzle->state eq 'dead');
+                    for my $puzzle_round ($puzzle->rounds) {
+                        if ($puzzle_round->state ne 'dead') {
+                            next PUZ;
+                        }
+                    }
+                    my $catchall = $event->find_or_create_related ('rounds', {
+                        display_name => '_catchall',
+                        state => 'open',
+                    });
+                    $catchall->add_to_puzzles($puzzle);
+                }
+                $self->render(text => 'OK', status => 200);
+            }
+        }
+        if ($form eq 'revive_round' && $round_id) {
+            my $round = $self->db->resultset('Round')->find($round_id);
+            if ($round) {
+                $round->set_column('state','open');
+                $round->update;
+                for my $puzzle ($round->puzzles) {
+                    my $catchall = $event->find_or_create_related ('rounds', {
+                        display_name => '_catchall',
+                        state => 'open',
+                    });
+                    $catchall->remove_from_puzzles($puzzle);
+                }
+                $self->render(text => 'OK', status => 200);
             }
         }
     }

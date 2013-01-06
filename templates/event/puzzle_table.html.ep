@@ -1,3 +1,4 @@
+% use List::MoreUtils qw/any none/;
 <table class="table table-bordered table-condensed">
 <thead>
   <tr><th class="lead">
@@ -10,28 +11,36 @@
     <th id="headers" class="lead">Solution</th><th class="lead users-column-cell">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
 </thead>
 <tbody>
-% my $open_count = 0;
-% my $all_count = 0;
+% my (%rounds_for_dead);
 % for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+%     if ($tree_round->{round}->state eq 'dead') {
+%           $rounds_for_dead{$tree_round->{round}->id} =1;
+%           next;
+%     }
 %     my $round_name = $tree_round->{round}->display_name;
 %     if ($round_name ne '_catchall' ) {
-%        my $only_closed_puzzles = 1; 
-%        $only_closed_puzzles = 0 unless @{ $tree_round->{puzzles} };
-%        $only_closed_puzzles = 0 if  grep {$_->{state} eq 'open'} @{ $tree_round->{puzzles} };
-<tr class="round-row<%== ($only_closed_puzzles ? ' closed-row"' : '') %>">
-  <td colspan="6"><b>Round: <%= $round_name %></b></td></tr>
+%        my $only_closed_puzzles = none {$_->{state} eq 'open'} @{ $tree_round->{puzzles}  };
+%        $only_closed_puzzles = $only_closed_puzzles && (any {$_->{state} eq 'closed'} @{ $tree_round->{puzzles} });
+<tr class="round-row<%== ($only_closed_puzzles ? ' closed-row' : '') %>">
+  <td colspan="6">
+    <b>Round: <%= $round_name %></b>
+    <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round}->id %>">Kill Round</button>
+  </td>
+</tr>
 %     }
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
-%         $all_count++;
-%         $open_count++ if $puzzle->{state} eq 'open';
+%         if ($puzzle->{state} eq 'dead') {
+%            $rounds_for_dead{$tree_round->{round}->id} =1;
+%            next;
+%         }
 %         if ($puzzle->{state} eq 'open') {
 %           my $puz_class='';
 %           if (lc($puzzle->{priority}) eq 'high') {
   %             $puz_class=' class="lead"';
-<tr class="success">
-% } else {
+<tr class="row-high">
+%           } else {
 <tr>
-% }
+%           }
   <td<%== $puz_class %>>
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
   </td>
@@ -66,12 +75,67 @@
 <td><%== verbose_timediff($puzzle->{activity_time}, 1) %></td>
 %         } else {
 <td><%== verbose_timediff($puzzle->{state_change_time} || time) %></td>
-% }
+%         }
 </tr>
 %     }
 % }
 </tbody>
 </table>
+
+% if (%rounds_for_dead) {
+<table class="table table-bordered table-condensed dead-rounds">
+<thead>
+  <caption>"Dead" Rounds and Puzzles</caption>
+  <tr><th class="lead">
+      Puzzle 
+      </button>
+    </th>
+    <th class="lead state-column-cell">State</th>
+    <th class="lead">Opened</th><th class="lead">Killed</th></tr>
+</thead>
+<tbody>
+%   for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+%     next unless ($rounds_for_dead{$tree_round->{round}->id});
+%     my $round_name = $tree_round->{round}->display_name;
+%     if ($round_name ne '_catchall' ) {
+%        if ($tree_round->{round}->state eq 'dead') {
+<tr class="round-row dead-row">
+  <td><b>Round: <%= $round_name %></b></td>
+  <td colspan="3">Dead <button type="button" round_id="<%= $tree_round->{round}->id %>" class="btn btn-mini revive_round_button">Revive Round</button></td>
+</tr>
+%        } else {
+<tr class="round-row"><td colspan="4"><b>Round: <%= $round_name %></b></td></tr>
+%        }
+%     }
+%     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
+%         next if ($puzzle->{state} ne 'dead');
+<tr class="dead-row">
+  <td>
+    <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
+  </td>
+  <td>
+    Dead <button type="button" puzzle_id="<%= $puzzle->{id} %>" class="btn btn-mini revive_puzzle_button">Revive Puzzle</button>
+  </td>
+  <td>
+    <%== verbose_timediff($puzzle->{open_time}) %>
+  </td>
+  <td>
+    <%== verbose_timediff($puzzle->{state_change_time}) %>
+  </td>
+</tr>
+%     }
+%   }
+</tbody>
+</table>
+
+% }
+
+
+
+
+
+
+
 
 % sub verbose_timediff {
 %    my $diff = time-shift;
@@ -86,6 +150,11 @@
 % }
 
 %= javascript begin
+apply_hide_closed_rows();
+$("#show-closed-button").click(function(button) {
+    hide_closed_rows = ! hide_closed_rows;
+    apply_hide_closed_rows();
+});
 $(".priority-picker").children("li").children("a").click(function() {
     $(this).parent().parent().prev().addClass("disabled");
     jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 
@@ -94,10 +163,26 @@ $(".priority-picker").children("li").children("a").click(function() {
                                  }
                );
 });
-apply_hide_closed_rows();
-$("#show-closed-button").click(function(button) {
-    hide_closed_rows = ! hide_closed_rows;
-    apply_hide_closed_rows();
+$(".kill_round_button").click(function () {
+    $(this).hide(500);
+    jQuery.post('/event/modal', { formname : 'kill_round', 
+                                   roundid : $(this).attr('round_id'),
+                                 }
+               );
 });
-
+$(".revive_round_button").click(function () {
+    $(this).hide(500);
+    jQuery.post('/event/modal', { formname : 'revive_round', 
+                                   roundid : $(this).attr('round_id'),
+                                 }
+               );
+});
+$(".revive_puzzle_button").click(function () {
+    $(this).hide(500);
+    jQuery.post('/puzzle/modal', { formname : 'revive_puzzle', 
+                                   puzzleid : $(this).attr('puzzle_id'),
+                                 }
+               );
+});
+    
 %end

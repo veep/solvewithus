@@ -113,6 +113,11 @@ sub modal {
             return $self->render(text => 'OK', status => 200);
         }
     }
+    if ($form and $form eq 'revive_puzzle') {
+        $puzzle->set_column('state', 'open');
+        $puzzle->update;
+        return $self->render(text => 'OK', status => 200);
+    }
     if ($remove_id) {
         $puzzle->chat->remove_message($remove_id, $self->session->{userid});
         return $self->render(text => 'OK', status => 200);

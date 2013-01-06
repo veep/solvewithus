@@ -92,14 +92,32 @@ html, body, iframe {
 }
 
 .round-row {
-    color: #333;
-    background-color: #999;
+    color: #222;
+    background-color: #CCF;
 }
 
 .event-puzzle-table {
     overflow-y: auto;
 }
 
+.round-row.closed-row {
+    background-color: #888;
+}
+
+.kill_round_button,.revive_round_button,.revive_puzzle_button {
+    float: right;
+}
+
+td  .btn {
+    margin-top: -1px;
+    margin-bottom: -1px;
+}
+
+caption {
+    font-size: 200%;
+    font-weight: bolder;
+    margin: 3px;
+}
 
 }                               /* @media screen */
 

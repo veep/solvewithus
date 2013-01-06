@@ -1,19 +1,21 @@
 <ul>
-% my $open_count = 0;
-% my $all_count = 0;
+% my %open_count;
+% my %all_count;
 % my $newest = 0;
 % for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+%     next if $tree_round->{round}->state eq 'dead';
 %     my $round_name = $tree_round->{round}->display_name;
 %     my $shifted_ul = 0;
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
-%         $all_count++;
+%         next if $puzzle->{state} eq 'dead';
+%         $all_count{$puzzle->{puzzle}->id}++;
 %         if ($puzzle->{state} eq 'open' or ! $current_id) {
 %            if (! $shifted_ul and $round_name ne '_catchall' ) {
 <li><B><%= $round_name %></b>
 <ul>
 %                $shifted_ul=1;
 %            }
-%            $open_count++ if $puzzle->{state} eq 'open';
+%            $open_count{$puzzle->{puzzle}->id}++ if $puzzle->{state} eq 'open';
 %            $newest = $puzzle->{open_time} if $puzzle->{open_time} > $newest;
 %            if ($current_id and $puzzle->{puzzle}->id == $current_id) {
 <li><u><%= $puzzle->{puzzle}->display_name %></u>
@@ -32,7 +34,7 @@
 % }
 </ul>
 %= javascript begin
-    $("#open_status_text").html("<B>: <%= $open_count . ($all_count > $open_count ? '/' . $all_count : '') %></B> (Newest: <%= ($newest ? (timediff($newest). ' old') : 'N/A') %>)");
+    $("#open_status_text").html("<B>: <%= (scalar keys %open_count) . ((scalar keys %all_count) > (scalar keys %open_count) ? " (out of " . (scalar keys %all_count) . ")" : '') %> </B> (Newest: <%= ($newest ? (timediff($newest). ' old') : 'N/A') %>)");
 %end
 
 % sub timediff {
