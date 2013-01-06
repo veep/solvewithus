@@ -124,7 +124,7 @@ sub modal {
     my $round_id = $self->param('roundid');
     my $event;
     if ($event_id) {
-        $self->db->resultset('Event')->find($event_id);
+        $event = $self->db->resultset('Event')->find($event_id);
     }
     if (!$event && $round_id) {
         my $round = $self->db->resultset('Round')->find($round_id);
@@ -197,6 +197,7 @@ sub modal {
                     $catchall->add_to_puzzles($puzzle);
                 }
                 $self->render(text => 'OK', status => 200);
+                return;
             }
         }
         if ($form eq 'revive_round' && $round_id) {
@@ -212,7 +213,13 @@ sub modal {
                     $catchall->remove_from_puzzles($puzzle);
                 }
                 $self->render(text => 'OK', status => 200);
+                return;
             }
+        }
+        if ($form eq 'hide_closed') {
+            $self->session->{hide_closed} = $self->param('hide_closed');
+            $self->render(text => 'OK', status => 200);
+            return;
         }
     }
     $self->render(text => 'There has been a problem.', status => 500);

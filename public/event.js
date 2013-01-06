@@ -33,6 +33,11 @@ $(document).ready(
         $("#show-closed-button").click(function(button) {
             hide_closed_rows = ! hide_closed_rows;
             apply_hide_closed_rows();
+            jQuery.post('/event/modal', { formname : 'hide_closed', 
+                                          hide_closed : hide_closed_rows,
+                                          eventid : $(this).attr('event_id')
+                                        }
+                       );
         });
     }
 );

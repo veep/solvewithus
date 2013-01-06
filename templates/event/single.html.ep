@@ -19,7 +19,7 @@
         <a class="btn add_a_puzzle_button">
           Add a Puzzle
         </a>
-        <a id="show-closed-button" class="btn">
+        <a id="show-closed-button" event_id="<%= $event->id %>" class="btn">
           Hide Closed Puzzles
         </a>
       </div>

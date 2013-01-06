@@ -99,12 +99,17 @@ sub getstream {
                 if ($event) {
                     my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                     if ($table_html ne $last_puzzle_table_html) {
+                        my $first_time_html = '';
+                        if (! $last_puzzle_table_html) {
+                            $first_time_html = $self->render("event/hide_show", partial => 1, 
+                                                             hide_closed => $self->session->{hide_closed} || '');
+                        }
                         $last_puzzle_table_html = $table_html;
                         $last_update_time = time;
                         my $output_hash = {
                             type => 'div',
                             divname => "event-puzzle-table-$id",
-                            divhtml => $table_html,
+                            divhtml => $table_html . $first_time_html,
                         };
                         $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                     }
