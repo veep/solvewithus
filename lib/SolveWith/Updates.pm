@@ -49,8 +49,8 @@ sub getstream {
             $logged_in_row->set_column('timestamp',scalar time);
             $logged_in_row->update;
             $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
-            my @logged_in = $puzzle->search_related('puzzle_users',{timestamp => { '>', (time - 15)}});
-            my $new_text = join(", ", sort map {$_->user_id->display_name || $_->user_id->google_name } @logged_in);
+            my @logged_in = $puzzle->users_live;
+            my $new_text = join(", ", @logged_in);
             if ($new_text ne $last_set_of_names) {
                 $last_set_of_names = $new_text;
                 $self->write("data: " .

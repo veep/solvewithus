@@ -291,7 +291,6 @@ function render_msg (type, text, ts, author, div_id) {
         result = ds + '<B>Puzzle Marked Dead</B>';
     }
     if (type === 'priority') {
-        console.warn('priority!');
         result = ds + '<span class="label label-info">Priority: ' + $('<div/>').text(text).html().ucfirst() + '</span> by ' + author;
     }
     if (type === 'solution') {

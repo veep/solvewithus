@@ -30,7 +30,14 @@
 %            } elsif ($puzzle->{priority} eq 'low') {
 <span class="label">Low</span>
 %            }
-(<%= timediff($puzzle->{open_time}) %>, idle <%= timediff($puzzle->{activity_time}) %>)</li>
+(Open <%= timediff($puzzle->{open_time}) %><!--
+%            if ( time - $puzzle->{activity_time} > 120) {
+-->, Idle <%= timediff($puzzle->{activity_time}) %><!--
+%            }
+%            if ( my $cnt = scalar @{$puzzle->{users_live}}) {
+-->, <%= $cnt . ($cnt == 1 ? ' User' : ' Users') %><!--
+%            }
+-->)</li>
 %         }
 %     }
 %     if ($shifted_ul) {
@@ -46,7 +53,7 @@
 %    my $diff = time-$_[0];
 %    return '0s' if $diff < 15;
 %    return int($diff) . 's' if $diff < 60;
-%    return (int($diff/60)).'m' if $diff < 60*60;
-%    return (int(10*$diff/(60*60))/10) .'h' if $diff < 60*60*24;
+%    return (int($diff/60)).'m' if $diff < 60*60*2;
+%    return (int(10*$diff/(60*60))/10) .'h' if $diff < 60*60*48;
 %    return int($diff/(60*60*24)) .'d';
 % }
