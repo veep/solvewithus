@@ -45,10 +45,11 @@ html, body, iframe {
     float: left;
     height: 0px;
 }
-.controls {
+.my-chat-input {
     padding: 8px;
     background-color: #EEEEEE;
 }
+
 
 .chat-input {
    width: 100%;

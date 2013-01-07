@@ -1,0 +1,11 @@
+% if ($event->rounds) {
+<label class="control-label" for="round_id">Rounds</label>
+<div class="controls">
+  %   for my $round (sort {$a->id <=> $b->id} $event->rounds) {
+    %      next if $round->state eq 'dead';
+    <label class="checkbox">
+      <input name="round_ids" value="<%= $round->id %>" type="checkbox"> <%= $round->display_name %>
+    </label>
+%   }
+</div>
+% }

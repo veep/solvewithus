@@ -2,6 +2,7 @@ package SolveWith::Event;
 use Mojo::Base 'Mojolicious::Controller';
 use SolveWith::Auth;
 use Net::Google::DocumentsList;
+use Mojo::Util;
 
 sub single {
   my $self = shift;
@@ -21,20 +22,21 @@ sub single {
   return $self->redirect_to($self->url_for('event')) unless $access;
 
   $self->stash(event => $event);
-  my @catchall_puzzles;
-  my %round_puzzles;
-  foreach my $round ($event->rounds->all) {
-      if ($round->display_name eq '_catchall') {
-          foreach my $puzzle ($round->puzzles) {
-              push @catchall_puzzles, $puzzle;
-          }
-          next;
-      }
-      $round_puzzles{$round->id}{name} = $round->display_name;
-      $round_puzzles{$round->id}{puzzles} = [$round->puzzles->all];
-  }
-  $self->stash(catchall => \@catchall_puzzles);
-  $self->stash(rounds => \%round_puzzles);
+  # my @catchall_puzzles;
+  # my %round_puzzles;
+  # foreach my $round ($event->rounds->all) {
+  #     if ($round->display_name eq '_catchall') {
+  #         foreach my $puzzle ($round->puzzles) {
+  #             push @catchall_puzzles, $puzzle;
+  #         }
+  #         next;
+  #     }
+  #     $round_puzzles{$round->id}{name} = $round->display_name;
+  #     $round_puzzles{$round->id}{state} = $round->state;
+  #     $round_puzzles{$round->id}{puzzles} = [$round->puzzles->all];
+  # }
+  # $self->stash(catchall => \@catchall_puzzles);
+  # $self->stash(rounds => \%round_puzzles);
   $self->stash( tree => $event->get_puzzle_tree($self->app));
   $self->stash( current => undef);
 }
@@ -145,37 +147,108 @@ sub modal {
         }
         unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
-        if ($form eq 'New Round' && $self->param('roundname') =~ /\S/) {
-            my $round = $event->find_or_create_related ('rounds', {
-                display_name => $self->param('roundname'),
-                state => 'open',
-            });
-            $self->render(text => 'OK', status => 200);
-            SolveWith::Spreadsheet::trigger_folder($self, $round);
-            return;
-        }
-        if ($form eq 'New Puzzle' && $self->param('puzzlename') =~ /\S/) {
-            my $round;
-            if ($round_id == 0) {
-                $round = $event->find_or_create_related ('rounds', {
-                    display_name => '_catchall',
-                    state => 'open',
+        if ($form eq 'New Round') {
+            my $new_name = $self->param('RoundName');
+            if ($new_name && $new_name =~ /\S/) {
+                my $old_round = $event->find_related ('rounds', {
+                    display_name => $new_name,
                 });
-            } else {
-                $round = $self->db->resultset('Round')->find($round_id);
-            }
-            if ($round && $round->event->id == $event_id) {
-                my $puzzle = $self->db->resultset('Puzzle')->create({
-                    display_name => $self->param('puzzlename'),
-                    state => 'open',
-                });
-                if ($puzzle) {
-                    $round->add_puzzle( $puzzle );
-                    $self->render(text => 'OK', status => 200);
-                    SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                if (!$old_round) {
+                    my $round = $event->find_or_create_related ('rounds', {
+                        display_name => $new_name,
+                    });
+                    if ($round) {
+                        $round->set_column('state','open');
+                        $round->update;
+                        $self->render(text => 'OK', status => 200);
+                        SolveWith::Spreadsheet::trigger_folder($self, $round);
+                        return;
+                    }
+                    $self->render(text => "Creating that round just didn't work.", status => 500);
+                    return;
+                } else {
+                    if ($old_round->state eq 'dead') {
+                        $self->render(text => 'That round exists and is marked &quot;Dead&quot;.', status => 500);
+                    } else {
+                        $self->render(text => "That round seems to exist already.", status => 500);
+                    }
                     return;
                 }
             }
+            $self->render(text => "You didn't give a round name.", status => 500);
+            return;
+        }
+        if ($form eq 'New Puzzle') {
+            my $new_name = $self->param('PuzzleName');
+            $new_name =~ s/^\s+//;
+            $new_name =~ s/\s+$//;
+            if (! ($new_name && $new_name =~ /\S/)) {
+                $self->render(text => "You didn't give a puzzle name.", status => 500);
+                return;
+            }
+            my $new_url = $self->param('PuzzleURL') || '';
+            $new_url =~ s/^\s+//;
+            $new_url =~ s/\s+$//;
+            $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+            my @round_ids = $self->param('round_ids');
+            if (!@round_ids) {
+                my $catchall = $event->find_or_create_related ('rounds', {
+                    display_name => '_catchall',
+                    state => 'open',
+                });
+                push @round_ids, $catchall->id;
+            }
+            my @rounds = map { $self->db->resultset('Round')->find($_) } @round_ids;
+            for my $round (@rounds) {
+                if ($round && $round->event->id == $event_id) {
+                    for my $puzzle ($round->puzzles) {
+                        if (lc($puzzle->display_name) eq lc($new_name)) {
+                            my $round_name = Mojo::Util::html_escape($round->display_name);
+                            if ($round_name eq '_catchall') {
+                                $round_name = 'The top level';
+                            } else {
+                                $round_name = 'The round &quot;' . $round_name . '&quot;';
+                            }
+                            $self->render(text => $round_name .
+                                          " already has a puzzle by that name.", status => 500);
+                            return;
+                        }
+                    }
+                } else {
+                    $self->render(text => "Bad round data.", status => 500);
+                    return;
+                }
+
+            }
+            if ($new_url) {
+                for my $round ($event->rounds) {
+                    for my $puzzle ($round->puzzles) {
+                        my $url_msg = $puzzle->chat->get_latest_of_type('puzzleurl');
+                        my $puz_url = ($url_msg ? $url_msg->text : '');
+                        if ($puz_url && $new_url eq $puz_url) {
+                            $self->render(text => '&quot;' . Mojo::Util::html_escape($puzzle->display_name) . '&quot;' . 
+                                          " already has that url.", status => 500);
+                            return;
+                        }
+                    }
+                }
+            }
+            my $puzzle = $self->db->resultset('Puzzle')->create({
+                display_name => $new_name,
+                state => 'open',
+            });
+            if ($puzzle) {
+                for my $round (@rounds) {
+                    $round->add_puzzle( $puzzle );
+                }
+                if ($new_url) {
+                    $puzzle->chat->add_of_type('puzzleurl',$new_url,$self->session->{userid});
+                }
+                SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                $self->render(text => 'OK', status => 200);
+                return;
+            }
+            $self->render(text => "Puzzle creation failed.", status => 500);
         }
         if ($form eq 'kill_round' && $round_id) {
             my $round = $self->db->resultset('Round')->find($round_id);
@@ -266,7 +339,6 @@ sub status {
 
 sub get_puzzle_table_html {
     my (undef, $self, $event) = @_;
-    my $all_html;
     my $cache;
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
@@ -277,6 +349,20 @@ sub get_puzzle_table_html {
                                     return $self->render('event/puzzle_table', partial=>1);
                                 }
                             );
+}
+
+sub get_form_round_list_html {
+    my (undef, $self, $event) = @_;
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    return $cache->compute('form_round_list '  . $event->id . ' html',
+                           {expires_in => 1, busy_lock => 10},
+                           sub {
+                               $self->stash(event => $event);
+                               return $self->render('event/form_round_list', partial=>1);
+                           }
+                       );
 }
 
 sub expire_puzzle_table_cache {

@@ -18,7 +18,7 @@
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
           </div>
           <div class="control-group">
-            <div class="controls">
+            <div class="controls my-chat-input">
               <div>
                 <textarea class="chat-input" rows="2" id="textarea-event-<%= $event->id %>"></textarea>
               </div>

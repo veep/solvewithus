@@ -13,15 +13,60 @@
     </div>
     <div class="span9">
       <div class="btn-group">
-        <a class="btn add_a_round_button disabled">
+        <a class="btn add-a-round-button">
           Add a Round
         </a>
-        <a class="btn add_a_puzzle_button disabled">
+        <a class="btn add-a-puzzle-button">
           Add a Puzzle
         </a>
         <a id="show-closed-button" event_id="<%= $event->id %>" class="btn">
           Hide Closed Puzzles
         </a>
+      </div>
+      <div class="hide well" id="new-round-form-well">
+        <form class="form-horizontal new-round-form">
+          <input type="hidden" name="eventid" value="<%= $event->id %>">
+          <input type="hidden" name="formname" value="New Round">
+          <div class="control-group">
+            <label class="control-label" for="inputRoundName">Round Name</label>
+            <div class="controls">
+              <input type="text" id="inputRoundName" class="input_xlarge" name="RoundName" placeholder="Round Name">
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-small btn-primary">Add Round</button>
+              <button type="button" class="btn btn-small add-a-round-button">Cancel</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="hide well" id="new-puzzle-form-well">
+        <form class="form-horizontal new-puzzle-form">
+          <input type="hidden" name="eventid" value="<%= $event->id %>">
+          <input type="hidden" name="formname" value="New Puzzle">
+          <div class="control-group">
+            <label class="control-label" for="inputPuzzleName">Puzzle Name</label>
+            <div class="controls">
+              <input type="text" class="input_xlarge" id="inputPuzzleName" name="PuzzleName" placeholder="Puzzle Name">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="inputPuzzleURL">Puzzle URL</label>
+            <div class="controls">
+              <input type="text" class="input-xxlarge" id="inputPuzzleURL" name="PuzzleURL" placeholder="Unique URL (recommended, if available)">
+            </div>
+          </div>
+          <div class="control-group" id="form-round-list">
+%= include 'event/form_round_list'
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <button type="submit" class="btn btn-small btn-primary">Add Puzzle</button>
+              <button type="submit" class="btn btn-small add-a-puzzle-button">Cancel</button>
+            </div>
+          </div>
+        </form>
       </div>
       <div class="event-puzzle-table" id="event-puzzle-table-<%= $event->id %>">
         <span class="muted">Loading...</span>
@@ -29,50 +74,3 @@
     </div>
   </div>
 </div>
-
-
-<div class="modal hide" id="newRoundModal" tabindex="-1" role="dialog" aria-labelledby="newRoundModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="newRoundModalLabel">Add a Round</h3>
-  </div>
-  <div class="modal-body">
-    <form id="newRoundForm" class="ModalForm">
-      <input type="text" name="roundname" placeholder="Round name">
-      <input type="hidden" name="formname" value="New Round">
-      <input type="hidden" name="eventid" value="<%= $event->id %>">
-    </form>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-    <button class="btn btn-primary submit-modal">Create</button>
-  </div>
-</div>
-
-<div class="modal hide" id="newPuzzleModal" tabindex="-1" role="dialog" aria-labelledby="newPuzzleModalLabel" aria-hidden="true">
-  <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="newPuzzleModalLabel">Add a Puzzle</h3>
-  </div>
-  <div class="modal-body">
-    <form id="newPuzzleForm" class="ModalForm">
-      <input type="text" name="puzzlename" placeholder="Puzzle name">
-      <input type="hidden" name="formname" value="New Puzzle">
-      <input type="hidden" name="eventid" value="<%= $event->id %>">
-      in <select name="roundid">
-        <option value="0">[No Round]</option>
-% if ($rounds) {
-%   my @round_ids = sort {$a <=> $b} keys %$rounds;
-%   for my $round_id (@round_ids) {
-        <option <%= ($round_id == $round_ids[-1] ? 'selected' : '') %> value="<%= $round_id %>"><%= $rounds->{$round_id}{name} %></option>
-%   }
-% }
-      </select>
-    </form>
-  </div>
-  <div class="modal-footer">
-    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-    <button class="btn btn-primary submit-modal">Create</button>
-  </div>
-</div>
-

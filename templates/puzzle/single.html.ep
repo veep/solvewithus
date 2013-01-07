@@ -67,7 +67,7 @@
           <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
           </div>
           <div class="control-group">
-            <div class="controls">
+            <div class="controls my-chat-input">
               <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $current->id %>"></textarea>
             </div>
           </div>

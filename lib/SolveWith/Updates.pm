@@ -82,6 +82,7 @@ sub getstream {
     }
     my $last_update_time = 0;
     my $last_puzzle_table_html = '';
+    my $last_form_round_list_html = '';
     my $cache;
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
@@ -110,6 +111,18 @@ sub getstream {
                             type => 'div',
                             divname => "event-puzzle-table-$id",
                             divhtml => $table_html . $first_time_html,
+                        };
+                        $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                    }
+                    my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
+                    if ($form_round_list_html ne $last_form_round_list_html) {
+                        warn $form_round_list_html;
+                        $last_form_round_list_html = $form_round_list_html;
+                        $last_update_time = time;
+                        my $output_hash = {
+                            type => 'div',
+                            divname => "form-round-list",
+                            divhtml => $form_round_list_html,
                         };
                         $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                     }
