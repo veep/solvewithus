@@ -144,7 +144,7 @@ sub spreadsheet_url {
         return $self->redirect_to($puzzle->spreadsheet);
     }
     $self->res->headers->add('Refresh', '2; url=' . $self->url_for('puzzle_ss', id => $id));
-    $self->render(text => 'Hang on, Google Spreadsheets take time, like fine wine...');
+    $self->render('puzzle/waiting_for_spreadsheet');
 }
 
 sub infomodal {

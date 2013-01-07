@@ -1,0 +1,11 @@
+% layout 'default';
+% title "Waiting";
+
+ <div class="container">
+   <div class="row-fluid">
+     <div class="span4">
+       <h2>Hang On... </h2>
+           <p>Google Spreadsheets take time, like fine wine. Thanks for waiting.</p>
+     </div>
+   </div>
+ </div>
