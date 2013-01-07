@@ -1,4 +1,4 @@
-% if ($event->rounds) {
+% if (scalar $event->rounds > 1) {
 <label class="control-label" for="round_id">Rounds</label>
 <div class="controls">
   %   for my $round (sort {$a->id <=> $b->id} $event->rounds) {
