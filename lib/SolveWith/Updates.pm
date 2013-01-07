@@ -116,7 +116,6 @@ sub getstream {
                     }
                     my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
                     if ($form_round_list_html ne $last_form_round_list_html) {
-                        warn $form_round_list_html;
                         $last_form_round_list_html = $form_round_list_html;
                         $last_update_time = time;
                         my $output_hash = {
