@@ -210,4 +210,8 @@ table.dead-rounds {
     display: none;
 }
 
+.hide {
+    display: none;
+}
+
 }                               /* @media print*/
