@@ -8,6 +8,10 @@ html, body, iframe {
 
 .container-fluid, .row-fluid, #spreadsheet-div, #everything { height: 100% }
 
+#everything {
+    overflow:hidden;
+}
+
 .expanded-spreadsheet-div {
    margin-left: 15px;
    width: 100%;
