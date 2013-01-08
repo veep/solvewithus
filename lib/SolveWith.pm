@@ -29,6 +29,7 @@ sub startup {
           warn "Code version: $code_version\n";
       }
   }
+  $self->cache->clear();
 
   # Routes
   my $r = $self->routes;
@@ -60,8 +61,10 @@ sub startup {
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');
 
-  $r->route('/stream/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
+  $r->route('/stream/event/:event_id/:last', event_id => qr/\d+/)
       ->name('stream')->to(controller => 'updates', action => 'getstream');
+  $r->route('/stream/event/:event_id/puzzle/:puzzle_id/:last', event_id => qr/\d+/, puzzle_id => qr/\d+/)
+      ->name('combined stream')->to(controller => 'updates', action => 'getstream');
 
   $r->route('/chat')->to(controller => 'updates', action => 'chat');
 

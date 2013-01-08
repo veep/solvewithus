@@ -64,7 +64,6 @@ function resize_ept() {
     $('.event-puzzle-table').siblings(":visible").each(
         function() {
             target = target - $(this).outerHeight(true);
-            console.warn($(this).outerHeight(true));
         }
     );
 

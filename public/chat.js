@@ -12,7 +12,6 @@ $(document).ready(
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
                 $.post('/chat', { text: text, type: type, id: puzzle_id });
-//                chat_filler(type,puzzle_id);
                 return false;
             }
         );
@@ -78,14 +77,16 @@ last_seen.puzzle = new Array();
 var event_source = new Object();
 
 function setup_chat_text_boxes () {
+    var chats = new Array();
     $(".chat-text").each(
         function() {
             var pieces = $(this).attr("id").split("-");
             var puzzle_id =  pieces[pieces.length - 1];
             var type =  pieces[pieces.length - 2];
-            setup_chat_filler(type, puzzle_id, this);
+            chats.push( new Array($(this), type, puzzle_id));
         }
     );
+    setup_combined_chat_filler(chats);
 }
 
 function check_eventsources() {
@@ -100,50 +101,63 @@ function check_eventsources() {
     }
 }
 
-function setup_chat_filler(type, puzzle_id, text_div) {
-//    chat_filler(type,puzzle_id);
-//    setInterval(function() {chat_filler(type,puzzle_id);},5000);
-    // var last_seen_id = 0;
-    // if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
-    //     last_seen_id = last_seen.puzzle[puzzle_id];
-    // }
-    // if (type === 'event' && last_seen.event[puzzle_id] > 0) {
-    //     last_seen_id = last_seen.event[puzzle_id];
-    // }
-    event_source[ type + ' ' + puzzle_id] = new EventSource(Array('','stream',type,puzzle_id,0).join('/'));
+var last_seen_id = 0;
 
-    
-//    console.warn(event_source);
-    
-    // Incoming messages
-    event_source[ type + ' ' + puzzle_id].onmessage = function(event) {
+function setup_combined_chat_filler (chats) {
+    var stream_url = '/stream';
+    $.each(chats, function (i, chatbox) {
+        stream_url = Array(stream_url, chatbox[1], chatbox[2]).join('/');
+
+        if (chatbox[1] === 'puzzle') {
+            var puzzle_id = chatbox[2];
+            $(chatbox[0]).parent().on('puzzleurl',function(event, url) {
+                if (url) {
+                    $('#puzzle-link-default-' + puzzle_id).hide();
+                    $('#puzzle-link-' + puzzle_id).html(url);
+                } else {
+                    $('#puzzle-link-default-' + puzzle_id).show();
+                    $('#puzzle-link-' + puzzle_id).html('');
+                }
+            });
+        }
+
+        $(chatbox[0]).parent().on('newoutput',function(event, type) {
+            $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
+                console.warn ('handler');
+                $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
+                    console.warn ('inner handler');
+                    if (parseInt($(span).text())) {
+                        $(span).text(parseInt($(span).text()) + 1);
+                    } else {
+                        $(span).text('1');
+                    }
+                });
+            });
+        });
+    });
+
+    stream_url = Array(stream_url, last_seen_id).join('/');
+
+    event_source[ 'combined' ] = new EventSource(stream_url);
+    event_source[ 'combined' ].onmessage = function(event) {
         var msg = jQuery.parseJSON(event.data);
         if (! msg) {
             console.warn(event.data);
             return;
         }
-        // var last_seen_id = 0;
-        
-        // if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
-        //     last_seen_id = last_seen.puzzle[puzzle_id];
-        // }
-        // if (type === 'event' && last_seen.event[puzzle_id] > 0) {
-        //     last_seen_id = last_seen.event[puzzle_id];
-        // }
         if (msg.type === 'done') {
-            var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
+            var mydiv = $("#" + ['chat','text',msg.target_type,msg.target_id].join('-'));
             mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
             mydiv.scrollLeft(0);
             return;
         }
-            
         if (msg.type === 'div') {
             var mydiv = $("#" + msg.divname);
             mydiv.html( msg.divhtml );
             return;
         }
             
-        if (type === 'puzzle' && msg.type === 'loggedin') {
+        if (msg.target_type === 'puzzle' && msg.type === 'loggedin') {
             var usersspan = $("#usersspan");
             var oldhtml = usersspan.html();
             var newhtml = '<b>Here:</b> ' + msg.text;
@@ -153,103 +167,18 @@ function setup_chat_filler(type, puzzle_id, text_div) {
             }                                       
             return;
         }
-        if (type === 'puzzle') { 
-            if (last_seen.puzzle[puzzle_id] === undefined || 
-                last_seen.puzzle[puzzle_id] < msg.id) {
-                last_seen.puzzle[puzzle_id] = msg.id;
-            } else {
-                return;
-            }
-        }
-        if (type === 'event') {
-            if (last_seen.event[puzzle_id] === undefined ||
-                last_seen.event[puzzle_id] < msg.id) {
-                last_seen.event[puzzle_id] = msg.id;
-            } else {
-                return;
-            }
+        if (last_seen_id === undefined || 
+            (msg.id && last_seen_id < msg.id)) {
+            last_seen_id = msg.id;
+        } else {
+            return;
         }
         render_msg(msg.type, msg.text, msg.timestamp, ( msg.author ? msg.author : ''),
-                   ['chat','text',type,puzzle_id].join('-') );
-    };
-    $(text_div).parent().on('puzzleurl',function(event, url) {
-        if (url) {
-            $('#puzzle-link-default-' + puzzle_id).hide();
-            $('#puzzle-link-' + puzzle_id).html(url);
-        } else {
-            $('#puzzle-link-default-' + puzzle_id).show();
-            $('#puzzle-link-' + puzzle_id).html('');
-        }
-
-    });
-    $(text_div).parent().on('newoutput',function(event, type) {
-//        console.warn('triggered: ' + type);
-        $(this).prev().find('.icon-chevron-right').fadeOut(200,function() {
-//            console.warn ('handler');
-            $.each( $(this).siblings('.chat-unread-count'), function (index, span) {
-//                console.warn ('inner handler');
-                if (parseInt($(span).text())) {
-                    $(span).text(parseInt($(span).text()) + 1);
-                } else {
-                    $(span).text('1');
-                }
-            });
-        });
-    });
-
+                   ['chat','text',msg.target_type,msg.target_id].join('-') );
+    };        
+        
 }
 
-// function chat_filler (type, puzzle_id) {
-//     var last_seen_id = 0;
-// //    console.warn(type + ' ' + puzzle_id);
-//     if (type === 'puzzle' && last_seen.puzzle[puzzle_id] > 0) {
-//         last_seen_id = last_seen.puzzle[puzzle_id];
-//     }
-//     if (type === 'event' && last_seen.event[puzzle_id] > 0) {
-//         last_seen_id = last_seen.event[puzzle_id];
-//     }
-//     $.getJSON( Array('','updates',type,puzzle_id,last_seen_id).join('/'),
-//                 function (messages) {
-//                     $.each(messages,
-//                            function (index,msg) {
-//                                if (type === 'puzzle' && msg.type === 'loggedin') {
-//                                    var usersspan = $("#usersspan");
-//                                    var oldhtml = usersspan.html();
-//                                    var newhtml = '<b>Here:</b> ' + msg.text;
-//                                    if (!(oldhtml === newhtml)) {
-//                                        usersspan.html(newhtml);
-//                                        resize_chat_box($("#chat-box"));
-//                                    }                                       
-//                                    return;
-//                                }
-//                                if (type === 'puzzle') { 
-//                                    if (last_seen.puzzle[puzzle_id] === undefined || 
-//                                        last_seen.puzzle[puzzle_id] < msg.id) {
-//                                        last_seen.puzzle[puzzle_id] = msg.id;
-//                                    } else {
-//                                        return;
-//                                    }
-//                                }
-//                                if (type === 'event') {
-//                                    if (last_seen.event[puzzle_id] === undefined ||
-//                                        last_seen.event[puzzle_id] < msg.id) {
-//                                        last_seen.event[puzzle_id] = msg.id;
-//                                    } else {
-//                                        return;
-//                                    }
-//                                }
-//                                render_msg(msg.type, msg.text, msg.timestamp, ( msg.author ? msg.author : ''),
-//                                           ['chat','text',type,puzzle_id].join('-')
-//                                          );
-
-//                            });
-//                     // There's always one message for 'puzzle' type, the logged in users
-//                     if( ( messages.length > 1) || (type != 'puzzle' && messages.length) ) {
-//                         var mydiv = $("#" + ['chat','text',type,puzzle_id].join('-'));
-//                         mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
-//                     }
-//                 });
-// }
 
 var last_daystring = new Object;
                                
