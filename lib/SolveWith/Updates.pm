@@ -194,13 +194,13 @@ sub _get_rendered_message {
     } else {
         $output_hash = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
         if ($output_hash->{type} eq 'chat') {
-            $output_hash->{text} =
-            $self->render("chat/chat-text", partial => 1, string => $output_hash->{text});
+            $output_hash->{text} = $self->render("chat/chat-text",
+                                                 partial => 1, string => $output_hash->{text});
+            chomp $output_hash->{text};
         }
         if (my $user = $message->user) {
             $output_hash->{author} = $user->display_name;
         }
-        $output_hash->{text} = decode('UTF-8', $output_hash->{text});
     }
     return $json->encode($output_hash);
 }
@@ -341,7 +341,6 @@ sub chat {
     my $type = $self->param('type');
     my $id = $self->param('id');
     my $text = $self->param('text');
-#    warn ("$type : $id : $text");
     my ($item, $team);
 
     if ($type eq 'event') {

@@ -7,7 +7,7 @@ use Data::Dump qw/ddx/;
 use CHI;
 
 has schema => sub {
-  return SolveWith::Schema->connect('dbi:SQLite:puzzles.db');
+  return SolveWith::Schema->connect('dbi:SQLite:puzzles.db', undef, undef, {sqlite_unicode => 1});
 };
 
 my $code_version = 0;           # 0 means "always return scalar time"
