@@ -46,6 +46,7 @@ $(document).ready(
                 reset_inputs($("#new-puzzle-form-well"));
                 reset_inputs($("#new-round-form-well"));
             }).find('.alert').alert('close');
+            return false;
         });
         $(".add-a-puzzle-button").click(function() {
             $("#new-round-form-well").slideUp('fast').find('.alert').alert('close');
@@ -54,6 +55,7 @@ $(document).ready(
                 reset_inputs($("#new-puzzle-form-well"));
                 reset_inputs($("#new-round-form-well"));
             }).find('.alert').alert('close');
+            return false;
         });
     }
 );
