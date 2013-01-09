@@ -154,6 +154,7 @@ function setup_combined_chat_filler (chats) {
         if (msg.type === 'div') {
             var mydiv = $("#" + msg.divname);
             mydiv.html( msg.divhtml );
+            mydiv.trigger('liveupdate');
             return;
         }
             

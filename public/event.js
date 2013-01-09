@@ -5,6 +5,9 @@ $(document).ready(
         $(window).resize(function() {
             resize_ept();
         });
+        $("#form-round-list").on('liveupdate', function () {
+            resize_ept();
+        });
         $("#show-closed-button").click(function(button) {
             hide_closed_rows = ! hide_closed_rows;
             apply_hide_closed_rows();

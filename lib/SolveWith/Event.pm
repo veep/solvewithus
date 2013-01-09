@@ -251,6 +251,16 @@ sub modal {
             }
             $self->render(text => "Puzzle creation failed.", status => 500);
         }
+        if ($form eq 'complete_round' && $round_id) {
+            my $round = $self->db->resultset('Round')->find($round_id);
+            my $state = $self->param('state');
+            if ($round and ($state eq 'open' or $state eq 'closed')) {
+                $round->set_column('state',$state);
+                $round->update;
+                $self->render(text => 'OK', status => 200);
+                return;
+            }
+        }
         if ($form eq 'kill_round' && $round_id) {
             my $round = $self->db->resultset('Round')->find($round_id);
             if ($round) {

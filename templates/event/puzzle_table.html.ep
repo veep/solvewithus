@@ -4,7 +4,7 @@
   <tr><th class="lead">
       Puzzle 
     </th>
-    <th class="lead state-column-cell">State</th>
+    <th class="lead state-column-cell">Info</th>
     <th id="headers" class="lead">Solution</th><th class="lead users-column-cell">Users</th><th class="lead">Opened</th><th class="lead">Idle/Closed</th></tr>
 </thead>
 <tbody>
@@ -35,6 +35,11 @@ Set Open Puzzle Priorities:
           High
         </a>
       </div>
+%        }
+%        if ($tree_round->{round}->state eq 'closed') {
+      <button type="button" class="btn btn-mini complete_round_button" state="open" round_id="<%= $tree_round->{round}->id %>">Has More Puzzles</button>
+%        } else {
+      <button type="button" class="btn btn-mini complete_round_button" state="closed" round_id="<%= $tree_round->{round}->id %>">No More Puzzles</button>
 %        }
       <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round}->id %>">Kill Round</button>
     </span>
@@ -170,6 +175,15 @@ $(".priority-picker").children("li").children("a").click(function() {
     jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 
                                    puzzleid : $(this).parent().parent().attr('puzzle_id'),
                                    priority: $(this).html().toLowerCase()
+                                 }
+               );
+});
+$(".complete_round_button").click(function () {
+    $(this).fadeTo('fast', 0.2);
+    jQuery.post('/event/modal', { formname : 'complete_round', 
+                                   roundid : $(this).attr('round_id'),
+                                   state : $(this).attr('state'),
+                                                        
                                  }
                );
 });
