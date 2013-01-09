@@ -17,7 +17,7 @@ $(document).ready(
                                         }
                        );
         });
-        $('form').submit(function() {
+        $('.new-round-form').add('.new-puzzle-form').submit(function() {
             var parent_form = $(this);
             parent_form.find('.alert').alert('close');
             var modal_post = jQuery.post('/event/modal', $(this).serializeArray(), null, 'text');

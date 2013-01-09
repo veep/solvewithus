@@ -3,6 +3,8 @@
 %= javascript '/event.js' . '?' . app->code_version
 %= javascript '/chat.js' . '?' . app->code_version
 
+%= include 'puzzle/info-modal-frame'
+
 <div class="container-fluid">
   <div class="row-fluid">
     <div class="span3 event-left-side">

@@ -65,21 +65,34 @@ sub modal {
                 $puzzle->chat->add_of_type('puzzleurl',$url_encoded,$self->session->{userid});
             }
         }
-        my $newitem = $self->param('newitem');
-        if (defined($newitem) and $newitem =~ /\S/) {
-            my $newitemtype = $self->param('newitemtype');
-            if ($newitemtype eq 'Info') {
-                my $encoded = $self->render("chat/chat-text", partial => 1, string => $newitem);
-                $puzzle->chat->add_of_type('puzzleinfo',$encoded,$self->session->{userid});
-            } elsif ($newitemtype eq 'Solution') {
-                $puzzle->chat->add_of_type('solution',$newitem,$self->session->{userid});
-                $event->chat->add_of_type('puzzle',join(
-                    '','<B>Puzzle Solved: </B><a href="/puzzle/',
-                $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
-                    ' Solution: ', Mojo::Util::html_escape($newitem)
-                ),$self->session->{userid});
-            }
+        my $newinfo = $self->param('newinfo');
+        if (defined($newinfo) and $newinfo =~ /\S/) {
+            my $encoded = $self->render("chat/chat-text", partial => 1, string => $newinfo);
+            $puzzle->chat->add_of_type('puzzleinfo',$encoded,$self->session->{userid});
         }
+        my $newsolution = $self->param('newsolution');
+        if (defined($newsolution) and $newsolution =~ /\S/) {
+            $puzzle->chat->add_of_type('solution',$newsolution,$self->session->{userid});
+            $event->chat->add_of_type('puzzle',join(
+                '','<B>Puzzle Solved: </B><a href="/puzzle/',
+                $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
+                ' Solution: ', Mojo::Util::html_escape($newsolution)
+            ),$self->session->{userid});
+        }
+        my @round_ids = $self->param('puzzle-round');
+        my @new_rounds = $self->db->resultset('Round')->search(
+            {
+                id => [ -1, @round_ids ],
+                event_id => $event->id,
+            } );
+        if (! @new_rounds) {
+            @new_rounds = $self->db->resultset('Round')->search(
+            {
+                display_name => '_catchall',
+                event_id => $event->id,
+            } );
+        }
+        $puzzle->set_rounds(\@new_rounds);
         my $status_msg = $puzzle->chat->get_latest_of_type('state');
         my $newstate = $self->param('puzzle-status');
         my $oldstate = ($status_msg ? $status_msg->text : 'open');
@@ -87,6 +100,12 @@ sub modal {
             $puzzle->chat->add_of_type('state',$newstate,$self->session->{userid});
             $puzzle->set_column('state',$newstate);
             $puzzle->update;
+        }
+        my $priority_msg = $puzzle->chat->get_latest_of_type('priority');
+        my $newpriority = $self->param('puzzle-priority');
+        my $oldpriority = ($priority_msg ? $priority_msg->text : 'normal');
+        if ($newpriority ne $oldpriority  and $newpriority =~ m/^(normal|low|high)$/) {
+            $puzzle->chat->add_of_type('priority',$newpriority,$self->session->{userid});
         }
         return $self->render(text => 'OK', status => 200);
     }
@@ -174,11 +193,29 @@ sub infomodal {
                                             { type => \@types, },
                                             {order_by => 'id'});
     my $status_msg = $puzzle->chat->get_latest_of_type('state');
+    my $priority_msg = $puzzle->chat->get_latest_of_type('priority');
+    my @rounds  = $event->rounds->search(
+        {
+            state => ['open', 'closed'],
+            display_name => { '!=', '_catchall'},
+        },
+        { order_by => 'id' },
+    );
+    my @open_rounds  = $event->rounds->search(
+        {
+            state => ['open'],
+            display_name => { '!=', '_catchall'},
+        },
+        { order_by => 'id' },
+    );
     $self->render('puzzle/info-modal', current => $puzzle,
                   url => $url,
                   latest_url => $latest_url,
                   status_msg => $status_msg,
+                  priority_msg => $priority_msg,
                   messages => $messages_rs,
+                  rounds => \@rounds,
+                  open_rounds => \@open_rounds,
               );
 }
 

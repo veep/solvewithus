@@ -69,13 +69,68 @@
 % }
   <td><button class="btn btn-mini">Change</button></td>
 </tr>
+<tr><td><b>Priority</b></td>
+  <td>
+    <label class="radio inline">
+      <input <%= 'checked' if $priority_msg and $priority_msg->text eq 'low' %>
+         type="radio" name="puzzle-priority" id="puzzle-priority-is-low" value="low">
+      Low
+    </label>
+    <label class="radio inline">
+      <input <%= 'checked' if ! $priority_msg or  $priority_msg->text eq 'normal' %>
+         type="radio" name="puzzle-priority" id="puzzle-priority-is-normal" value="normal">
+      Normal
+    </label>
+    <label class="radio inline">
+      <input <%= 'checked' if $priority_msg and $priority_msg->text eq 'high' %>
+         type="radio" name="puzzle-priority" id="puzzle-priority-is-high" value="high">
+      High
+    </label>
+  </td>
+% if ($priority_msg) {
+    <td><small><span style="white-space: nowrap;"><%= ( $priority_msg->user_id ? $priority_msg->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $priority_msg->timestamp %>"></span>
+      </small>
+    </td>
+% } else {
+  <td>&nbsp;</td>
+  <td>&nbsp;</td>
+% }
+  <td><button class="btn btn-mini">Change</button></td>
+</tr>
+% if (@$open_rounds or $current->rounds ) {
 <tr>
-  <td colspan="4"><select class="span2" name="newitemtype">
-      <option>Info</option>
-      <option>Solution</option>
-      </select>
-      </b>
-    <input class="input-xlarge" type="text" name="newitem" placeholder="Extra Puzzle Info"></td>
+  <td>
+    <b>Rounds</b>
+  </td>
+  <td colspan="3">
+%   for my $round (@$rounds) {
+%     my $included = $current->rounds->find($round->id);
+%     if ($included or $round->state eq 'open' ) {
+<label class="checkbox inline">
+  <input type="checkbox" name="puzzle-round" value="<%= $round->id %>" <%= $included ? 'checked' : '' %>>
+  <%= $round->display_name %>
+</label>
+%     }
+%   }
+% }
+   </td>
+  <td><button class="btn btn-mini">Change</button></td>
+</tr>
+<tr>
+  <td>
+    <b>Info</b>
+  </td>
+  <td colspan="3">
+    <input class="input-xxlarge" type="text" name="newinfo" placeholder="Extra Puzzle Info, URLs ok"></td>
+    <td><button class="btn btn-mini">Add</button></td>
+</tr>
+<tr>
+  <td>
+    <b>Solution</b>
+  </td>
+  <td colspan="3">
+    <input class="input-xlarge" type="text" name="newsolution" placeholder="Solution (Text)"></td>
     <td><button class="btn btn-mini">Add</button></td>
 </tr>
 </table>
@@ -98,10 +153,12 @@ $('.info-modal-timestamp').each(
 
 $('#infoModal').css({
    width: 'auto',
-   'max-width': '50%',
+   'max-width': '95%',
+   'max-height': '95%',
    'margin-left': function () {
       return -($(this).width() / 2);
    }
 });
+$('#infoModal').find('h3').html("&quot;<%= $current->display_name %>&quot; Information");
 %end
     

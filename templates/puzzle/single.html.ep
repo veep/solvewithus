@@ -3,20 +3,7 @@
 %= javascript '/puzzle.js' . '?' . app->code_version
 %= javascript '/chat.js' . '?' . app->code_version
 
-<div class="modal hide" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
-  <form id="infoForm" class="modal-form form-inline" action="/puzzle/modal" data-remote="true" method="POST">
-    <input type="hidden" name="last-button" value="">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3>Puzzle Information</h3>
-    </div>
-    <div class="modal-body">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-link" data-dismiss="modal">No Changes</button>
-    </div>
-  </form>
-</div>
+%= include 'puzzle/info-modal-frame'
 
 <div class="container-fluid">
   <div class="row-fluid">

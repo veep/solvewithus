@@ -37,7 +37,7 @@ Set Open Puzzle Priorities:
       </div>
 %        }
 %        if ($tree_round->{round}->state eq 'closed') {
-      <button type="button" class="btn btn-mini complete_round_button" state="open" round_id="<%= $tree_round->{round}->id %>">Has More Puzzles</button>
+      <button type="button" class="btn btn-mini complete_round_button" state="open" round_id="<%= $tree_round->{round}->id %>">Reopen</button>
 %        } else {
       <button type="button" class="btn btn-mini complete_round_button" state="closed" round_id="<%= $tree_round->{round}->id %>">No More Puzzles</button>
 %        }
@@ -63,17 +63,16 @@ Set Open Puzzle Priorities:
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
   </td>
   <td class="state-column-cell">
-    <span class="btn-group">
-      <a class="btn-mini btn btn-link dropdown-toggle" data-toggle="dropdown" href="#">
-        <%= ucfirst($puzzle->{priority}) . " Priority" %>
-        <span class="caret"></span>
+    <span id="puzzle-info-link-<%= $puzzle->{id} %>">
+      <a href="#" data-toggle="modal" class="btn btn-mini"
+         data-remote="<%== url_for ('infomodal', id => $puzzle->{id}); %>"
+         data-target="#infoModal">
+        <i class="icon-edit"></i> Puzzle Info
       </a>
-      <ul class="dropdown-menu priority-picker" puzzle_id="<%= $puzzle->{id} %>">
-        <li><a href="#">High</a></li>
-        <li><a href="#">Normal</a></li>
-        <li><a href="#">Low</a></li>
-        </ul>
     </span>
+    <small>
+    <%= ucfirst($puzzle->{priority}) . " Priority" unless lc($puzzle->{priority}) eq 'normal' %>
+    </small>
 </td>
   <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || ' ' %></td>
   <td class="users-column-cell"><%= join(', ', @{ $puzzle->{users_live}})%></td>
@@ -83,6 +82,13 @@ Set Open Puzzle Priorities:
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } => (class => 'muted')%> 
   </td>
   <td class="state-column-cell">
+    <span id="puzzle-info-link-<%= $puzzle->{id} %>">
+      <a href="#" data-toggle="modal" class="btn btn-mini"
+         data-remote="<%== url_for ('infomodal', id => $puzzle->{id}); %>"
+         data-target="#infoModal">
+        <i class="icon-edit"></i> Puzzle Info
+      </a>
+    </span>
     <button class="btn-mini btn-link disabled">Closed</button>
   </td>
   <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || '---' %></td>
@@ -170,14 +176,6 @@ Set Open Puzzle Priorities:
 
 %= javascript begin
 apply_hide_closed_rows();
-$(".priority-picker").children("li").children("a").click(function() {
-    $(this).parent().parent().prev().addClass("disabled");
-    jQuery.post('/puzzle/modal', { formname : 'event_puzzle_priority', 
-                                   puzzleid : $(this).parent().parent().attr('puzzle_id'),
-                                   priority: $(this).html().toLowerCase()
-                                 }
-               );
-});
 $(".complete_round_button").click(function () {
     $(this).fadeTo('fast', 0.2);
     jQuery.post('/event/modal', { formname : 'complete_round', 
