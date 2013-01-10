@@ -81,6 +81,10 @@ td.users-column-cell {
     white-space: nowrap;
 }
 
+.puzzle-info-button {
+    white-space: nowrap;
+}
+
 .table input[type="text"],input[type="select"] {
     margin-bottom: 0px;
 }
