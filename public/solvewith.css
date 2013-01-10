@@ -54,6 +54,9 @@ html, body, iframe {
     background-color: #EEEEEE;
 }
 
+#usersspan {
+    font-size: 11px;
+}
 
 .chat-input {
    width: 100%;
