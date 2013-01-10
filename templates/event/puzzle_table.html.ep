@@ -67,7 +67,7 @@ Set Open Puzzle Priorities:
       <a href="#" data-toggle="modal" class="btn btn-mini"
          data-remote="<%== url_for ('infomodal', id => $puzzle->{id}); %>"
          data-target="#infoModal">
-        <i class="icon-edit"></i> Puzzle Info
+        <i class="icon-edit"></i>&nbsp;Info
       </a>
     </span>
     <small>
