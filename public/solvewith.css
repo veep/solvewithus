@@ -57,6 +57,9 @@ html, body, iframe {
 #usersspan {
     font-size: 11px;
 }
+td.users-column-cell {
+    font-size: 11px;
+}
 
 .chat-input {
    width: 100%;
