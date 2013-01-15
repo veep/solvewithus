@@ -41,6 +41,19 @@ function resize_chat_box(cb) {
     if (open_count == 0) {
         return;
     }
+
+    openchats.each(
+        function() {
+//            console.warn($(this).scrollTop(), $(this).prop("scrollHeight"), $(this).height());
+            if ($(this).scrollTop() < ($(this).prop("scrollHeight") - $(this).height())) {
+                $(this).data('at_bottom','no');
+//                console.warn('not at bottom');
+            } else {
+                $(this).data('at_bottom','yes');
+//                console.warn('at bottom');
+            }
+        }
+    );
     
     var inner_current = 0;
     openchats.each(
@@ -62,7 +75,10 @@ function resize_chat_box(cb) {
     openchats.each(
         function() {
             $(this).height( final_size );
-            $(this).scrollTop($(this).prop("scrollHeight") - $(this).height() );
+            if ($(this).data('at_bottom') === 'yes') {
+                $(this).scrollTop($(this).prop("scrollHeight") - $(this).height() );
+            }
+            $(this).removeData('at_bottom');
             $(this).scrollLeft(0);
         }
     );
@@ -134,6 +150,18 @@ function setup_combined_chat_filler (chats) {
                 });
             });
         });
+        $(chatbox[0]).on('prerender',function() {
+            if (! $(this).data('at_bottom')) {
+//                console.warn($(this).scrollTop(), $(this).prop("scrollHeight"), $(this).height());
+                if ($(this).scrollTop() < ($(this).prop("scrollHeight") - $(this).height())) {
+                    $(this).data('at_bottom','no');
+//                    console.warn('not at bottom (chat)');
+                } else {
+                    $(this).data('at_bottom','yes');
+//                    console.warn('at bottom (chat)');
+                }
+            }
+        });
     });
 
     stream_url = Array(stream_url, last_seen_id).join('/');
@@ -147,8 +175,11 @@ function setup_combined_chat_filler (chats) {
         }
         if (msg.type === 'done') {
             var mydiv = $("#" + ['chat','text',msg.target_type,msg.target_id].join('-'));
-            mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
             mydiv.scrollLeft(0);
+            if (mydiv.data('at_bottom') === 'yes') {
+                mydiv.scrollTop(mydiv.prop("scrollHeight") - mydiv.height() );
+            }
+            mydiv.removeData('at_bottom');
             return;
         }
         if (msg.type === 'div') {
@@ -255,6 +286,7 @@ function render_msg (type, text, ts, author, div_id) {
     }
     if (result.length) {
         var mydiv = $("#" + div_id);
+        mydiv.trigger(jQuery.Event("prerender"),type);
         mydiv.append('<br/>' + result );
         mydiv.trigger(jQuery.Event("newoutput"),type);
         if (type === 'rendered') {
