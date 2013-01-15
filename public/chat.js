@@ -12,6 +12,8 @@ $(document).ready(
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
                 $.post('/chat', { text: text, type: type, id: puzzle_id });
+                var textdiv = $(this).parents('.control-group').prev();
+                textdiv.scrollTop(textdiv.prop("scrollHeight") - textdiv.height() );
                 return false;
             }
         );
