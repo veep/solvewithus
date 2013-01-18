@@ -35,17 +35,18 @@ sub getstream {
     Mojo::IOLoop->stream($self->tx->connection)->timeout(120);
 
     my $json = Mojo::JSON->new();
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
     my @waits_and_loops;
     if ($puzzle_id) {
         # every 5 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(5 => sub {
-            my $logged_in_row = $puzzle->find_or_create_related('puzzle_users',{user_id => $self->session->{userid}});
-            $logged_in_row->set_column('timestamp',scalar time);
-            $logged_in_row->update;
+            $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,8);
             $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
-            my @logged_in = $puzzle->users_live;
+            my @logged_in = $puzzle->users_live($cache);
             @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
             my $new_text = join(", ", @logged_in);
             if ($new_text ne $last_set_of_names) {
@@ -88,9 +89,6 @@ sub getstream {
     my $last_update_time = 0;
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
-    my $cache;
-    eval { $cache = $self->app->cache; };
-    $cache //= CHI->new( driver => 'Memory', global => 1 );
 
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => sub {

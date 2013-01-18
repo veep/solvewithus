@@ -43,9 +43,14 @@ sub spreadsheet {
 }
 
 sub users_live {
-    my $puzzle = shift;
-    my @logged_in = $puzzle->search_related('puzzle_users',{timestamp => { '>', (time - 8)}});
-    my @rv =  sort map {$_->user_id->display_name // $_->user_id->google_name // $_->user_id } @logged_in ;
+    my ($self, $cache) = @_;
+    my @loggedin;
+    for my $user ($self->result_source->schema->resultset('User')->all) {
+        if ($cache->get("in puzzle " . $self->id . " " . $user->id)) {
+            push @loggedin, ($user->display_name // $user->google_name // $user->id );
+        }
+    }
+    my @rv =  sort @loggedin ;
     return @rv;
 }
 
