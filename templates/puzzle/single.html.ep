@@ -5,6 +5,33 @@
 
 %= include 'puzzle/info-modal-frame'
 
+% if ($state ne 'open' or @{$info}) {
+
+<div id="initial-puzzle-info-modal" class="modal hide" tabindex="-1">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Puzzle Information You May Have Missed...</h3>
+  </div>
+  <div class="modal-body">
+% if ($state eq 'closed') {
+<p>This puzzle is closed</p>
+% } elsif ($state eq 'dead') {
+<p>This puzzle is "dead" (marked invalid)</p>
+% } elsif ($state ne 'open') {
+<p>This puzzle is in a very weird state</p>
+%}
+% for my $info_message (@{$info}) {
+<p>Info: <%== $info_message->text %></p>
+%}
+
+  </div>
+  <div class="modal-footer">
+    <button data-dismiss="modal" class="btn">Noted</a>
+  </div>
+</div>
+
+%}
+
 <div class="container-fluid">
   <div class="row-fluid">
     <div id="everything" class="span3">

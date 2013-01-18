@@ -18,10 +18,20 @@ sub single {
       return $self->redirect_to('reset');
   }
   return $self->redirect_to('events') unless $access;
+  my @info = $puzzle->chat->search_related('messages',
+                                           { type => 'puzzleinfo', },
+                                           {order_by => 'id'});
+  my $status_msg = $puzzle->chat->get_latest_of_type('state');
+  my $state = 'open';
+  if ($status_msg) {
+      $state = $status_msg->text;
+  }
   $self->stash( current => $puzzle);
   $self->stash( event => $event);
   $self->stash( tree => $event->get_puzzle_tree());
   $self->stash( ss_url => $self->url_for('puzzle_ss', id => $id));
+  $self->stash( state => $state );
+  $self->stash( info => \@info );
 }
 
 sub modal {

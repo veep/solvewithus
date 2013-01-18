@@ -90,6 +90,10 @@ td.puzzle-name-cell {
     white-space: nowrap;
 }
 
+.modal-body {
+    max-height: 80%;
+}
+
 .puzzle-info-button {
     white-space: nowrap;
 }
