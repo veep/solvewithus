@@ -33,7 +33,7 @@
 %}
 
 <div class="container-fluid">
-  <div class="row-fluid">
+  <div class="row-fluid everything-row">
     <div id="everything" class="span3">
       <!--Sidebar content-->
 %= include 'event/master_status_box'
@@ -77,6 +77,9 @@
             </div>
           </div>
         </div>
+        <div class="userlist">
+          <span id="usersspan">&nbsp;</span>
+        </div>
         <div id="full-chat-puzzle-<%= $current->id %>" class="collapse in">
           <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
           </div>
@@ -86,19 +89,9 @@
             </div>
           </div>
         </div>
-        <div><span id="usersspan">&nbsp;</span>
-        </div>
       </div>
     </div>
     <div class="span9" id="spreadsheet-div">
-      <div class="hide-chat-button">
-        <button type="button" class="btn btn-mini" onclick="$('#everything').toggle();$('#spreadsheet-div').toggleClass('span9').toggleClass('expanded-spreadsheet-div');resize_chat_box($('#chat-box'))" data-placement="right" rel="tooltip" title="Hide/Show&nbsp;Left&nbsp;Column">
-          &lt;&gt;
-        </button>
-%= javascript begin
-   $("button").tooltip();
-%end
-      </div>
       <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet // $ss_url %>">
     </div>
   </div>

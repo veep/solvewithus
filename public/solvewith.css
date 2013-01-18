@@ -6,7 +6,7 @@ html, body, iframe {
     height: 100%; /* set height 100% so that it fills the entire view port*/
 }
 
-.container-fluid, .row-fluid, #spreadsheet-div, #everything { height: 100% }
+.container-fluid, .everything-row, #spreadsheet-div, #everything { height: 100% }
 
 #everything {
     overflow:hidden;
@@ -28,10 +28,11 @@ html, body, iframe {
    overflow-x: hidden;
    padding: 0px 0px 0px 3px;
    height: 300px;
+   margin-top: 2px;
 }
 
 .chat-header {
-   margin-bottom: 2px;
+   margin-bottom: 0px;
 }
 
 .chat-header .navbar-inner  {
@@ -54,9 +55,12 @@ html, body, iframe {
     background-color: #EEEEEE;
 }
 
-#usersspan {
+.userlist {
+    background-color: #DDD;
     font-size: 11px;
+    padding-left: 4px;
 }
+
 td.users-column-cell {
     font-size: 11px;
     line-height: 90%;
