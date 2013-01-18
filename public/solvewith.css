@@ -59,6 +59,15 @@ html, body, iframe {
 }
 td.users-column-cell {
     font-size: 11px;
+    line-height: 90%;
+}
+
+td.puzzle-name-cell {
+    line-height: 95%;
+}
+
+.front-page-summary {
+    font-size: 11px;
 }
 
 .chat-input {
@@ -137,6 +146,10 @@ td.users-column-cell {
 td  .btn {
     margin-top: -1px;
     margin-bottom: -1px;
+}
+
+.table td {
+    vertical-align: middle;
 }
 
 caption {
@@ -225,6 +238,10 @@ table.dead-rounds {
 }
 
 .hide {
+    display: none;
+}
+
+.front-page-summary {
     display: none;
 }
 

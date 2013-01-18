@@ -45,9 +45,18 @@ sub spreadsheet {
 sub users_live {
     my $puzzle = shift;
     my @logged_in = $puzzle->search_related('puzzle_users',{timestamp => { '>', (time - 8)}});
-    return sort map {$_->user_id->display_name // $_->user_id->google_name // $_->user_id } @logged_in;
+    my @rv =  sort map {$_->user_id->display_name // $_->user_id->google_name // $_->user_id } @logged_in ;
+    return @rv;
 }
 
+sub summary {
+    my ($self) = @_;
+    my $current = $self->chat->get_latest_of_type('summary');
+    if (defined($current)) {
+        return $current->text;
+    }
+    return;
+}
 sub priority {
     my ($self, $pri, $user_id) = @_;
     my $cur_pri = $self->chat->get_latest_of_type('priority');

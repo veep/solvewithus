@@ -59,10 +59,17 @@ sub modal {
         my $url = $self->param('url');
         if (defined($url) && $url =~ /\S/) {
             my $url_encoded = $self->render("chat/chat-text", partial => 1, string => $url);
-            warn "$url $url_encoded";
             my $old_url = $puzzle->chat->get_latest_of_type('puzzleurl');
             if (!defined($old_url) or $old_url->text ne $url_encoded) {
                 $puzzle->chat->add_of_type('puzzleurl',$url_encoded,$self->session->{userid});
+            }
+        }
+        my $summary = $self->param('summary');
+        if (defined($summary) && $summary =~ /\S/) {
+            my $summary_encoded = $self->render("chat/chat-text", partial => 1, string => $summary);
+            my $old_summary = $puzzle->chat->get_latest_of_type('summary');
+            if (!defined($old_summary) or $old_summary->text ne $summary_encoded) {
+                $puzzle->chat->add_of_type('summary',$summary_encoded,$self->session->{userid});
             }
         }
         my $newinfo = $self->param('newinfo');
@@ -184,10 +191,11 @@ sub infomodal {
     my $latest_url = $puzzle->chat->get_latest_of_type('puzzleurl');
     if ($latest_url) {
         my $url_html = $latest_url->text;
-        warn $url_html;
         my $dom = Mojo::DOM->new($url_html);
         $url = $dom->all_text;
     }
+    my $latest_summary = $puzzle->chat->get_latest_of_type('summary');
+
     my @types = qw/solution puzzleinfo/;
     my $messages_rs = $puzzle->chat->search_related('messages',
                                             { type => \@types, },
@@ -211,6 +219,7 @@ sub infomodal {
     $self->render('puzzle/info-modal', current => $puzzle,
                   url => $url,
                   latest_url => $latest_url,
+                  latest_summary => $latest_summary,
                   status_msg => $status_msg,
                   priority_msg => $priority_msg,
                   messages => $messages_rs,

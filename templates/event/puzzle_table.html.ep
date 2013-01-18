@@ -54,13 +54,17 @@ Set Open Puzzle Priorities:
 %         if ($puzzle->{state} eq 'open') {
 %           my $puz_class='';
 %           if (lc($puzzle->{priority}) eq 'high') {
-  %             $puz_class=' class="lead"';
+%             $puz_class=' class="lead puzzle-name-cell"';
 <tr class="row-high">
 %           } else {
+%             $puz_class=' class="puzzle-name-cell"';
 <tr>
 %           }
   <td<%== $puz_class %>>
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
+% if ($puzzle->{summary}) {
+    <br><span class="front-page-summary">Summary: <%== $puzzle->{summary} %></span>
+% }
   </td>
   <td class="state-column-cell">
     <span id="puzzle-info-link-<%= $puzzle->{id} %>">
@@ -75,11 +79,14 @@ Set Open Puzzle Priorities:
     </small>
 </td>
   <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || ' ' %></td>
-  <td class="users-column-cell"><%= join(', ', @{ $puzzle->{users_live}})%></td>
+  <td class="users-column-cell"><%= join(', ', @{ $puzzle->{users_live}}) %></td>
 %         } else {
 <tr class="muted closed-row">
-  <td>
+  <td class="puzzle-name-cell">
     <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } => (class => 'muted')%> 
+% if ($puzzle->{summary}) {
+    <br><span class="muted front-page-summary">Summary: <%== $puzzle->{summary} %></span>
+% }
   </td>
   <td class="state-column-cell">
     <span id="puzzle-info-link-<%= $puzzle->{id} %>">

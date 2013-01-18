@@ -54,8 +54,9 @@ sub get_puzzle_tree {
                                              ),
                    users_live => $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
                                                   30,
-                                                  sub { [ $puzzle->users_live ];}
+                                                  sub {  [$puzzle->users_live] ;}
                                               ),
+                   summary => $puzzle->summary,
                };
         push @result, $row;
     }

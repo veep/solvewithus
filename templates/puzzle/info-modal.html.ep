@@ -16,7 +16,26 @@
                     >Remove</a></td>
 % } else {
   <tr><td><b>URL</b></td>
-    <td><input class="input-xlarge" type="text" name="url" placeholder="Puzzle URL"></td>
+    <td><input class="input-xxlarge" type="text" name="url" placeholder="Puzzle URL"></td>
+    <td>&nbsp;</td>
+    <td>&nbsp;</td>
+    <td><button class="btn btn-mini">Add</button></td>
+% }
+</tr>
+% if ($latest_summary) {
+  <tr class="info"><td><B>Summary</b></td>
+    <td><%== $latest_summary->text %></td>
+    <td><small><span style="white-space: nowrap;"><%= ( $latest_summary->user_id ? $latest_summary->user->display_name : 'someone' ) %></span></small></td> 
+    <td><small><span class="info-modal-timestamp" value="<%= $latest_summary->timestamp %>"></span>
+      </small>
+    </td>
+    <td><a href="#" class="btn btn-mini"
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_summary->id %> }, 
+                         function() {$('#infoModal').modal('hide');});return false;"
+                    >Remove</a></td>
+% } else {
+  <tr><td><b>Summary</b></td>
+    <td><input class="input-xxlarge" type="text" name="summary" placeholder="One Line Summary"></td>
     <td>&nbsp;</td>
     <td>&nbsp;</td>
     <td><button class="btn btn-mini">Add</button></td>
