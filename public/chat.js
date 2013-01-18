@@ -240,7 +240,7 @@ function render_msg (type, text, ts, author, div_id) {
 //    }
     if (type === 'chat') {
         if (text.substr(0,4) === '/me ') {
-            result = ds + 'emote&gt; ' + author  + text.substr(3);
+            result = ds + '<i>' + author  + text.substr(3) + '</i>';
         } else {
             result = ds + '<B>' + author + '</B>: ' + text;
         }
