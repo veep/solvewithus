@@ -1,4 +1,8 @@
 % use List::MoreUtils qw/any none/;
+
+% if ($event->id == 18) {
+<b>Hunt Site:</b> <a href="http://enigmavalley.com" target="_blank">http://enigmavalley.com</a> User/pw: luck / reservoirhorta
+%}
 <table class="table table-bordered table-condensed">
 <thead>
   <tr><th class="lead">

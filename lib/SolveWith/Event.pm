@@ -357,6 +357,7 @@ sub get_puzzle_table_html {
                                 {expires_in => 5, busy_lock => 10},
                                 sub {
                                     $self->stash(tree => $event->get_puzzle_tree($self->app));
+                                    $self->stash(event => $event);
                                     return $self->render('event/puzzle_table', partial=>1);
                                 }
                             );
