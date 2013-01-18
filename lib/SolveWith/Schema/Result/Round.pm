@@ -53,7 +53,7 @@ sub get_puzzle_tree {
                                                  sub { return [ map { $_->text}  @{$puzzle->chat->get_all_of_type('solution')} ];}
                                              ),
                    users_live => $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
-                                                  10,
+                                                  5,
                                                   sub {  [$puzzle->users_live($cache)] ;}
                                               ),
                    summary => $puzzle->summary,
