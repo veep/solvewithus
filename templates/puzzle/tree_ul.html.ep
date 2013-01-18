@@ -37,7 +37,11 @@
 %            if ( my $cnt = scalar @{$puzzle->{users_live}}) {
 -->, <%= $cnt . ($cnt == 1 ? ' User' : ' Users') %><!--
 %            }
--->)</li>
+-->)
+%            if ( $puzzle->{summary} ) {
+<br><span class="front-page-summary">Summary: <%== $puzzle->{summary} %></span>
+%            }
+</li>
 %         }
 %     }
 %     if ($shifted_ul) {
