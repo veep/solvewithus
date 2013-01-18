@@ -239,7 +239,11 @@ function render_msg (type, text, ts, author, div_id) {
 //        result = ds + '<A HREF="' + text + '">Spreadsheet assigned</A>';
 //    }
     if (type === 'chat') {
-        result = ds + '<B>' + author + '</B>: ' + text;
+        if (text.substr(0,4) === '/me ') {
+            result = ds + 'emote&gt; ' + author  + text.substr(3);
+        } else {
+            result = ds + '<B>' + author + '</B>: ' + text;
+        }
     }
     if (type === 'puzzle') {
         result = ds + text;

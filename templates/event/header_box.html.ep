@@ -1,10 +1,12 @@
 <div>
   <ul class="breadcrumb">
     <li><%= link_to $event->team->display_name => '/' %> <span class="divider">/</span></li>
-    <li><%= link_to $event->display_name => event => { id => $event->id} %>
 % if ($current) {
+    <li><%= link_to $event->display_name => event => { id => $event->id} %>
      <span class="divider">/</span></li>
     <li><%= $current->display_name %>
+% } else {
+    <li><%= $event->display_name %>
 % }
   </li></ul>
 </div>
