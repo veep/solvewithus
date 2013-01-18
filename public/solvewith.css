@@ -44,11 +44,10 @@ html, body, iframe {
   padding-right: 5px;
 }
 
-.hide-chat-button {
-    position: relative;
-    left: -10px;
-    float: left;
-    height: 0px;
+.hide-buttons {
+    position: absolute;
+    left: 60%;
+    top: 2px;
 }
 .my-chat-input {
     padding: 8px;

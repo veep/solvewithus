@@ -32,6 +32,7 @@
 
 %}
 
+
 <div class="container-fluid">
   <div class="row-fluid everything-row">
     <div id="everything" class="span3">
@@ -93,8 +94,21 @@
     </div>
     <div class="span9" id="spreadsheet-div">
       <iframe id="spreadsheet-iframe" src="<%== $current->spreadsheet // $ss_url %>">
+      </iframe>
     </div>
   </div>
 </div>
 
 
+
+ <div class="hide-buttons">
+   <button type="button" class="btn btn-mini" onclick="$('#everything').toggle();$('#spreadsheet-div').toggleClass('span9').toggleClass('expanded-spreadsheet-div');resize_chat_box($('#chat-box'))" data-placement="bottom" rel="tooltip" title="Hide/Show&nbsp;Left&nbsp;Column">
+     Toggle Chats
+   </button>
+   <button type="button" class="btn btn-mini" onclick="$('#spreadsheet-div').toggle();$('#everything').toggleClass('span3').toggleClass('expanded-chat-div');resize_chat_box($('#chat-box'))" data-placement="bottom" rel="tooltip" title="Hide/Show&nbsp;Right&nbsp;Column">
+     Toggle Spreadsheet
+   </button>
+   <a type="button" class="btn btn-mini" href="<%== $current->spreadsheet // $ss_url %>" data-placement="bottom" rel="tooltip" title="Direct to Google Doc">
+     Jump to Google Doc
+   </a>
+ </div>
