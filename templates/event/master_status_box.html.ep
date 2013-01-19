@@ -8,7 +8,6 @@
     <i class="icon-chevron-right chat-open-close"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
   </span>
   <div id="open_puzzles" class="collapse">
-%= include 'puzzle/tree_ul', tree => $tree, current_id => ($current ? $current->id : 0 )
   </div>       <!-- open_puzzles -->
 
 %= javascript begin

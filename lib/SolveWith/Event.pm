@@ -341,9 +341,18 @@ sub status {
     unless ($access) { $self->render_exception('Bad updates request: no access'); return; }
 
     my @results;
-    my $open_puzzles_html = $self->render('puzzle/tree_ul',
-                                          tree => $event->get_puzzle_tree($self->app),
-                                          current_id => $puzzle_id, partial => 1);
+    my $cache;
+    eval { $cache = $self->app->cache; };
+    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    my $open_puzzles_html = $cache->compute( 'puzzle tree status ' . $id,
+                                             {expires_in => 15, busy_lock => 10},
+                                             sub {
+                                                 return
+                                                 $self->render('puzzle/tree_ul',
+                                                               tree => $event->get_puzzle_tree($self->app),
+                                                               current_id => undef,
+                                                               partial => 1);
+                                             });
     push @results, {type => 'tree_html', content => $open_puzzles_html };
     $self->render_json(\@results);
 }
