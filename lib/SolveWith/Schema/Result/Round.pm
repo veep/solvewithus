@@ -33,15 +33,15 @@ sub get_puzzle_tree {
         }
         my $row = {puzzle => $puzzle,
                    open_time => $cache->compute( 'puzzle ' . $puzzle->id . ' first ts',
-                                                 '5 minutes',
+                                                 {expires_in => '5 minutes', busy_lock => 10},
                                                  sub { $puzzle->chat->get_first_timestamp }
                                              ),
                    activity_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last ts',
-                                                     '30',
+                                                     {expires_in => '30', busy_lock => 10},
                                                      sub { $puzzle->chat->get_last_timestamp(['chat','solution','puzzleinfo','created']); }
                                                  ),
                    state_change_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last state',
-                                                         '30',
+                                                         {expires_in => '30', busy_lock => 10},
                                                          sub { $puzzle->chat->get_last_timestamp('state') }
                                                      ),
                    state => $puzzle->state,
@@ -49,11 +49,11 @@ sub get_puzzle_tree {
                    id => $puzzle->id,
                    priority => $puzzle->priority,
                    solutions => $cache->compute( 'puzzle ' . $puzzle->id . 'solutions',
-                                                 15,
+                                                 {expires_in => '10', busy_lock => 10},
                                                  sub { return [ map { $_->text}  @{$puzzle->chat->get_all_of_type('solution')} ];}
                                              ),
                    users_live => $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
-                                                  5,
+                                                  {expires_in => '10', busy_lock => 10},
                                                   sub {  [$puzzle->users_live($cache)] ;}
                                               ),
                    summary => $puzzle->summary,
