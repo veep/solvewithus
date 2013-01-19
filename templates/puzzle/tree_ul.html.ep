@@ -9,7 +9,7 @@
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         next if $puzzle->{state} eq 'dead';
 %         $all_count{$puzzle->{puzzle}->id}++;
-%         if ($puzzle->{state} eq 'open' or ! $current_id) {
+%         if ($puzzle->{state} eq 'open') {
 %            if (! $shifted_ul and $round_name ne '_catchall' ) {
 <li><B><%= $round_name %></b>
 <ul>
