@@ -349,7 +349,7 @@ sub status {
                                              sub {
                                                  return
                                                  $self->render('puzzle/tree_ul',
-                                                               tree => $event->get_puzzle_tree($self->app),
+                                                               tree => [], #$event->get_puzzle_tree($self->app),
                                                                current_id => undef,
                                                                partial => 1);
                                              });
