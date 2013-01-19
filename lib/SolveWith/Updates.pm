@@ -91,21 +91,9 @@ sub getstream {
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
 
-    my $prev_time;
-    my $done = 1;
-    push @waits_and_loops, Mojo::IOLoop->recurring(
-        3 => sub {
-            if (! $done) {
-                $self->app->log->info("Skipping Loop for " . ($puzzle_id // "") . ' for ' . $self->session->{userid});
-                return;
-            }
-            $done = 0;
-            my $next_time = Time::HiRes::time;
-            if ($prev_time) {
-                $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
-            }
-            $prev_time = $next_time;
-            if (! $puzzle_id) {
+    if (! $puzzle_id) {
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            10 => sub {
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
                     my $first_time_html = '';
@@ -134,6 +122,10 @@ sub getstream {
                     $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
             }
+        );
+    }
+    push @waits_and_loops, Mojo::IOLoop->recurring(
+        1 => sub {
             my @messages = $self->db->resultset('Message')->search(
                 { type => \@types,
                   id => { '>', $last_update},
@@ -186,7 +178,6 @@ sub getstream {
                 $last_update_time = time;
                 $self->write( "ping: $last_update_time\n\n");
             }
-            $done = 1;
         }
     );
 };
