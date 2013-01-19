@@ -99,32 +99,34 @@ sub getstream {
                 $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
             }
             $prev_time = $next_time;
-            my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
-            if ($table_html ne $last_puzzle_table_html) {
-                my $first_time_html = '';
-                if (! $last_puzzle_table_html) {
-                    $first_time_html = $self->render("event/hide_show", partial => 1, 
-                                                     hide_closed => $self->session->{hide_closed} || '');
+            if (! $puzzle_id) {
+                my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
+                if ($table_html ne $last_puzzle_table_html) {
+                    my $first_time_html = '';
+                    if (! $last_puzzle_table_html) {
+                        $first_time_html = $self->render("event/hide_show", partial => 1, 
+                                                         hide_closed => $self->session->{hide_closed} || '');
+                    }
+                    $last_puzzle_table_html = $table_html;
+                    $last_update_time = time;
+                    my $output_hash = {
+                        type => 'div',
+                        divname => "event-puzzle-table-$event_id",
+                        divhtml => $table_html . $first_time_html,
+                    };
+                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
-                $last_puzzle_table_html = $table_html;
-                $last_update_time = time;
-                my $output_hash = {
-                    type => 'div',
-                    divname => "event-puzzle-table-$event_id",
-                    divhtml => $table_html . $first_time_html,
-                };
-                $self->write( "data: " . $json->encode($output_hash) . "\n\n");
-            }
-            my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
-            if ($form_round_list_html ne $last_form_round_list_html) {
-                $last_form_round_list_html = $form_round_list_html;
-                $last_update_time = time;
-                my $output_hash = {
-                    type => 'div',
-                    divname => "form-round-list",
-                    divhtml => $form_round_list_html,
-                };
-                $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
+                if ($form_round_list_html ne $last_form_round_list_html) {
+                    $last_form_round_list_html = $form_round_list_html;
+                    $last_update_time = time;
+                    my $output_hash = {
+                        type => 'div',
+                        divname => "form-round-list",
+                        divhtml => $form_round_list_html,
+                    };
+                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                }
             }
             my @messages = $self->db->resultset('Message')->search(
                 { type => \@types,
