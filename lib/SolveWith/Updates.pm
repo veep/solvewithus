@@ -94,7 +94,7 @@ sub getstream {
     my $prev_time;
     my $done = 1;
     push @waits_and_loops, Mojo::IOLoop->recurring(
-        2 => sub {
+        3 => sub {
             if (! $done) {
                 $self->app->log->info("Skipping Loop for " . ($puzzle_id // "") . ' for ' . $self->session->{userid});
                 return;
