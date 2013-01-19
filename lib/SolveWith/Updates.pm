@@ -94,17 +94,17 @@ sub getstream {
     my $prev_time;
     my $done = 1;
     push @waits_and_loops, Mojo::IOLoop->recurring(
-        1 => sub {
+        2 => sub {
             if (! $done) {
                 $self->app->log->info("Skipping Loop for " . ($puzzle_id // "") . ' for ' . $self->session->{userid});
                 return;
             }
             $done = 0;
-            # my $next_time = Time::HiRes::time;
-            # if ($prev_time) {
-            #     $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
-            # }
-            # $prev_time = $next_time;
+            my $next_time = Time::HiRes::time;
+            if ($prev_time) {
+                $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
+            }
+            $prev_time = $next_time;
             if (! $puzzle_id) {
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
