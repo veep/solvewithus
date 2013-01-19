@@ -2,6 +2,7 @@ package SolveWith::Updates;
 use Mojo::Base 'Mojolicious::Controller';
 use Encode qw/encode decode/;
 use SolveWith::Event;
+use Time::HiRes;
 
 sub _check_access {
     my $self = shift;
@@ -90,8 +91,14 @@ sub getstream {
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
 
+    my $prev_time;
     push @waits_and_loops, Mojo::IOLoop->recurring(
         2 => sub {
+            my $next_time = Time::HiRes::time;
+            if ($prev_time) {
+                $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
+            }
+            $prev_time = $next_time;
             my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
             if ($table_html ne $last_puzzle_table_html) {
                 my $first_time_html = '';
