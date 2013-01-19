@@ -46,7 +46,7 @@ sub getstream {
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(15 => sub {
             $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
-            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
+#            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
             my @logged_in = $puzzle->users_live($cache);
             @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
             my $new_text = join(", ", @logged_in);
@@ -92,13 +92,19 @@ sub getstream {
     my $last_form_round_list_html = '';
 
     my $prev_time;
+    my $done = 1;
     push @waits_and_loops, Mojo::IOLoop->recurring(
-        2 => sub {
-            my $next_time = Time::HiRes::time;
-            if ($prev_time) {
-                $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
+        1 => sub {
+            if (! $done) {
+                $self->app->log->info("Skipping Loop for " . ($puzzle_id // "") . ' for ' . $self->session->{userid});
+                return;
             }
-            $prev_time = $next_time;
+            $done = 0;
+            # my $next_time = Time::HiRes::time;
+            # if ($prev_time) {
+            #     $self->app->log->info("main updates loop time " . ($puzzle_id // "") . ' ' . ($next_time-$prev_time) );
+            # }
+            # $prev_time = $next_time;
             if (! $puzzle_id) {
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
@@ -180,6 +186,7 @@ sub getstream {
                 $last_update_time = time;
                 $self->write( "ping: $last_update_time\n\n");
             }
+            $done = 1;
         }
     );
 };
