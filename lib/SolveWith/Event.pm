@@ -345,7 +345,7 @@ sub status {
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
     my $open_puzzles_html = $cache->compute( 'puzzle tree status ' . $id,
-                                             {expires_in => 15, busy_lock => 10},
+                                             {expires_in => 60, busy_lock => 10},
                                              sub {
                                                  return
                                                  $self->render('puzzle/tree_ul',
