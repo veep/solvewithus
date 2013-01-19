@@ -43,8 +43,8 @@ sub getstream {
         # every 5 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
-        push @waits_and_loops, Mojo::IOLoop->recurring(5 => sub {
-            $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,8);
+        push @waits_and_loops, Mojo::IOLoop->recurring(15 => sub {
+            $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
             $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
             my @logged_in = $puzzle->users_live($cache);
             @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
@@ -91,7 +91,7 @@ sub getstream {
     my $last_form_round_list_html = '';
 
     push @waits_and_loops, Mojo::IOLoop->recurring(
-        1 => sub {
+        2 => sub {
             my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
             if ($table_html ne $last_puzzle_table_html) {
                 my $first_time_html = '';
