@@ -357,6 +357,8 @@ sub status {
     $self->render_json(\@results);
 }
 
+use Time::HiRes;
+
 sub get_puzzle_table_html {
     my (undef, $self, $event) = @_;
     my $cache;
@@ -365,9 +367,12 @@ sub get_puzzle_table_html {
     return $cache->compute('puzzle_table '  . $event->id . ' all_html',
                                 {expires_in => 120, expires_variance => .9 },
                                 sub {
+                                    my $st = Time::HiRes::time;
                                     $self->stash(tree => $event->get_puzzle_tree($self->app));
                                     $self->stash(event => $event);
-                                    return $self->render('event/puzzle_table', partial=>1);
+                                    my $tree =  $self->render('event/puzzle_table', partial=>1);
+                                    $self->app->log->info(join(" ","Tree time for", $self->session->{userid}, Time::HiRes::time - $st));
+                                    return $tree;
                                 }
                             );
 }

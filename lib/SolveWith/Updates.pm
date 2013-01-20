@@ -44,7 +44,7 @@ sub getstream {
         # every 5 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
-        push @waits_and_loops, Mojo::IOLoop->recurring(15 => sub {
+        push @waits_and_loops, Mojo::IOLoop->recurring(10 => sub {
             $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
 #            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
             my @logged_in = $puzzle->users_live($cache);
