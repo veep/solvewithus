@@ -365,7 +365,7 @@ sub get_puzzle_table_html {
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
     return $cache->compute('puzzle_table '  . $event->id . ' all_html',
-                                {expires_in => 120, expires_variance => .9 },
+                                {expires_in => 15, busy_lock => 30 },
                                 sub {
                                     my $st = Time::HiRes::time;
                                     $self->stash(tree => $event->get_puzzle_tree($self->app));
