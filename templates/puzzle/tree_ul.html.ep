@@ -2,11 +2,11 @@
 % my %open_count;
 % my %all_count;
 % my $newest = 0;
-% for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+% for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $b->{round}->id <=> $a->{round}->id;} @$tree ) {
 %     next if $tree_round->{round}->state eq 'dead';
 %     my $round_name = $tree_round->{round}->display_name;
 %     my $shifted_ul = 0;
-%     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
+%     for my $puzzle ( sort { $b->{open_time} <=> $a->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         next if $puzzle->{state} eq 'dead';
 %         $all_count{$puzzle->{puzzle}->id}++;
 %         if ($puzzle->{state} eq 'open') {
@@ -38,9 +38,6 @@
 -->, <%= $cnt . ($cnt == 1 ? ' User' : ' Users') %><!--
 %            }
 -->)
-%            if ( $puzzle->{summary} ) {
-<br><span class="front-page-summary">Summary: <%== $puzzle->{summary} %></span>
-%            }
 </li>
 %         }
 %     }
