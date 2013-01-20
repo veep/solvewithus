@@ -144,7 +144,7 @@ sub modal {
                                                           text => Mojo::Util::html_escape($pri)}),
                                           ,$self->session->{userid},
                                       );
-                SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
+#                SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
             }
             return $self->render(text => 'OK', status => 200);
         }

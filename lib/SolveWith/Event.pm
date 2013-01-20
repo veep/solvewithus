@@ -363,7 +363,7 @@ sub get_puzzle_table_html {
     my (undef, $self, $event) = @_;
     my $cache;
     eval { $cache = $self->app->cache; };
-    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    return '' unless $cache;
     return $cache->compute('puzzle_table '  . $event->id . ' all_html',
                                 {expires_in => 15, busy_lock => 30 },
                                 sub {
@@ -381,7 +381,7 @@ sub get_form_round_list_html {
     my (undef, $self, $event) = @_;
     my $cache;
     eval { $cache = $self->app->cache; };
-    $cache //= CHI->new( driver => 'Memory', global => 1 );
+    return '' unless $cache;
     return $cache->compute('form_round_list '  . $event->id . ' html',
                            {expires_in => 1, busy_lock => 10},
                            sub {
@@ -393,10 +393,21 @@ sub get_form_round_list_html {
 
 sub expire_puzzle_table_cache {
     my (undef, $self,$event_id) = @_;
+    my $event = $self->db->resultset('Event')->find($event_id);
     my $cache;
     eval { $cache = $self->app->cache; };
-    $cache //= CHI->new( driver => 'Memory', global => 1 );
-    $cache->expire('puzzle_table '  . $event_id . ' all_html');
+    return '' unless $cache and $event;
+
+    my $st = Time::HiRes::time;
+    $self->stash(tree => $event->get_puzzle_tree($self->app));
+    $self->stash(event => $event);
+    my $tree =  $self->render('event/puzzle_table', partial=>1);
+    $self->app->log->info(join(" ","Expire Tree time for", $self->session->{userid}, Time::HiRes::time - $st));
+
+    my $key = 'puzzle_table '  . $event->id . ' all_html';
+
+    $cache->set($key, $tree,{expires_in => 15, busy_lock => 30 });
+    return;
 }
 
 1;
