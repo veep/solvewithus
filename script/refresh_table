@@ -9,6 +9,7 @@ use Mojolicious::Renderer;
 use Mojo::Server;
 use Time::HiRes;
 
+$ENV{MOJO_MODE} = 'production';
 my $server = Mojo::Server->new;
 my $app = $server->load_app($FindBin::Bin . '/solve_with');
 $app->mode('production');
@@ -28,7 +29,7 @@ while (1) {
     warn(join(" ","Expire Tree time",  length($tree), Time::HiRes::time - $st));
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
-    $app->cache->set($key, $tree,{expires_in => 300, expires_variance => .9 });
-    sleep 1;
+    $app->cache->set($key, $tree, 60);
+    sleep 5;
 }
 
