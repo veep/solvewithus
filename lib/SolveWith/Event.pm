@@ -353,7 +353,7 @@ sub status {
                                                tree => $event->get_puzzle_tree($self->app),
                                                current_id => undef,
                                                partial => 1);
-            $cache->set($key, $open_puzzles_html, {expires_in => 120, expires_variance => 1 });
+            $cache->set($key, $open_puzzles_html, {expires_in => 120, expires_variance => .9 });
             $self->app->log->info(join(" ","Status time for ", $id, $self->session->{userid}, Time::HiRes::time - $st));
         }
         push @results, {type => 'tree_html', content => $open_puzzles_html };
