@@ -343,17 +343,21 @@ sub status {
     my @results;
     my $cache;
     eval { $cache = $self->app->cache; };
-    $cache //= CHI->new( driver => 'Memory', global => 1 );
-    my $open_puzzles_html = $cache->compute( 'puzzle tree status ' . $id,
-                                             {expires_in => 60, busy_lock => 60},
-                                             sub {
-                                                 return
-                                                 $self->render('puzzle/tree_ul',
-                                                               tree => $event->get_puzzle_tree($self->app),
-                                                               current_id => undef,
-                                                               partial => 1);
-                                             });
-    push @results, {type => 'tree_html', content => $open_puzzles_html };
+    if ($cache) {
+        my $key = 'puzzle tree status ' . $id;
+        my $open_puzzles_html = $cache->get( $key) ;
+        if (! $open_puzzles_html) {
+
+            my $st = Time::HiRes::time;
+            $open_puzzles_html = $self->render('puzzle/tree_ul',
+                                               tree => $event->get_puzzle_tree($self->app),
+                                               current_id => undef,
+                                               partial => 1);
+            $cache->set($key, $open_puzzles_html, {expires_in => 120, expires_variance => 1 });
+            $self->app->log->info(join(" ","Status time for ", $id, $self->session->{userid}, Time::HiRes::time - $st));
+        }
+        push @results, {type => 'tree_html', content => $open_puzzles_html };
+    }
     $self->render_json(\@results);
 }
 
