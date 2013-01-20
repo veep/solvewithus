@@ -148,7 +148,7 @@ sub getstream {
                                                     $message->id,
                                                     $message->type,
                                                 ),
-                                               {expires_in => 900, expires_variance => 0.2},
+                                               {expires_in => 7200, expires_variance => 0.2},
                                                sub {
                                                    return _get_rendered_message($self,
                                                                                 $message,
