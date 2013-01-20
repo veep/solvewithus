@@ -20,9 +20,10 @@ my $event = $schema->resultset('Event')->find($event_id) || die "No event found"
 
 while (1) {
     my $st = Time::HiRes::time;
+    my $tree_data = $event->get_puzzle_tree($app);
     my ($tree) =  $app->renderer->render(Mojolicious::Controller->new, {
         template => 'event/puzzle_table',
-        tree => $event->get_puzzle_tree($app),
+        tree => $tree_data,
         event => $event,
         partial=>1,
     } );
@@ -30,6 +31,17 @@ while (1) {
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
     $app->cache->set($key, $tree, 60);
+
+    my $key = 'puzzle tree status ' . $event_id;
+    $st = Time::HiRes::time;
+    my ($open_puzzles_html) = $app->renderer->render(Mojolicious::Controller->new, {
+        template => 'puzzle/tree_ul',
+        tree => $tree_data,
+        current_id => undef,
+        partial => 1});
+    
+    $app->cache->set($key, $open_puzzles_html, {expires_in => 120, expires_variance => .9 });
+    warn(join(" ","tree-ul time",  length($open_puzzles_html), Time::HiRes::time - $st));
     sleep 5;
 }
 
