@@ -25,8 +25,7 @@ while (1) {
         event => $event,
         partial=>1,
     } );
-    print "$tree\n";
-    warn(join(" ","Expire Tree time", Time::HiRes::time - $st));
+    warn(join(" ","Expire Tree time",  length($tree), Time::HiRes::time - $st));
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
     $app->cache->set($key, $tree,{expires_in => 300, expires_variance => .9 });
