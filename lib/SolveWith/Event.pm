@@ -160,6 +160,7 @@ sub modal {
                     if ($round) {
                         $round->set_column('state','open');
                         $round->update;
+                        SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
                         $self->render(text => 'OK', status => 200);
                         SolveWith::Spreadsheet::trigger_folder($self, $round);
                         return;
@@ -246,6 +247,7 @@ sub modal {
                     $puzzle->chat->add_of_type('puzzleurl',$new_url,$self->session->{userid});
                 }
                 SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
                 $self->render(text => 'OK', status => 200);
                 return;
             }
@@ -311,6 +313,7 @@ sub modal {
                             $puzzle->priority($priority,$self->session->{userid});
                         }
                     }
+                    SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
                     $self->render(text => 'OK', status => 200);
                     return;
                 }
@@ -377,7 +380,7 @@ sub get_puzzle_table_html {
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $key = 'puzzle_table '  . $event->id . ' all_html';
-    $cache->set($key, $tree, {expires_in => 60, expires_variance => .9 });
+    $cache->set($key, $tree, {expires_in => 300, expires_variance => 1 });
 }
 
 sub get_form_round_list_html {
@@ -409,7 +412,7 @@ sub expire_puzzle_table_cache {
 
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
-    $cache->set($key, $tree,{expires_in => 60, expires_variance => .9 });
+    $cache->set($key, $tree,{expires_in => 300, expires_variance => 1 });
     return;
 }
 
