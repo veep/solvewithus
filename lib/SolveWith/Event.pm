@@ -409,7 +409,7 @@ sub expire_puzzle_table_cache {
 
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
-    $cache->set($key, $tree,{expires_in => 15, busy_lock => 30 });
+    $cache->set($key, $tree,{expires_in => 60, expires_variance => .9 });
     return;
 }
 
