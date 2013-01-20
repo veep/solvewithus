@@ -364,6 +364,8 @@ sub get_puzzle_table_html {
     my $cache;
     eval { $cache = $self->app->cache; };
     return '' unless $cache;
+    my $table = $cache->get('puzzle_table '  . $event->id . ' all_html');
+    return $table if $table;
     return $cache->compute('puzzle_table '  . $event->id . ' all_html',
                            "1 minute", 
                                 sub {
