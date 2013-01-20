@@ -3,6 +3,7 @@ use Mojo::Base 'Mojolicious::Controller';
 use SolveWith::Auth;
 use Net::Google::DocumentsList;
 use Mojo::Util;
+use Time::HiRes;
 
 sub single {
   my $self = shift;
@@ -364,7 +365,6 @@ sub status {
     $self->render_json(\@results);
 }
 
-use Time::HiRes;
 
 sub get_puzzle_table_html {
     my (undef, $self, $event) = @_;

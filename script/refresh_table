@@ -1,0 +1,35 @@
+#!/usr/bin/env perl
+
+use common::sense;
+use FindBin;
+use lib "$FindBin::Bin/../lib";
+use SolveWith::Event;
+use SolveWith::Schema;
+use Mojolicious::Renderer;
+use Mojo::Server;
+use Time::HiRes;
+
+my $server = Mojo::Server->new;
+my $app = $server->load_app($FindBin::Bin . '/solve_with');
+$app->mode('production');
+
+my $event_id = 1;
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $event = $schema->resultset('Event')->find($event_id) || die "No event found";
+
+while (1) {
+    my $st = Time::HiRes::time;
+    my ($tree) =  $app->renderer->render(Mojolicious::Controller->new, {
+        template => 'event/puzzle_table',
+        tree => $event->get_puzzle_tree($app),
+        event => $event,
+        partial=>1,
+    } );
+    print "$tree\n";
+    warn(join(" ","Expire Tree time", Time::HiRes::time - $st));
+    my $key = 'puzzle_table '  . $event->id . ' all_html';
+
+    $app->cache->set($key, $tree,{expires_in => 300, expires_variance => .9 });
+    sleep 1;
+}
+
