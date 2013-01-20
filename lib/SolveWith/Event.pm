@@ -380,7 +380,7 @@ sub get_puzzle_table_html {
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $key = 'puzzle_table '  . $event->id . ' all_html';
-    $cache->set($key, $tree, {expires_in => 300, expires_variance => 1 });
+    $cache->set($key, $tree, {expires_in => 300, expires_variance => .95 });
 }
 
 sub get_form_round_list_html {
@@ -412,7 +412,7 @@ sub expire_puzzle_table_cache {
 
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
-    $cache->set($key, $tree,{expires_in => 300, expires_variance => 1 });
+    $cache->set($key, $tree,{expires_in => 300, expires_variance => .95 });
     return;
 }
 
