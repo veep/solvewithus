@@ -93,7 +93,7 @@ sub getstream {
 
     if (! $puzzle_id) {
         push @waits_and_loops, Mojo::IOLoop->recurring(
-            15 => sub {
+            5 => sub {
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
                     my $first_time_html = '';
@@ -125,7 +125,7 @@ sub getstream {
         );
     }
     push @waits_and_loops, Mojo::IOLoop->recurring(
-        2 => sub {
+        1 => sub {
             my @messages = $self->db->resultset('Message')->search(
                 { type => \@types,
                   id => { '>', $last_update},

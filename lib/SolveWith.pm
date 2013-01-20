@@ -28,8 +28,9 @@ sub startup {
           $code_version=$1;
           warn "Code version: $code_version\n";
       }
+  } else {
+      $self->cache->clear();
   }
-  $self->cache->clear();
 
   # Routes
   my $r = $self->routes;
