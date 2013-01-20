@@ -365,13 +365,13 @@ sub get_puzzle_table_html {
     eval { $cache = $self->app->cache; };
     return '' unless $cache;
     return $cache->compute('puzzle_table '  . $event->id . ' all_html',
-                                {expires_in => 15, busy_lock => 30 },
+                           "1 minute", 
                                 sub {
                                     my $st = Time::HiRes::time;
                                     $self->stash(tree => $event->get_puzzle_tree($self->app));
                                     $self->stash(event => $event);
                                     my $tree =  $self->render('event/puzzle_table', partial=>1);
-                                    $self->app->log->info(join(" ","Tree time for", $self->session->{userid}, Time::HiRes::time - $st));
+                                    $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
                                     return $tree;
                                 }
                             );
