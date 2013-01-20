@@ -377,7 +377,7 @@ sub get_puzzle_table_html {
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $key = 'puzzle_table '  . $event->id . ' all_html';
-    $cache->set($key, $tree, {expires_in => 120, expires_variance => .9 });
+    $cache->set($key, $tree, {expires_in => 60, expires_variance => .9 });
 }
 
 sub get_form_round_list_html {
