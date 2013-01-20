@@ -141,8 +141,8 @@ my $app_cache = undef;
 sub cache {
     if (! $app_cache) {
         my $app = shift;
-#        $app_cache= CHI->new( driver => 'FastMmap', root_dir => '/tmp/' . $app->mode, cache_size => '20m');
-        $app_cache= CHI->new( driver => 'Memory', cache_size => '10m', global => 1 );
+        $app_cache= CHI->new( driver => 'FastMmap', root_dir => '/tmp/' . $app->mode, cache_size => '200m');
+#        $app_cache= CHI->new( driver => 'Memory', cache_size => '10m', global => 1 );
     }
     return $app_cache;
 }
