@@ -3,6 +3,7 @@ use common::sense;
 use base qw/DBIx::Class::Core/;
 use Mojo::Util;
 use CHI;
+use Time::HiRes;
 
 __PACKAGE__->table('round');
 __PACKAGE__->add_columns(
@@ -31,33 +32,46 @@ sub get_puzzle_tree {
         if (! $c or ! ($cache = $c->cache)) {
             $cache = CHI->new( driver => 'Memory', global => 1 );
         }
-        my $row = {puzzle => $puzzle,
-                   open_time => $cache->compute( 'puzzle ' . $puzzle->id . ' first ts',
-                                                 {expires_in => '5 minutes', busy_lock => 10},
-                                                 sub { $puzzle->chat->get_first_timestamp }
-                                             ),
-                   activity_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last ts',
+        my $row = {};
+        $c->app->log->info("Start time " . Time::HiRes::time());
+        $row->{puzzle} = $puzzle;
+        $row->{open_time} = $cache->compute( 'puzzle ' . $puzzle->id . ' first ts',
+                                             {expires_in => '5 minutes', busy_lock => 10},
+                                             sub { $puzzle->chat->get_first_timestamp }
+                                         );
+        $c->app->log->info("after open time " . Time::HiRes::time());
+        $row->{activity_time} = $cache->compute(
+            'puzzle ' . $puzzle->id . ' last ts',
+            {expires_in => '30', busy_lock => 10},
+            sub {
+                $puzzle->chat->get_last_timestamp(['chat','solution','puzzleinfo','created']); 
+            }
+        );
+        $c->app->log->info("after activity time " . Time::HiRes::time());
+        $row->{state_change_time} = $cache->compute( 'puzzle ' . $puzzle->id . ' last state',
                                                      {expires_in => '30', busy_lock => 10},
-                                                     sub { $puzzle->chat->get_last_timestamp(['chat','solution','puzzleinfo','created']); }
-                                                 ),
-                   state_change_time => $cache->compute( 'puzzle ' . $puzzle->id . ' last state',
-                                                         {expires_in => '30', busy_lock => 10},
-                                                         sub { $puzzle->chat->get_last_timestamp('state') }
-                                                     ),
-                   state => $puzzle->state,
-                   display_name => $puzzle->display_name,
-                   id => $puzzle->id,
-                   priority => $puzzle->priority,
-                   solutions => $cache->compute( 'puzzle ' . $puzzle->id . 'solutions',
-                                                 {expires_in => '10', busy_lock => 10},
-                                                 sub { return [ map { $_->text}  @{$puzzle->chat->get_all_of_type('solution')} ];}
-                                             ),
-                   users_live => $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
-                                                  {expires_in => '10', busy_lock => 10},
-                                                  sub {  [$puzzle->users_live($cache)] ;}
-                                              ),
-                   summary => $puzzle->summary,
-               };
+                                                     sub { $puzzle->chat->get_last_timestamp('state') }
+                                                 );
+        $c->app->log->info("after state_change time " . Time::HiRes::time());
+        $row->{state} = $puzzle->state;
+        $row->{display_name} = $puzzle->display_name;
+        $row->{summary} = $puzzle->summary;
+        $row->{id} => $puzzle->id;
+        $row->{priority} = $puzzle->priority;
+        $c->app->log->info("after priority time " . Time::HiRes::time());
+        $row->{solutions} = $cache->compute( 
+            'puzzle ' . $puzzle->id . 'solutions',
+            {expires_in => '10', busy_lock => 10},
+            sub { 
+                return [ map { $_->text}  @{$puzzle->chat->get_all_of_type('solution')} ];
+            }
+        );
+        $c->app->log->info("after solutions time " . Time::HiRes::time());
+        $row->{users_live} = $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
+                                              {expires_in => '10', busy_lock => 10},
+                                              sub {  [$puzzle->users_live($cache)] ;}
+                                          );
+        $c->app->log->info("after users_live time " . Time::HiRes::time());
         push @result, $row;
     }
     return \@result;
