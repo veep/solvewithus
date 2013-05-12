@@ -58,7 +58,7 @@ sub has_access {
     warn "User $userid not in group " . $self->google_group . " list\n" if $debug;
 
     my $spreadsheet = $self->chat->get_spreadsheet;
-    return 0 unless $spreadsheet && $spreadsheet =~ /key=(.*)/;
+    return 0 unless $spreadsheet && $spreadsheet =~ /key=([^&]+)/;
     my $key = $1;
 
     warn "Got ss $spreadsheet\n" if $debug;
