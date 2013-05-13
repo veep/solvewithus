@@ -52,7 +52,7 @@ sub get_puzzle_tree {
         $row->{state} = $puzzle->state;
         $row->{display_name} = $puzzle->display_name;
         $row->{summary} = $puzzle->summary;
-        $row->{id} => $puzzle->id;
+        $row->{id} = $puzzle->id;
         $row->{priority} = $puzzle->priority;
         $row->{solutions} = $cache->compute( 
             'puzzle ' . $puzzle->id . 'solutions',
