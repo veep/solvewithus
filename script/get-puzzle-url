@@ -7,7 +7,7 @@ use SolveWith::Schema;
 
 my $puzzle_id = shift;
 
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle found";
 
 my $url = $puzzle->spreadsheet;

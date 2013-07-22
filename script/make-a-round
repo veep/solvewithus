@@ -8,7 +8,7 @@ use SolveWith::Schema;
 my $event_id = shift;
 my $round_name = shift;
 
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $event = $schema->resultset('Event')->find($event_id) || die "No event found";
 
 my $round = $event->create_related('rounds',{

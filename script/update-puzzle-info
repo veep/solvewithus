@@ -12,7 +12,7 @@ my $server = Mojo::Server->new;
 my $app = $server->load_app($FindBin::Bin . '/solve_with');
 $app->mode('production');
 
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 
 for my $message ($schema->resultset('Message')->all) {
     $message->chat->maybe_add_puzzle_info($message->type, $message->text, $message->user_id, $message);

@@ -15,7 +15,7 @@ my $app = $server->load_app($FindBin::Bin . '/solve_with');
 $app->mode('production');
 
 my $event_id = shift || 1;
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $event = $schema->resultset('Event')->find($event_id) || die "No event found";
 
 while (1) {

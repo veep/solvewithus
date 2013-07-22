@@ -7,7 +7,7 @@ use SolveWith::Schema;
 
 my $team_id = shift;
 
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $team = $schema->resultset('Team')->find($team_id);
 die unless $team;
 

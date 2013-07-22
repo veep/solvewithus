@@ -29,7 +29,7 @@ while (1) {
 }
 warn "$$ Got lock for $type $obj_id\n";
 
-my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../puzzles.db');
+my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $url;
 eval {
     if ($type eq 'event') {
