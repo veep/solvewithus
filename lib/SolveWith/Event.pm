@@ -371,7 +371,8 @@ sub get_puzzle_table_html {
     my $cache;
     eval { $cache = $self->app->cache; };
     return '' unless $cache;
-    my $table = $cache->get('puzzle_table '  . $event->id . ' all_html');
+    my $key = 'puzzle_table '  . $event->id . ' all_html';
+    my $table = $cache->get($key);
     return $table if $table;
 
     my $st = Time::HiRes::time;
@@ -379,8 +380,7 @@ sub get_puzzle_table_html {
     $self->stash(event => $event);
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
-    my $key = 'puzzle_table '  . $event->id . ' all_html';
-    $cache->set($key, $tree, {expires_in => 300, expires_variance => .95 });
+    $cache->set($key, $tree, {expires_in => 30, expires_variance => .8});
 }
 
 sub get_form_round_list_html {

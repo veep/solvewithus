@@ -21,6 +21,7 @@ __PACKAGE__->many_to_many('rounds' => 'puzzle_rounds', 'round_id');
 __PACKAGE__->has_many('puzzle_users' => 'SolveWith::Schema::Result::UserPuzzle', 'puzzle_id');
 __PACKAGE__->many_to_many('users' => 'puzzle_users', 'user_id');
 __PACKAGE__->has_one(chat => 'SolveWith::Schema::Result::Chat', { 'foreign.id' => 'self.chat_id'} );
+__PACKAGE__->has_many('puzzle_info' => 'SolveWith::Schema::Result::PuzzleInfo', 'puzzle_id');
 
 sub new {
     my $self = shift;
@@ -45,9 +46,17 @@ sub spreadsheet {
 sub users_live {
     my ($self, $cache) = @_;
     my @loggedin;
-    for my $user ($self->result_source->schema->resultset('User')->all) {
-        if ($cache->get("in puzzle " . $self->id . " " . $user->id)) {
-            push @loggedin, ($user->display_name // $user->google_name // $user->id );
+    my $max_id = $cache->compute( 'max user id',
+                                  {expires_in => '300', busy_lock => 10},
+                                  sub { $self->result_source->schema->resultset('User')->get_column('id')->max();}
+                              );
+    my $results = $cache->get_multi_arrayref( [ map { "in puzzle " . $self->id . " " . $_ } (0..$max_id) ] );
+    for my $user_id (0..$max_id) {
+        if ($$results[$user_id]) {
+            my $user = $self->result_source->schema->resultset('User')->find($user_id);
+            if ($user) {
+                push @loggedin, ($user->display_name // $user->google_name // $user->id );
+            }
         }
     }
     my @rv =  sort @loggedin ;
@@ -80,5 +89,60 @@ sub priority {
     return $cur_pri;
 }
 
+sub update_info {
+    my ($self, $type, $value, $ts) = @_;
+    if ($type eq 'solution') {
+        my $info = $self->puzzle_info->update_or_create(
+            {
+                type => "$type $ts",
+                text => $value,
+            }
+        );
+    } elsif ($type eq 'activity') {
+        my $last = $self->puzzle_info->find_or_new(
+            {
+                type => 'last activity',
+            }
+        );
+        if (! $last->text or  $last->text < $value) {
+            $last->text($value);
+            if (! $last->in_storage) {
+                $last->insert;
+            } else {
+                $last->update;
+            }
+        }
+        my $first = $self->puzzle_info->find_or_new(
+            { 
+                type => 'first activity',
+            }
+        );
+        if (! $first->in_storage) {
+            $first->text($value);
+            $first->insert;
+        }
+    } else {
+        my $info = $self->puzzle_info->update_or_create(
+            {
+                type => $type,
+                text => $value,
+            }
+        );
+    }
+}
+
+sub remove_info {
+    my ($self, $type, $value, $ts) = @_;
+    if ($type eq 'solution') {
+        $self->search_related('puzzle_info',{
+            type => {like => 'solution%' },
+            text => $value,
+        })->delete;
+    } else {
+        $self->search_related('puzzle_info',{
+            type => $type,
+        })->delete;
+    }
+}
 1;
 

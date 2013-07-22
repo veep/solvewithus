@@ -83,6 +83,27 @@ sub set_folder {
 sub add_of_type {
     my ($self, $type, $text, $user_id) = @_;
     my $msg = $self->create_related('messages' => { 'type' => $type, 'text' => $text, 'user_id' => $user_id });
+    $self->maybe_add_puzzle_info($type, $text, $user_id, $msg);
+    return;
+}
+
+sub maybe_add_puzzle_info {
+    my ($self, $type, $text, $user_id, $msg) = @_;
+    my $puzzle;
+    if ($puzzle = $self->puzzle) {
+        if ($type eq 'priority' or $type eq 'summary') {
+            $puzzle->update_info($type, $text);
+        }
+        if ($type eq 'solution') {
+            $puzzle->update_info('solution', $text, $msg->timestamp);
+        }
+        if ($type eq 'state') {
+            $puzzle->update_info('state time', $msg->timestamp);
+        }
+        if ($type eq 'chat' or $type eq 'solution' or $type eq 'puzzleinfo' or $type eq 'created') {
+            $puzzle->update_info('activity', $msg->timestamp);
+        }
+    }
 }
 
 sub remove_message {
@@ -91,6 +112,10 @@ sub remove_message {
     if (! $msg or $msg->type =~ /^removed_/) {
         warn "Failed to remove message $id by $user_id";
         return;
+    }
+    my $puzzle;
+    if ($puzzle = $self->puzzle) {
+        $puzzle->remove_info($msg->type, $msg->text, $msg->timestamp);
     }
     $msg->set_column('type','removed_' . $msg->type);
     $msg->update;

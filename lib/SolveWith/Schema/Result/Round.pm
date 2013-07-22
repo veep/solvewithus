@@ -34,37 +34,36 @@ sub get_puzzle_tree {
         }
         my $row = {};
         $row->{puzzle} = $puzzle;
-        $row->{open_time} = $cache->compute( 'puzzle ' . $puzzle->id . ' first ts',
-                                             {expires_in => '5 minutes', busy_lock => 10},
-                                             sub { $puzzle->chat->get_first_timestamp }
-                                         );
-        $row->{activity_time} = $cache->compute(
-            'puzzle ' . $puzzle->id . ' last ts',
-            {expires_in => '30', busy_lock => 10},
-            sub {
-                $puzzle->chat->get_last_timestamp(['chat','solution','puzzleinfo','created']); 
+        my $now = time;
+        $row->{open_time} = $now;
+        $row->{activity_time} = $now;
+        $row->{state_change_time} = $now;
+        $row->{solutions} = [];
+        $row->{users_live} = [];
+        for my $puzzle_info ($puzzle->search_related('puzzle_info')) {
+            if ($puzzle_info->type eq 'first activity') {
+                $row->{open_time} = $puzzle_info->text;
+            } elsif ($puzzle_info->type eq 'last activity') {
+                $row->{activity_time} = $puzzle_info->text;
+            } elsif ($puzzle_info->type eq 'state time') {
+                $row->{state_change_time} = $puzzle_info->text;
+            } elsif ($puzzle_info->type =~ /^solution /) {
+                push @{$row->{solutions}}, $puzzle_info->text;
+            } elsif ($puzzle_info->type eq 'summary') {
+                $row->{summary} = $puzzle_info->text;
+            } elsif ($puzzle_info->type eq 'priority') {
+                $row->{priority} = $puzzle_info->text || 'normal';
             }
-        );
-        $row->{state_change_time} = $cache->compute( 'puzzle ' . $puzzle->id . ' last state',
-                                                     {expires_in => '30', busy_lock => 10},
-                                                     sub { $puzzle->chat->get_last_timestamp('state') }
-                                                 );
+        }
         $row->{state} = $puzzle->state;
         $row->{display_name} = $puzzle->display_name;
-        $row->{summary} = $puzzle->summary;
         $row->{id} = $puzzle->id;
-        $row->{priority} = $puzzle->priority;
-        $row->{solutions} = $cache->compute( 
-            'puzzle ' . $puzzle->id . 'solutions',
-            {expires_in => '10', busy_lock => 10},
-            sub { 
-                return [ map { $_->text}  @{$puzzle->chat->get_all_of_type('solution')} ];
-            }
-        );
-        $row->{users_live} = $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
-                                              {expires_in => '10', busy_lock => 10},
-                                              sub {  [$puzzle->users_live($cache)] ;}
-                                          );
+        $row->{users_live} = 
+#          $cache->compute( 'puzzle ' . $puzzle->id . 'users_live',
+#                                              {expires_in => '60', busy_lock => 10},
+#                                              sub {  
+             [$puzzle->users_live($cache)] ;
+#          } );
         push @result, $row;
     }
     return \@result;

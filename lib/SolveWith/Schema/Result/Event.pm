@@ -24,7 +24,7 @@ sub get_puzzle_tree {
     my ($self,$c) = @_;
     my @result;
     my @data = $self->result_source->schema->resultset('Round')->search( { event_id => $self->id}, {
-        prefetch => {'puzzle_rounds' => { 'puzzle_id' =>  'chat' }}
+        prefetch => { 'puzzle_rounds' => { 'puzzle_id' => 'puzzle_info'}},
     });
     foreach my $round (@data) {
         push @result, {round => $round, puzzles => $round->get_puzzle_tree($c)};

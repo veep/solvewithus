@@ -45,9 +45,11 @@ sub modal {
         $puzzle = $self->db->resultset('Puzzle')->find($id);
     } else {
         $remove_id = $self->param('remove');
-        my $message = $self->db->resultset('Message')->find($remove_id);
-        if ($message) {
-            $puzzle = $message->chat->puzzle;
+        if ($remove_id) {
+            my $message = $self->db->resultset('Message')->find($remove_id);
+            if ($message) {
+                $puzzle = $message->chat->puzzle;
+            }
         }
     }
     if (!$puzzle) {
