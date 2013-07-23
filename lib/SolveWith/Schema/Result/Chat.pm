@@ -100,7 +100,7 @@ sub maybe_add_puzzle_info {
         if ($type eq 'state') {
             $puzzle->update_info('state time', $msg->timestamp);
         }
-        if ($type eq 'chat' or $type eq 'solution' or $type eq 'puzzleinfo' or $type eq 'created') {
+        if ($type eq 'chat' or $type eq 'solution' or $type eq 'puzzleinfo' or $type eq 'created' or $type eq 'spreadsheet') {
             $puzzle->update_info('activity', $msg->timestamp);
         }
     }
