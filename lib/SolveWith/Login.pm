@@ -18,6 +18,10 @@ sub thanks {
 
 sub reset {
     my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if ($user) {
+        $user->clear_team_membership_cache;
+    }
     delete $self->session->{token};
     return $self->redirect_to($self->url_for('event'));
 }

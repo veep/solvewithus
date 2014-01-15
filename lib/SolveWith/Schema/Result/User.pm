@@ -27,5 +27,10 @@ sub get_puzzle_tree {
     return \@result;
 }
 
+sub clear_team_membership_cache {
+    my $self = shift;
+    $self->user_teams->delete;
+}
+
 1;
 
