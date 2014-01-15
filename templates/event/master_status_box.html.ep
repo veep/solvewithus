@@ -8,6 +8,7 @@
     <i class="icon-chevron-right chat-open-close"></i> <B>Open puzzles</b> <span id="open_status_text"></span>
   </span>
   <div id="open_puzzles" class="collapse">
+    Loading...
   </div>       <!-- open_puzzles -->
 
 %= javascript begin
@@ -15,10 +16,10 @@ $(document).ready(
     function() {
         $('[class*="collapse"]').on('show hide', function (event) {
             if (event.type == 'hidden' || event.type == 'hide') {
-                $(this).prevAll('.chat-header').first().find(".chat-open-close").addClass("icon-chevron-right").removeClass("icon-chevron-down");
+                $(this).parent().find(".chat-open-close").addClass("icon-chevron-right").removeClass("icon-chevron-down");
             } else {
                 $(this).prevAll('.chat-header').first().find(".chat-unread-count").html('');
-                $(this).prevAll('.chat-header').first().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right").show();
+                $(this).parent().find(".chat-open-close").addClass("icon-chevron-down").removeClass("icon-chevron-right").show();
             }
         });
         $('[class*="collapse"]').on('shown hidden', function (event) {
@@ -39,7 +40,7 @@ $(document).ready(
 );
 
 function setup_status_tree(event_id, puzzle_id, parent) {
-    setInterval(function() {status_tree(event_id, puzzle_id, parent);},10000);
+    setInterval(function() {status_tree(event_id, puzzle_id, parent);},20000);
 }
 
 function status_tree (event_id, puzzle_id, parent) {
@@ -54,6 +55,7 @@ function status_tree (event_id, puzzle_id, parent) {
                           function (index, chunk) {
                               if (chunk.type === 'tree_html') {
                                   $("#open_puzzles").html(chunk.content);
+                                  resize_chat_box($("#chat-box"));
                               }
                           });
                });
