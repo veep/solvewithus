@@ -113,7 +113,7 @@ sub startup {
                    my $onroot = $self->req->url->path eq '/';
                    return $self->redirect_to('/welcome') if $notoken and $onroot;
                    if ( $notoken ) {
-                       my $url = oauth_client($self,1)->authorize_url;
+                       my $url = oauth_client($self,1)->authorize;
                        $self->session->{nexturl} = $self->req->url->path;
                        return $self->redirect_to($url);
                    }
