@@ -41,6 +41,10 @@ sub startup {
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/reset')->name('reset')->to(controller => 'login', action => 'reset');
 
+  $r->route('/solvepad')->name('solvepad')->to(controller => 'solvepad', action => 'main');
+  $r->route('/solvepad/create_puzzle')->name('solvepad_create')->
+      to(controller => 'solvepad', action => 'create');
+
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
   $r->route('/event/refresh')->to(controller => 'event', action => 'refresh');
@@ -113,7 +117,11 @@ sub startup {
                    my $onroot = $self->req->url->path eq '/';
                    return $self->redirect_to('/welcome') if $notoken and $onroot;
                    if ( $notoken ) {
-                       my $url = oauth_client($self,1)->authorize;
+                       my $scope;
+                       if ($self->req->url->path =~ m,^/solvepad,) {
+                           $scope = 'solvepad_scope';
+                       }
+                       my $url = oauth_client($self, 1, $scope )->authorize;
                        $self->session->{nexturl} = $self->req->url->path;
                        return $self->redirect_to($url);
                    }
@@ -121,14 +129,20 @@ sub startup {
 }
 
 sub oauth_client {
-    my ($self,$ws) = @_;
+    my ($self,$ws,$scope_key) = @_;
+    my $scope = $self->stash->{config}->{scope};
+    if ($scope_key) {
+        if ($self->stash->{config}->{$scope_key}) {
+            $scope = $self->stash->{config}->{$scope_key};
+        }
+    }
     my $cl = Net::OAuth2::Client->new(
         $self->stash->{config}->{client_id},
         $self->stash->{config}->{client_secret},
         site => 'https://www.googleapis.com',
         authorize_url => 'https://accounts.google.com/o/oauth2/auth',
         access_token_url => 'https://accounts.google.com/o/oauth2/token',
-        scope => $self->stash->{config}->{scope},
+        scope => $scope,
     );
 
     if ($ws) {

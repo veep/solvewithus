@@ -1,0 +1,26 @@
+% layout 'default';
+% title 'Solvepad';
+<div class="container">
+  <div class="well">
+    <h1>Solvepad</h1>
+  </div>
+  <div class="hero-unit">
+    <h2>Current Puzzles</h2>
+  </div>
+  <div class="hero-unit">
+    <h2>Add a new puzzle</h2>
+    <form action="/solvepad/create_puzzle" method="post">
+      <div class="form-group">
+        <label for="InputName">Enter the puzzle title or description</label>
+        <input type="text" class="form-control input-block-level" name="PuzzleTitle" id="PuzzleTitle" placeholder="Title">
+      </div>
+      <div class="form-group">
+        <label for="PuzzleURL">Enter the puzzle URL (directly to the PDF file)</label>
+        <input type="text" class="input-block-level form-control" name="PuzzleURL" id="PuzzleURL" placeholder="URL"
+               value="http://www.gmpuzzles.com/images/blog/GM-Tapa1-cmuE.pdf"
+               >
+      </div>
+      <button type="submit" class="btn btn-default">Submit</button>
+    </form>
+  </div>
+</div>

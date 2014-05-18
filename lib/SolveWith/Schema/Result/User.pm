@@ -17,6 +17,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many('user_teams' => 'SolveWith::Schema::Result::UserTeam', 'user_id');
 __PACKAGE__->many_to_many('teams' => 'user_teams', 'team_id');
+__PACKAGE__->has_many('solvepad_puzzles' => 'SolveWith::Schema::Result::SolvepadPuzzle', 'user_id');
 
 sub get_puzzle_tree {
     my $self = shift;
