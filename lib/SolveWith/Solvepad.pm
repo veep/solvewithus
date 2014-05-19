@@ -56,6 +56,7 @@ sub create {
 
     if ($title) {
         $puzzle->title($title);
+        $puzzle->update;
     }
     $self->redirect_to('/solvepad');
 }

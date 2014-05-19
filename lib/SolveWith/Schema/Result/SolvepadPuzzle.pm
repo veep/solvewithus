@@ -23,12 +23,21 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to('solvepad_source' => 'SolveWith::Schema::Result::SolvepadSource', 'source_id');
 __PACKAGE__->belongs_to('user' => 'SolveWith::Schema::Result::User', 'user_id');
+__PACKAGE__->has_many('solvepad_historys' => 'SolveWith::Schema::Result::SolvepadHistory', 'puzzle_id');
 
 sub new {
     use Time::HiRes;
     my $self = shift;
     $_[0]->{create_ts} = $_[0]->{activity_ts} = scalar Time::HiRes::time;
     return $self->next::method( @_ );
+}
+
+sub display {
+    my $self = shift;
+    return $self->title
+        || $self->solvepad_source->title
+        ||  $self->solvepad_source->url
+        || 'Uploaded file';
 }
 
 1;

@@ -21,6 +21,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many('solvepad_puzzles' => 'SolveWith::Schema::Result::SolvepadPuzzle', 'source_id');
+__PACKAGE__->has_many('solvepad_hotspots' => 'SolveWith::Schema::Result::SolvepadHotspot', 'source_id');
 
 sub new {
     use Time::HiRes;

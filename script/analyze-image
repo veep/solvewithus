@@ -1,0 +1,113 @@
+#!/usr/bin/perl -w
+
+use strict;
+use feature 'say';
+use Graphics::Magick;
+my $image=Graphics::Magick->new;
+my $rv = $image->Read(shift);
+warn $rv if $rv;
+
+my ($h,$w) = $image->Get('height','width');
+
+my %px;
+for my $x (0..($w-1)) {
+    for my $y (0..($h-1)) {
+        my $color = $image->Get("pixel[$x,$y]");
+        my ($r,$g,$b) = split(',',$color);
+        if ($r+$g+$b > 100) {     # Exclude very dark pixels
+            $px{"$x $y"} = $image->Get("pixel[$x,$y]");
+        }
+    }
+}
+
+my @results;
+my $total = 0;
+while (my $start_xy = (keys %px)[0]) {
+    my @queue = ($start_xy);
+    my $color = $px{$start_xy};
+    my @included;
+    my ($minx,$miny) = split(' ',$start_xy);
+    my ($maxx,$maxy) = ($minx, $miny);
+    while (@queue) {
+        my $xy = shift @queue;
+        if ($px{$xy} && $px{$xy} eq $color) {
+            delete $px{$xy};
+            push @included, $xy;
+            my ($x,$y) = split(' ', $xy);
+            push @queue,($x+1) . " $y" if $x < $w-1;
+            push @queue,($x-1) . " $y" if $x > 0;
+            push @queue,"$x " . ($y-1) if $y > 0;
+            push @queue,"$x " . ($y+1) if $y < $h-1;
+            $minx = $x if $x < $minx;
+            $miny = $y if $y < $miny;
+            $maxx = $x if $x > $maxx;
+            $maxy = $y if $y > $maxy;
+        }
+    }
+    if (
+        1
+        and scalar(@included) > ($w*$h)/(200*200)
+        and scalar(@included) < ($w*$h)/(8*8)
+        and $maxy-$miny < $h/6
+        and $maxy-$miny > 10
+        and $maxx-$minx < $w/6
+        and $maxx-$minx > 10
+    ){
+        my $hotspot_id = `cat /proc/sys/kernel/random/uuid`;
+        chomp $hotspot_id;
+        push @results,
+        {
+            id => $hotspot_id,
+            shape => 'rect',
+            shape_data => "$minx,$miny,$maxx,$maxy",
+            type => 'region fill',
+        }
+    }
+}
+
+add_adjacencies(\@results);
+
+use JSON::XS;
+print encode_json \@results;
+
+
+sub add_adjacencies {
+    my ($spots) = @_;
+    for my $i (0..($#{$spots})) {
+        my ($minx,$miny,$maxx,$maxy) = split(',',$spots->[$i]{shape_data});
+        my ($best_up, $best_down) = ([-9999,undef],[999999,undef]);
+        my ($best_left, $best_right) = ([-9999,undef],[999999,undef]);
+        for my $spot (@$spots) {
+            my ($tminx,$tminy,$tmaxx,$tmaxy) = split(',',$spot->{shape_data});
+            if ( $tminx >= $minx-5 && $tminx <= $minx+5) {
+                if ($tmaxy < $miny && $tmaxy > $best_up->[0] && ! $spots->[$i]{up}) {
+                    $best_up = [$tmaxy,$spot];
+                }
+                if ($tminy > $maxy && $tminy < $best_down->[0] && ! $spots->[$i]{down}) {
+                    $best_down = [$tminy, $spot]
+                }
+            }
+            if ( $tminy >= $miny-5 && $tminy <= $miny+5) {
+                if ($tmaxx < $minx && $tmaxx > $best_left->[0] && ! $spots->[$i]{left}) {
+                    $best_left = [$tmaxx,$spot];
+                }
+                if ($tminx > $maxx && $tminx < $best_right->[0] && ! $spots->[$i]{right}) {
+                    $best_right = [$tminx, $spot];
+                    warn "right: $i $tminx\n";
+                }
+            }
+        }
+        if ($best_up->[1]) {
+            $spots->[$i]{up} = $best_up->[1]{id};
+        }
+        if ($best_down->[1]) {
+            $spots->[$i]{down} = $best_down->[1]{id};
+        }
+        if ($best_left->[1]) {
+            $spots->[$i]{left} = $best_left->[1]{id};
+        }
+        if ($best_right->[1]) {
+            $spots->[$i]{right} = $best_right->[1]{id};
+        }
+    }
+}
