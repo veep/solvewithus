@@ -44,6 +44,8 @@ sub startup {
   $r->route('/solvepad')->name('solvepad')->to(controller => 'solvepad', action => 'main');
   $r->route('/solvepad/create_puzzle')->name('solvepad_create')->
       to(controller => 'solvepad', action => 'create');
+  $r->route('/solvepad/:id', id => qr/\d+/)->name('solvepad_by_id')->
+      to(controller => 'solvepad', action => 'puzzle');
 
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');

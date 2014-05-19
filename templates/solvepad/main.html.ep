@@ -6,6 +6,13 @@
   </div>
   <div class="hero-unit">
     <h2>Current Puzzles</h2>
+    <ul>
+% if ($open_puzzles && @$open_puzzles) {
+%    for my $puzzle (@$open_puzzles) {
+      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
+% }
+% }
+    </ul>
   </div>
   <div class="hero-unit">
     <h2>Add a new puzzle</h2>

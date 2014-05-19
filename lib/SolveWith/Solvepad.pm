@@ -4,7 +4,34 @@ use Mojo::Util qw/md5_sum/;
 use Mojo::UserAgent;
 
 sub main {
-  my $self = shift;
+    my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if (! $user) {
+        $self->redirect_to('/welcome');
+    }
+    my @open_puzzles;
+    for my $puzzle (
+        $self->db->resultset('SolvepadPuzzle')->search(
+            { user_id => $user->id }
+        )->all()
+    ) {
+        push @open_puzzles, $puzzle;
+    }
+    $self->stash('open_puzzles' => \@open_puzzles);
+}
+
+sub puzzle {
+    my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if (! $user) {
+        $self->redirect_to('/solvepad');
+    }
+    my $puzzle_id = $self->param('id');
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if (! $puzzle or $puzzle->user_id != $user->id) {
+        $self->redirect_to('/solvepad');
+    }
+    $self->stash('puzzle' => $puzzle);
 }
 
 sub create {
