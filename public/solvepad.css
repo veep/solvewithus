@@ -1,0 +1,18 @@
+
+#puzzle-side {
+    position: relative;
+}
+
+#puzzle-image-container {
+    position: absolute;
+    top: 0px;
+}
+
+#graphical {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
+#connection {
+    display: none;
+}

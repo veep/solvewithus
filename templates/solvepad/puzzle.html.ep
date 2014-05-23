@@ -1,0 +1,31 @@
+% layout 'default';
+% title 'Solvepad: ' . $puzzle->display;
+%= stylesheet '/solvepad.css'
+%= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
+%= javascript "http://d3js.org/d3.v3.min.js"
+%= javascript '/solvepad_puzzle.js' . '?' . app->code_version
+% use File::Basename;
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div id="controls" class="span4">
+      <div class="well">
+        <h3><a href="<%=  url_for('solvepad') %>">Solvepad</a>: <%= $puzzle->display %></h1>
+          <label id="status"></label>
+      </div>
+    </div>
+    <div id="graphical" class="span8">
+      <div id="puzzle-side">
+        <div id="puzzle-image-container">
+          <img id="puzzle-image" src="/<%= basename($puzzle->solvepad_source->disk_file) %>">
+        </div>
+        <svg class="unselectable" id="svgoverlay" 
+             style="position: absolute;top: 0px;">
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<label id="connection"><%= url_for('solvepad_updates', id => $puzzle->id)->to_abs->scheme('ws') %></label>

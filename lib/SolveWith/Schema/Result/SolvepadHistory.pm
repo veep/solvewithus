@@ -14,8 +14,8 @@ __PACKAGE__->add_columns(
     'user_id',
     'ts',
     'hotspot_id',
-    'old',
-    'new',
+    'older',
+    'newer',
     'note',
     'type',
 );
@@ -27,7 +27,6 @@ __PACKAGE__->belongs_to('solvepad_hotspot' => 'SolveWith::Schema::Result::Solvep
 
 sub new {
     my $self = shift;
-    $_[0]->{private} //= 0;
     return $self->next::method( @_ );
 }
 
