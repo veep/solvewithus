@@ -40,5 +40,37 @@ sub display {
         || 'Uploaded file';
 }
 
+sub get_share_key {
+    my $self = shift;
+    if ($self->share_key) {
+        return $self->share_key;
+    }
+    return $self->update_share_key;
+}
+
+sub update_share_key {
+    my $self = shift;
+    my $key = $self->new_share_key;
+    $self->set_column('share_key', $key);
+    $self->update;
+    return $key;
+}
+
+sub new_share_key {
+    my $self = shift;
+    my $key = `cat /proc/sys/kernel/random/uuid`;
+    chomp $key;
+    if (length($key) < 8) {
+        $key = '';
+        for (1..8) {
+            my $letter = int(rand(26));
+            $key .= chr(97+$letter);
+        }
+    } else {
+        $key = substr($key, -8);
+    }
+    return $self->id . "-$key";
+}
+
 1;
 

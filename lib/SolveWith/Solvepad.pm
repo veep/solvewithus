@@ -32,10 +32,42 @@ sub puzzle {
     }
     my $puzzle_id = $self->param('id');
     my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
-    if (! $puzzle or $puzzle->user_id != $user->id) {
+    if (
+        !$puzzle
+        or
+        (
+            $puzzle->user_id != $user->id
+            and
+            ! $self->db->resultset('SolvepadShare')->search(
+                { user => $user, puzzle => $puzzle }
+            )
+        )
+    ) {
         $self->redirect_to('/solvepad');
     }
     $self->stash('puzzle' => $puzzle);
+    $self->stash('user' => $user);
+    $self->stash('share_key' => $puzzle->get_share_key);
+}
+
+sub share {
+    my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    my $key = $self->param('key');
+    if ($key !~ /(\d+)-/) {
+        $self->redirect_to('/solvepad');
+    }
+    my $puzzle_id = $1;
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if (! $puzzle) {
+        $self->redirect_to('/solvepad');
+    }
+    if ($puzzle->user_id != $user->id) {
+        my $share = $self->db->resultset('SolvepadShare')->find_or_create(
+            { user => $user, puzzle => $puzzle }
+        );
+    }
+    $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle_id));
 }
 
 sub create {
@@ -145,7 +177,7 @@ sub updates {
         message => sub {
             my $message = $_[1];
             my $message_data = $json->decode($message);
-            warn keys %$message_data; warn values %$message_data;
+#            warn keys %$message_data; warn values %$message_data;
             if( exists $message_data->{id}
                 && exists $message_data->{to}
                 && exists $message_data->{from}
@@ -175,7 +207,7 @@ sub updates {
 #           warn "checking";
            my $msg = zmq_recvmsg($subscriber, ZMQ_DONTWAIT);
            if ($msg) {
-               warn zmq_msg_data($msg);
+#               warn zmq_msg_data($msg);
                zmq_msg_close($msg);
                send_state_if_updated($self,\%state, $puzzle_id, \$last_ts, $last_change_seen);
            }

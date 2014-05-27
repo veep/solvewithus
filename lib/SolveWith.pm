@@ -46,6 +46,8 @@ sub startup {
       to(controller => 'solvepad', action => 'create');
   $r->route('/solvepad/:id', id => qr/\d+/)->name('solvepad_by_id')->
       to(controller => 'solvepad', action => 'puzzle');
+  $r->route('/solvepad/share/:key', key => qr/\d+-\w+/)->name('solvepad_share')->
+      to(controller => 'solvepad', action => 'share');
   $r->route('/solvepad_updates/:id', id => qr/\d+/)->name('solvepad_updates')->
       to(controller => 'solvepad', action => 'updates');
 

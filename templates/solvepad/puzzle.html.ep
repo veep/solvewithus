@@ -11,6 +11,9 @@
     <div id="controls" class="span4">
       <div class="well">
         <h3><a href="<%=  url_for('solvepad') %>">Solvepad</a>: <%= $puzzle->display %></h1>
+% if ($user->id == $puzzle->user->id) {
+          <label><a href="<%= url_for('solvepad_share', key => $share_key) %>">Sharing URL</a></label>
+% }
           <label id="status"></label>
       </div>
     </div>
