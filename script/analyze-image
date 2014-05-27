@@ -47,7 +47,7 @@ while (my $start_xy = (keys %px)[0]) {
     if (
         1
         and scalar(@included) > ($w*$h)/(200*200)
-        and scalar(@included) < ($w*$h)/(8*8)
+        and scalar(@included) < ($w*$h)/(5*5)
         and $maxy-$miny < $h/6
         and $maxy-$miny > 10
         and $maxx-$minx < $w/6
