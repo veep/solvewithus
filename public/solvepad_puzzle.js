@@ -13,19 +13,28 @@ $(window).load(
         setup_svg();
         setup_websocket();
 
-
-
-    var state;
+        var state;
     // Parse incoming response and post it to the screen
-    ws.onmessage = function (msg) {
-        var results = JSON.parse(msg.data);
-        state = results.values;
-        change = results.change_number;
-        if (!change || change == mylastchange) {
-            redisplay(state);
-        }
-    };
-
+        ws.onmessage = function (msg) {
+            var results = JSON.parse(msg.data);
+            reset = results.reset;
+            state = results.values;
+            if (state && state.length) {
+                $('#no-data').hide();
+            } else {
+                $('#no-data').show();
+                state = Array();
+            }
+            change = results.change_number;
+            if (reset) {
+                ws.close();
+                return;
+            }
+            if (state && state.length && !change || change == mylastchange) {
+                redisplay(state);
+            }
+        };
+        
     $('svg').on('click', 'g', function(event) {
         var g = d3.select(this);
         var datum = g.datum();

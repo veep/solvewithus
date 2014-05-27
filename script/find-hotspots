@@ -5,6 +5,7 @@ use FindBin;
 use lib "$FindBin::Bin/../lib";
 use SolveWith::Schema;
 use File::Temp qw/tempdir/;
+use File::Slurp qw/read_file/;
 use Mail::SendEasy;
 use Fcntl qw(:flock);
 use App::Daemon qw(daemonize);
@@ -14,6 +15,7 @@ use Mojo::Util qw/md5_sum/;
 use Cwd qw/realpath/;
 
 my $source_id = shift;
+my $source_file = shift;
 $App::Daemon::logfile    = $FindBin::Bin . "/../log/find-hotspots.log";
 $App::Daemon::pidfile    = $FindBin::Bin . "/find-hotspots-$source_id.pid";
 daemonize();
@@ -31,12 +33,16 @@ my $tempdir = tempdir(CLEANUP => 1);
 
 chdir($tempdir) || die;
 
-my $ua = Mojo::UserAgent->new;
-
-my $url = $source->url;
-die "Bad url" unless $url =~ /\.(pdf|gif|png|jpg)$/;
-my $suffix = $1;
-my $image = $ua->get($url)->res->body;
+my $image;
+if ($source_file) {
+    $image = read_file($source_file);
+} else {
+    my $ua = Mojo::UserAgent->new;
+    my $url = $source->url;
+    die "Bad url" unless $url =~ /\.(pdf|gif|png|jpg)$/;
+    my $suffix = $1;
+    $image = $ua->get($url)->res->body;
+}
 
 if (! $image) {
     die "No image data";
@@ -47,11 +53,11 @@ if ($checksum ne $source->checksum) {
 }
 
 my $fh;
-open ($fh, ">", "$tempdir/fromweb.$suffix") || die $!;
+open ($fh, ">", "$tempdir/fromweb") || die $!;
 print $fh $image;
 close($fh);
 my $dest = realpath("$FindBin::Bin/../public/$source_id.png");
-system("gm convert +adjoin  -format PNG32 fromweb.$suffix out%05.png");
+system("gm convert +adjoin  -format PNG32 fromweb out%05.png");
 system("gm montage -mode concatenate out*png $dest");
 
 my $file_output = `file $dest`;

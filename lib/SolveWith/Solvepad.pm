@@ -13,7 +13,7 @@ sub main {
     if (! $user) {
         $self->redirect_to('/welcome');
     }
-    my @open_puzzles;
+    my (@open_puzzles, @shared_puzzles);
     for my $puzzle (
         $self->db->resultset('SolvepadPuzzle')->search(
             { user_id => $user->id }
@@ -21,7 +21,16 @@ sub main {
     ) {
         push @open_puzzles, $puzzle;
     }
+    for my $puzzle_share (
+        $self->db->resultset('SolvepadShare')->search(
+            { user_id => $user->id }
+        )->all()
+    ) {
+        push @shared_puzzles, $puzzle_share->puzzle;
+    }
     $self->stash('open_puzzles' => \@open_puzzles);
+    $self->stash('shared_puzzles' => \@shared_puzzles);
+    $self->stash('closed_puzzles' => []);
 }
 
 sub puzzle {
@@ -79,15 +88,23 @@ sub create {
 
     my $title = $self->param('PuzzleTitle');
     my $url = $self->param('PuzzleURL');
+    my $fileuploaded = $self->req->upload('PuzzleUpload');
 
-    if (! $url) {
+    if (! $url and ! $fileuploaded) {
         $self->redirect_to('/solvepad');
     }
 
     my $user_id = $user->id;
 
     my $ua = Mojo::UserAgent->new;
-    my $body = $ua->get($url)->res->body;
+    my $body;
+    if ($url) {
+        $body = $ua->get($url)->res->body;
+    } else {
+        $body = $fileuploaded->slurp;
+        $url = 'upload';
+    }
+
     if (! $body) {
         $self->redirect_to('/solvepad');
     }
@@ -108,7 +125,12 @@ sub create {
 
     my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
     $self->app->log->info("Starting find-hotspots for " . $url . ' from ' . $rootdir);
-    system("$rootdir/script/find-hotspots " . $source->id);
+    my @cmd = ("$rootdir/script/find-hotspots",$source->id);
+    if ($url eq 'upload') {
+        $fileuploaded->move_to("$rootdir/public/" . $source->id . '-in');
+        push @cmd, "$rootdir/public/" . $source->id . '-in';
+    }
+    system(@cmd);
 
     my $puzzle = $self->db->resultset('SolvepadPuzzle')->find_or_create(
         {
@@ -163,7 +185,7 @@ sub updates {
         $json->encode({ values => [values %state]})
     );
 
-    send_state_if_updated($self,\%state, $puzzle_id, \$last_ts, $last_change_seen);
+    send_state_if_updated($self,\%state, $puzzle, \$last_ts, $last_change_seen);
 
     my $zmq_context = zmq_init();
     my $subscriber = zmq_socket($zmq_context, ZMQ_SUB);
@@ -177,7 +199,7 @@ sub updates {
         message => sub {
             my $message = $_[1];
             my $message_data = $json->decode($message);
-#            warn keys %$message_data; warn values %$message_data;
+#            warn join(" ", %$message_data,"\n");
             if( exists $message_data->{id}
                 && exists $message_data->{to}
                 && exists $message_data->{from}
@@ -198,7 +220,13 @@ sub updates {
                 }
 #                warn "sending $puzzle_id " . ($hist->ts);
                 zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
+            } else {
+                if (! scalar keys %state) {
+#                    warn "no state keys";
+                    send_state_if_updated($self,\%state, $puzzle, \$last_ts, $last_change_seen);
+                }
             }
+
         }
     );
 
@@ -209,7 +237,7 @@ sub updates {
            if ($msg) {
 #               warn zmq_msg_data($msg);
                zmq_msg_close($msg);
-               send_state_if_updated($self,\%state, $puzzle_id, \$last_ts, $last_change_seen);
+               send_state_if_updated($self,\%state, $puzzle, \$last_ts, $last_change_seen);
            }
 
        }
@@ -228,10 +256,34 @@ sub updates {
 }
 
 sub send_state_if_updated {
-    my ($self,$state,$puzzle_id,$tsref, $last_change_seen) = @_;
+    my ($self,$state,$puzzle,$tsref, $last_change_seen) = @_;
+    my $json = Mojo::JSON->new();
+
+    # Check for hotspot changes
+    for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
+        {
+            source_id => $puzzle->solvepad_source->id,
+        },
+    )->all) {
+        my $id = $hotspot->id;
+        if (! exists $state->{$hotspot->id}) {
+#            warn "Sending reset";
+            $self->send_message(
+                $json->encode(
+                    {
+                        reset => 1,
+                        vales => [],
+                        change_number => $last_change_seen,
+                    }
+                )
+            );
+            return;
+        }
+    }
+
     my $updated = 0;
     for my $update ($self->db->resultset('SolvepadHistory')->search (
-        { puzzle_id => $puzzle_id,
+        { puzzle_id => $puzzle->id,
           ts => { '>', $$tsref},
       },
         {order_by => { -asc => 'ts'}}
@@ -244,7 +296,6 @@ sub send_state_if_updated {
         }
     }
     if ($updated) {
-        my $json = Mojo::JSON->new();
         $self->send_message(
             $json->encode({values => [values %$state],
                            change_number => $last_change_seen,

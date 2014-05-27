@@ -13,10 +13,26 @@
 % }
 % }
     </ul>
+% if ($closed_puzzles && @$closed_puzzles) {
+    <h2>Closed Puzzles</h2>
+    <ul>
+%    for my $puzzle (@$closed_puzzles) {
+      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
+% }
+    </ul>
+% }
+% if ($shared_puzzles && @$shared_puzzles) {
+    <h2>Puzzles Shared With Me</h2>
+    <ul>
+%    for my $puzzle (@$shared_puzzles) {
+      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
+% }
+    </ul>
+% }
   </div>
   <div class="hero-unit">
     <h2>Add a new puzzle</h2>
-    <form action="/solvepad/create_puzzle" method="post">
+    <form action="/solvepad/create_puzzle" method="post" enctype="multipart/form-data">
       <div class="form-group">
         <label for="InputName">Enter the puzzle title or description</label>
         <input type="text" class="form-control input-block-level" name="PuzzleTitle" id="PuzzleTitle" placeholder="Title">
@@ -24,8 +40,10 @@
       <div class="form-group">
         <label for="PuzzleURL">Enter the puzzle URL (directly to the PDF file)</label>
         <input type="text" class="input-block-level form-control" name="PuzzleURL" id="PuzzleURL" placeholder="URL"
-               value="http://www.gmpuzzles.com/images/blog/GM-Tapa1-cmuE.pdf"
+               value=""
                >
+        <label for="PuzzleUpload">Or upload a file</label>
+        <input type="file" name="PuzzleUpload">
       </div>
       <button type="submit" class="btn btn-default">Submit</button>
     </form>

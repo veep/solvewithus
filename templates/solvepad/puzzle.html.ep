@@ -16,6 +16,9 @@
 % }
           <label id="status"></label>
       </div>
+      <div id="no-data">
+        <h2>Waiting for region data...</h2>
+      </div>
     </div>
     <div id="graphical" class="span8">
       <div id="puzzle-side">

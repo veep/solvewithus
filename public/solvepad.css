@@ -16,3 +16,7 @@
 #connection {
     display: none;
 }
+
+#no-data {
+    background-color: pink;
+}
