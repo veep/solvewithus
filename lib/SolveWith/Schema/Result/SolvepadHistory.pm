@@ -27,7 +27,11 @@ __PACKAGE__->belongs_to('solvepad_hotspot' => 'SolveWith::Schema::Result::Solvep
 
 sub new {
     my $self = shift;
-    return $self->next::method( @_ );
+    my $new_obj = $self->next::method( @_ );
+    if ($new_obj->solvepad_puzzle) {
+        $new_obj->solvepad_puzzle->record_activity;
+    }
+    return $new_obj;
 }
 
 1;

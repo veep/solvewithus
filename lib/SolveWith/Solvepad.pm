@@ -53,6 +53,7 @@ sub puzzle {
         )
     ) {
         $self->redirect_to('/solvepad');
+        return;
     }
     $self->stash('puzzle' => $puzzle);
     $self->stash('user' => $user);
@@ -65,12 +66,16 @@ sub share {
     my $key = $self->param('key');
     if ($key !~ /(\d+)-/) {
         $self->redirect_to('/solvepad');
+        return;
     }
     my $puzzle_id = $1;
     my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
-    if (! $puzzle) {
-        $self->redirect_to('/solvepad');
+    if (! $puzzle or $key ne $puzzle->share_key) {
+        warn "key mismatch $key";
+        $self->redirect_to('/solvepad/');
+        return;
     }
+
     if ($puzzle->user_id != $user->id) {
         my $share = $self->db->resultset('SolvepadShare')->find_or_create(
             { user => $user, puzzle => $puzzle }
@@ -84,6 +89,7 @@ sub create {
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     if (! $user) {
         $self->redirect_to('/solvepad');
+        return;
     }
 
     my $title = $self->param('PuzzleTitle');
@@ -92,6 +98,7 @@ sub create {
 
     if (! $url and ! $fileuploaded) {
         $self->redirect_to('/solvepad');
+        return;
     }
 
     my $user_id = $user->id;
@@ -107,6 +114,7 @@ sub create {
 
     if (! $body) {
         $self->redirect_to('/solvepad');
+        return;
     }
 
     my $checksum = md5_sum($body);

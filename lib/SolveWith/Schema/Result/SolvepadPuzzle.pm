@@ -40,6 +40,12 @@ sub display {
         || 'Uploaded file';
 }
 
+sub record_activity {
+    my ($self, $history) = @_;
+    $self->activity_ts(scalar Time::HiRes::time);
+    $self->update;
+}
+
 sub get_share_key {
     my $self = shift;
     if ($self->share_key) {

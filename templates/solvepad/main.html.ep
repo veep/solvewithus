@@ -5,29 +5,48 @@
     <h1>Solvepad</h1>
   </div>
   <div class="hero-unit">
-    <h2>Current Puzzles</h2>
-    <ul>
+    <h2>Your Current Puzzles</h2>
 % if ($open_puzzles && @$open_puzzles) {
-%    for my $puzzle (@$open_puzzles) {
-      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Puzzle</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$open_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
+            $puzzle->id %>"><%= $puzzle->display %></a></td>
+        </tr>
 % }
-% }
-    </ul>
-% if ($closed_puzzles && @$closed_puzzles) {
-    <h2>Closed Puzzles</h2>
-    <ul>
-%    for my $puzzle (@$closed_puzzles) {
-      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
-% }
-    </ul>
+      </table>
 % }
 % if ($shared_puzzles && @$shared_puzzles) {
-    <h2>Puzzles Shared With Me</h2>
-    <ul>
-%    for my $puzzle (@$shared_puzzles) {
-      <li><a href="<%= url_for(name => 'puzzle_by_id') . '/' . $puzzle->id %>"><%= $puzzle->display %></a></li>
+    <h2>Puzzles Shared With You</h2>
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Shared By</th><th>Puzzle</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$shared_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><%= $puzzle->user->display_name %></td>
+          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
+            $puzzle->id %>"><%= $puzzle->display %></a></td>
+        </tr>
 % }
-    </ul>
+      </table>
+% }
+% if ($closed_puzzles && @$closed_puzzles) {
+    <h2>Closed Puzzles</h2>
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Puzzle</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$closed_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
+            $puzzle->id %>"><%= $puzzle->display %></a></td>
+        </tr>
+% }
+      </table>
 % }
   </div>
   <div class="hero-unit">
@@ -49,3 +68,17 @@
     </form>
   </div>
 </div>
+
+
+<% 
+sub show_ts {
+   my $ts = shift;
+   my $diff = time-int($ts);
+   return ' ' if ($diff < 1);
+   return $diff . 's' if ($diff < 60);
+   return int($diff/60) . 'm' if ($diff < 3600);
+   return int($diff/3600) . 'h' if ($diff < 3600*24);
+   return int($diff/(24*3600)) . 'd';
+}
+%>
+
