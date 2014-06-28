@@ -2,56 +2,16 @@
 % title 'Solvepad';
 <div class="container">
   <div class="well">
+    <div class="pull-right">
+      Hello, <%= $user->display_name %>
+      <br><a href="<%= url_for('solvepad_logout') %>">Logout</a>
+    </div>
     <h1>Solvepad</h1>
   </div>
-  <div class="hero-unit">
-    <h2>Your Current Puzzles</h2>
-% if ($open_puzzles && @$open_puzzles) {
-      <table class="table">
-        <tr><th>Created</th><th>Updated</th><th>Puzzle</th></tr>
-%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$open_puzzles) {
-        <tr>
-          <td><%= show_ts($puzzle->create_ts) %></td>
-          <td><%= show_ts($puzzle->activity_ts) %></td>
-          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
-            $puzzle->id %>"><%= $puzzle->display %></a></td>
-        </tr>
-% }
-      </table>
-% }
-% if ($shared_puzzles && @$shared_puzzles) {
-    <h2>Puzzles Shared With You</h2>
-      <table class="table">
-        <tr><th>Created</th><th>Updated</th><th>Shared By</th><th>Puzzle</th></tr>
-%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$shared_puzzles) {
-        <tr>
-          <td><%= show_ts($puzzle->create_ts) %></td>
-          <td><%= show_ts($puzzle->activity_ts) %></td>
-          <td><%= $puzzle->user->display_name %></td>
-          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
-            $puzzle->id %>"><%= $puzzle->display %></a></td>
-        </tr>
-% }
-      </table>
-% }
-% if ($closed_puzzles && @$closed_puzzles) {
-    <h2>Closed Puzzles</h2>
-      <table class="table">
-        <tr><th>Created</th><th>Updated</th><th>Puzzle</th></tr>
-%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$closed_puzzles) {
-        <tr>
-          <td><%= show_ts($puzzle->create_ts) %></td>
-          <td><%= show_ts($puzzle->activity_ts) %></td>
-          <td><a href="<%= url_for(name => 'puzzle_by_id') . '/' . 
-            $puzzle->id %>"><%= $puzzle->display %></a></td>
-        </tr>
-% }
-      </table>
-% }
-  </div>
-  <div class="hero-unit">
-    <h2>Add a new puzzle</h2>
-    <form action="/solvepad/create_puzzle" method="post" enctype="multipart/form-data">
+  <div class="well">
+    <h2><a href="#" data-toggle="collapse" data-target="#add-div">Add a new puzzle</a></h2>
+    <div id="add-div" class="collapse">
+      <form action="/solvepad/create_puzzle" method="post" enctype="multipart/form-data">
       <div class="form-group">
         <label for="InputName">Enter the puzzle title or description</label>
         <input type="text" class="form-control input-block-level" name="PuzzleTitle" id="PuzzleTitle" placeholder="Title">
@@ -65,7 +25,55 @@
         <input type="file" name="PuzzleUpload">
       </div>
       <button type="submit" class="btn btn-default">Submit</button>
-    </form>
+      </form>
+    </div>
+  </div>
+  <div class="well">
+    <h2>Your Current Puzzles</h2>
+% if ($open_puzzles && @$open_puzzles) {
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Puzzle</th><th>&nbsp;</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$open_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><a href="<%= url_for( 'solvepad_by_id', id => $puzzle->id) %>">
+            <%= $puzzle->display %></a></td>
+          <td><a href="<%= url_for( 'solvepad_close', id => $puzzle->id) %>">Close</a></td>
+        </tr>
+% }
+      </table>
+% }
+% if ($shared_puzzles && @$shared_puzzles) {
+    <h2>Puzzles Shared With You</h2>
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Shared By</th><th>Puzzle</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$shared_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><%= $puzzle->user->display_name %></td>
+          <td><a href="<%= url_for('solvepad_by_id', id => $puzzle->id) %>">
+            <%= $puzzle->display %></a></td>
+        </tr>
+% }
+      </table>
+% }
+% if ($closed_puzzles && @$closed_puzzles) {
+    <h2>Closed Puzzles</h2>
+      <table class="table">
+        <tr><th>Created</th><th>Updated</th><th>Puzzle</th><th>&nbsp;</th></tr>
+%    for my $puzzle (sort {$b->activity_ts <=> $a->activity_ts} @$closed_puzzles) {
+        <tr>
+          <td><%= show_ts($puzzle->create_ts) %></td>
+          <td><%= show_ts($puzzle->activity_ts) %></td>
+          <td><a href="<%= url_for('solvepad_by_id', id => $puzzle->id) %>">
+            <%= $puzzle->display %></a></td>
+          <td><a href="<%= url_for( 'solvepad_reopen', id => $puzzle->id) %>">Reopen</a></td>
+        </tr>
+% }
+      </table>
+% }
   </div>
 </div>
 

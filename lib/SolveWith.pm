@@ -41,15 +41,23 @@ sub startup {
   $r->route('/login')->to(controller => 'login', action => 'homepage');
   $r->route('/reset')->name('reset')->to(controller => 'login', action => 'reset');
 
-  $r->route('/solvepad')->name('solvepad')->to(controller => 'solvepad', action => 'main');
+  $r->route('/solvepad')->name('solvepad_intro')->to(controller => 'solvepad', action => 'intro');
+  $r->route('/solvepad/home')->name('solvepad')->to(controller => 'solvepad', action => 'main');
+  $r->route('/solvepad/logout')->name('solvepad_logout')->to(controller => 'solvepad', action => 'logout');
   $r->route('/solvepad/create_puzzle')->name('solvepad_create')->
       to(controller => 'solvepad', action => 'create');
   $r->route('/solvepad/:id', id => qr/\d+/)->name('solvepad_by_id')->
       to(controller => 'solvepad', action => 'puzzle');
-  $r->route('/solvepad/share/:key', key => qr/\d+-\w+/)->name('solvepad_share')->
-      to(controller => 'solvepad', action => 'share');
+  $r->route('/solvepad/close/:id', id => qr/\d+/)->name('solvepad_close')->
+      to(controller => 'solvepad', action => 'close_open');
+  $r->route('/solvepad/reopen/:id', id => qr/\d+/)->name('solvepad_reopen')->
+      to(controller => 'solvepad', action => 'close_open');
   $r->route('/solvepad_updates/:id', id => qr/\d+/)->name('solvepad_updates')->
       to(controller => 'solvepad', action => 'updates');
+  $r->route('/solvepad/share/:key', key => qr/\d+-\w+/)->name('solvepad_share')->
+      to(controller => 'solvepad', action => 'share');
+  $r->route('/replay/:key', key => qr/\d+-\w+/)->name('solvepad_replay')->
+      to(controller => 'solvepad', action => 'replay');
 
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');
@@ -117,14 +125,15 @@ sub startup {
                    my $self = shift;
                    return if $self->req->url->path eq '/oauth2callback';
                    return if $self->res->code;
-                   my $onwelcome = $self->req->url->path eq '/welcome';
+                   my $onwelcome = $self->req->url->path eq '/welcome'
+                       || $self->req->url->path eq '/solvepad';
                    return if $onwelcome;
                    my $notoken = (not $self->session->{token} or length($self->session->{token}) == 0);
                    my $onroot = $self->req->url->path eq '/';
                    return $self->redirect_to('/welcome') if $notoken and $onroot;
                    if ( $notoken ) {
                        my $scope;
-                       if ($self->req->url->path =~ m,^/solvepad,) {
+                       if ($self->req->url->path =~ m,^/solvepad/,) {
                            $scope = 'solvepad_scope';
                        }
                        my $url = oauth_client($self, 1, $scope )->authorize;

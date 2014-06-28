@@ -152,20 +152,21 @@ $(window).load(
         if (value >= (96+1) && value <= (96+26)) {
             value=value-32;
         }
+        var period = ".".charCodeAt();
+            
         if ( (value >= (64+1) && value <= (64+26) )
             || (value >= 48 && value <= 57)
+             || value == period
            ) {
             var g = svg.selectAll("g .highlightrect");
             var datum = g.datum();
             var from = datum.state;
             var to = 'text: ' + String.fromCharCode(Number(value));
-            if (value == 32) {
-                if (datum.state == 'clear') {
-                    to = 'fill';
-                } else if (datum.state == 'fill') {
-                    to = 'dot';
-                } else {
+            if (value == period) {
+                if (datum.state == 'dot') {
                     to = 'clear';
+                } else {
+                    to = 'dot';
                 }
             }
             datum.state = to;
@@ -182,6 +183,15 @@ $(window).load(
         }
     });
 
+        $('#reset_button').click(function () {
+            mylastchange++;
+            ws.send(
+                JSON.stringify ({
+                    cmd: "reset",
+                    change_number: mylastchange
+                })
+            );
+        });
     }
 )
 
@@ -289,6 +299,7 @@ function redisplay(state) {
         .attr('dominant-baseline', 'middle')
         .attr('font-family', 'cursive')
         .attr('font-weight', '400')
+        .attr('font-size', function (d) { return (Number(d.maxy)-Number(d.miny))*.9 + "px" })
         .text(function(d) { return d.state.substr(0,6) == 'text: ' ? 
                             d.state.substr(6) : '';
                           });

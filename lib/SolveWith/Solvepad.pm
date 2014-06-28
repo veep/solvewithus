@@ -7,19 +7,49 @@ use ZMQ::Constants qw(ZMQ_FD ZMQ_PUB ZMQ_SUB ZMQ_SUBSCRIBE ZMQ_DONTWAIT);
 use Mojo::IOLoop;
 use Time::HiRes;
 
+sub intro {
+    my $self = shift;
+    my $userid = $self->session->{userid};
+    warn "userid $userid";
+    if ($userid) {
+        my $user = $self->db->resultset('User')->find($userid);
+        if ($user) {
+            $self->redirect_to('solvepad');
+        }
+    }
+}
+
+sub logout {
+    my $self = shift;
+    delete $self->session->{userid};
+    delete $self->session->{token};
+    $self->redirect_to('solvepad_intro');
+}
+
 sub main {
     my $self = shift;
-    my $user = $self->db->resultset('User')->find($self->session->{userid});
-    if (! $user) {
-        $self->redirect_to('/welcome');
+    warn 'id ' . $self->session->{userid};
+    if (! $self->session->{userid} ) {
+        $self->redirect_to('solvepad_intro');
+        return;
     }
-    my (@open_puzzles, @shared_puzzles);
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if (! $user || ! $user->id ) {
+        $self->redirect_to('solvepad_intro');
+        return;
+    }
+    my (@open_puzzles, @closed_puzzles, @shared_puzzles);
     for my $puzzle (
         $self->db->resultset('SolvepadPuzzle')->search(
-            { user_id => $user->id }
+            { user_id => $user->id
+          }
         )->all()
     ) {
-        push @open_puzzles, $puzzle;
+        if ($puzzle->state eq 'closed') {
+            push @closed_puzzles, $puzzle;
+        } else {
+            push @open_puzzles, $puzzle;
+        }
     }
     for my $puzzle_share (
         $self->db->resultset('SolvepadShare')->search(
@@ -30,7 +60,8 @@ sub main {
     }
     $self->stash('open_puzzles' => \@open_puzzles);
     $self->stash('shared_puzzles' => \@shared_puzzles);
-    $self->stash('closed_puzzles' => []);
+    $self->stash('closed_puzzles' => \@closed_puzzles);
+    $self->stash('user' => $user);
 }
 
 sub puzzle {
@@ -82,6 +113,29 @@ sub share {
         );
     }
     $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle_id));
+}
+
+sub close_open {
+    my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if (! $user) {
+        $self->redirect_to('/solvepad');
+    }
+    my $puzzle_id = $self->param('id');
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if ( !$puzzle or $puzzle->user_id != $user->id ) {
+        $self->redirect_to('/solvepad');
+        return;
+    }
+    if ($puzzle->state eq 'closed') {
+        $puzzle->set_column( state => 'open');
+        $puzzle->update;
+        $self->redirect_to('solvepad_by_id', id => $puzzle->id);
+    } else {
+        $puzzle->set_column( state => 'closed');
+        $puzzle->update;
+        $self->redirect_to('solvepad');
+    }
 }
 
 sub create {
@@ -228,6 +282,19 @@ sub updates {
                 }
 #                warn "sending $puzzle_id " . ($hist->ts);
                 zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
+            } elsif (exists $message_data->{cmd} && $message_data->{cmd} eq 'reset') {
+                my $hist = $self->db->resultset('SolvepadHistory')->find_or_create(
+                    {
+                        solvepad_puzzle => $puzzle,
+                        ts => (scalar Time::HiRes::time),
+                        solvepad_user => $user,
+                        type => 'reset',
+                    }
+                );
+                if (exists $message_data->{change_number}) {
+                    $last_change_seen = $message_data->{change_number};
+                }
+                zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
             } else {
                 if (! scalar keys %state) {
 #                    warn "no state keys";
@@ -273,19 +340,8 @@ sub send_state_if_updated {
             source_id => $puzzle->solvepad_source->id,
         },
     )->all) {
-        my $id = $hotspot->id;
         if (! exists $state->{$hotspot->id}) {
-#            warn "Sending reset";
-            $self->send_message(
-                $json->encode(
-                    {
-                        reset => 1,
-                        vales => [],
-                        change_number => $last_change_seen,
-                    }
-                )
-            );
-            return;
+            $state->{$hotspot->id} = 'clear';
         }
     }
 
@@ -296,11 +352,23 @@ sub send_state_if_updated {
       },
         {order_by => { -asc => 'ts'}}
     )) {
-        if (exists $state->{$update->hotspot_id} &&
+        if ($update->hotspot_id &&
+            exists $state->{$update->hotspot_id} &&
             $state->{$update->hotspot_id}{state} eq $update->older) {
             $updated = 1;
             $state->{$update->hotspot_id}{state} = $update->newer;
             $$tsref = $update->ts;
+        }
+        if ($update->type eq 'reset') {
+            $updated = 1;
+            for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
+                {
+                    source_id => $puzzle->solvepad_source->id,
+                },
+            )->all) {
+                my $id = $hotspot->id;
+                $state->{$id}{state} = 'clear';
+            }
         }
     }
     if ($updated) {
