@@ -11,6 +11,8 @@
   <div class="well">
     <h2><a href="#" data-toggle="collapse" data-target="#add-div">Add a new puzzle</a></h2>
     <div id="add-div" class="collapse">
+      <p><b>Best supported types</b>: Nurikabe, Battleships, Tapa, LITS, Star Battle, Statue Park, Kurotto, Cross the Streams.</p>
+      <p><b>Other possible types</b>: Sudoku, Kakuro, Crossword, Filomino, Cave (via shading, if regions are outlined).</p>
       <form action="/solvepad/create_puzzle" method="post" enctype="multipart/form-data">
       <div class="form-group">
         <label for="InputName">Enter the puzzle title or description</label>
@@ -27,7 +29,7 @@
       <button type="submit" class="btn btn-default">Submit</button>
       </form>
 % if (! ($open_puzzles && @$open_puzzles)) {
-      <p>You might like to try a <a href="http://www.gmpuzzles.com/blog/category/tapa/" target="_new">Tapa</a> or <a href="http://www.gmpuzzles.com/blog/category/lits/" target="_new">LITS</a> from Grandmaster Puzzles</p>
+      <p>You might like to try a <a href="http://www.gmpuzzles.com/blog/category/nurikabe/" target="_new">Nurikabe</a> or <a href="http://www.gmpuzzles.com/blog/category/lits/" target="_new">LITS</a> from Grandmaster Puzzles</p>
 %}
     </div>
   </div>
