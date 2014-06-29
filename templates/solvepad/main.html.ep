@@ -86,10 +86,10 @@ sub show_ts {
    my $ts = shift;
    my $diff = time-int($ts);
    return ' ' if ($diff < 1);
-   return $diff . 's' if ($diff < 60);
-   return int($diff/60) . 'm' if ($diff < 3600);
-   return int($diff/3600) . 'h' if ($diff < 3600*24);
-   return int($diff/(24*3600)) . 'd';
+   return $diff . 's ago' if ($diff < 60);
+   return int($diff/60) . 'm ago' if ($diff < 3600);
+   return int($diff/3600) . 'h ago' if ($diff < 3600*24);
+   return int($diff/(24*3600)) . 'd ago';
 }
 %>
 
