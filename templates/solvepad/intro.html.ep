@@ -11,13 +11,14 @@
       <h2>Supported Puzzles</h2>
       <p>Currently, only one-page puzzles with enclosed regions are supported. This includes puzzles like Nurikabe, Tapa, Cross The Streams, LITS, and Star Battle.</p>
       <p>Other types like Crosswords, Kakuro, Sudoku, and Filomino have adequate support but are missing some convenience features.</p>
-      <h2>Log In</h2>
-      <p>Logging in will connect up to your Google account and look up your name.</p>
+    </div>
+    <div class="well">
         <p>
           <a class="btn btn-primary btn-large" href="<%= url_for('solvepad') %>">
-            Log In to Solvepad
+            Log In with Google
           </a>
         </p>
+      <p>Logging in will connect up to your Google account and look up your name.</p>
     </div>
   </div>
   <div class="span2">
