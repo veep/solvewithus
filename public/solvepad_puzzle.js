@@ -226,7 +226,7 @@ function setup_websocket() {
 
 var fill_opacity = function(d,type) {
     if ( d.state==='clear' || d.state.substr(0,6) == 'text: ') {
-        return 0.03;
+        return 0;
     }
     if ( d.state==='dot' && type=='dot') {
         return 0.5;
@@ -347,6 +347,6 @@ function update_highlight() {
         .attr('height', (d.maxy - d.miny - 2 ))
         .attr('stroke-width', 3)
         .attr('stroke-opacity', 0.5)
-        .attr('stroke', 'orange')
+        .attr('stroke', 'red')
         .attr('fill', 'none');
 }
