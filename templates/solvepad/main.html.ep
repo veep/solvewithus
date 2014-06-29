@@ -26,6 +26,9 @@
       </div>
       <button type="submit" class="btn btn-default">Submit</button>
       </form>
+% if (! ($open_puzzles && @$open_puzzles)) {
+      <p>You might like to try a <a href="http://www.gmpuzzles.com/blog/category/tapa/" target="_new">Tapa</a> or <a href="http://www.gmpuzzles.com/blog/category/lits/" target="_new">LITS</a> from Grandmaster Puzzles</p>
+%}
     </div>
   </div>
   <div class="well">
