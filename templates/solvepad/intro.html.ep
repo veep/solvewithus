@@ -9,7 +9,7 @@
       <h1>Solvepad</h1>
       <p>Load in a puzzle file and solve it online. Invite a friend to join you, or invite them to solve their own copy.</p>
       <h2>Supported Puzzles</h2>
-      <p>Currently, only one-page puzzles with enclosed regions are supported. This includes puzzles like Tapa, Cross The Streams, LITS, and Star Battle.</p>
+      <p>Currently, only one-page puzzles with enclosed regions are supported. This includes puzzles like Nurikabe, Tapa, Cross The Streams, LITS, and Star Battle.</p>
       <p>Other types like Crosswords, Kakuro, Sudoku, and Filomino have adequate support but are missing some convenience features.</p>
       <h2>Log In</h2>
       <p>Logging in will connect up to your Google account and look up your name.</p>

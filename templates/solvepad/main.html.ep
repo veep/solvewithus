@@ -7,6 +7,7 @@
       <br><a href="<%= url_for('solvepad_logout') %>">Logout</a>
     </div>
     <h1>Solvepad</h1>
+    <br>Feedback: Email <a href="mailto:ecp@prestemon.com">ecp@prestemon.com</a> or vote and comment <a href="https://trello.com/b/KEvtlD1c/solvepad">on Trello</a>
   </div>
   <div class="well">
     <h2><a href="#" data-toggle="collapse" data-target="#add-div">Add a new puzzle</a></h2>
