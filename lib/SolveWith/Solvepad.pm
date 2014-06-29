@@ -98,6 +98,7 @@ sub puzzle {
     $self->stash('user' => $user);
     $self->stash('share_key' => $puzzle->get_share_key);
     $self->stash('recommend_key' => $puzzle->get_recommend_key);
+    $self->stash('root' => $self->app->static->root);
 }
 
 sub share {

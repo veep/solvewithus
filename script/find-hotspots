@@ -56,7 +56,9 @@ my $fh;
 open ($fh, ">", "$tempdir/fromweb") || die $!;
 print $fh $image;
 close($fh);
-my $dest = realpath("$FindBin::Bin/../public/$source_id.png");
+
+my $key = new_secret_key($source_id);
+my $dest = realpath("$FindBin::Bin/../public/puzimg/$key.png");
 system("gm convert +adjoin  -format PNG32 fromweb out%05.png");
 system("gm montage -mode concatenate out*png $dest");
 
@@ -100,3 +102,20 @@ for my $found (@$data) {
 }
 
 chdir('/tmp');
+
+sub new_secret_key {
+    my $id = shift;
+    my $key = `cat /proc/sys/kernel/random/uuid`;
+    chomp $key;
+    if (length($key) < 8) {
+        $key = '';
+        for (1..8) {
+            my $letter = int(rand(26));
+            $key .= chr(97+$letter);
+        }
+    } else {
+        $key = substr($key, -8);
+    }
+    return $id . "-$key";
+}
+

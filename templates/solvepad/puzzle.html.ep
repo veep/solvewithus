@@ -4,7 +4,7 @@
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
 %= javascript "http://d3js.org/d3.v3.min.js"
 %= javascript '/solvepad_puzzle.js' . '?' . app->code_version
-% use File::Basename;
+% use File::Spec;
 
 <div class="container-fluid">
   <div class="row-fluid">
@@ -56,7 +56,7 @@
       </div>
       <div id="puzzle-side">
         <div id="puzzle-image-container">
-          <img id="puzzle-image" src="/<%= basename($puzzle->solvepad_source->disk_file) %>">
+          <img id="puzzle-image" src="/<%= File::Spec->abs2rel($puzzle->solvepad_source->disk_file, $root) %>">
         </div>
         <svg class="unselectable" id="svgoverlay" 
              style="position: absolute;top: 0px;">
