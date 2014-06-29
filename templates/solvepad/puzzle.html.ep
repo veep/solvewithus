@@ -10,26 +10,50 @@
   <div class="row-fluid">
     <div id="controls" class="span4">
       <div class="well">
-        <h3><a href="<%=  url_for('solvepad') %>">Solvepad</a>: <%= $puzzle->display %></h1>
+        <a href="<%=  url_for('solvepad') %>">Solvepad Home</a>
+        <h3><%= $puzzle->display %></h3>
 % if ($user->id == $puzzle->user->id) {
-          <label><a href="<%= url_for('solvepad_share', key => $share_key) %>">Sharing URL</a></label>
 %   if ($puzzle->state eq 'closed') {
-          <label>State: Closed <a href="<%= url_for('solvepad_reopen', id => $puzzle->id) %>">Reopen</a></label>
+        <label><a class="btn" href="<%= url_for('solvepad_reopen', id => $puzzle->id) %>">Reopen Puzzle</a></label>
 %   } else {
-          <label>State: Open <a href="<%= url_for('solvepad_close', id => $puzzle->id) %>">Close</a></label>
+        <label>When you're done: <a class="btn" href="<%= url_for('solvepad_close', id => $puzzle->id) %>">Mark Puzzle 'Closed'</a></label>
 %   }
 % }
 
       </div>
-      <div id="no-data">
-        <h2>Waiting for region data...</h2>
-      </div>
       <div class="well">
-        <button id="reset_button" class="btn">Reset puzzle</button>
+        <h3>Instructions</h3>
+        <ul>
+          <li>Clicking moves your cursor, and toggles between empty, full, and "dot".</li>
+          <li>Typing a single <b>letter</b> or <b>number</b> enters it into the current square.</li>
+          <li>The <b>arrow keys</b> will move you around the puzzle.</li>
+          <li>The <b>space bar</b>, like clicking, rotates between empty, full, and "dot".</li>
+          <li>The <b>period</b> key sets "dot" directly.</li>
+          <li>The <b>delete</b> key empties the current square.</li>
+          <li>The <b>backspace</b> key empties the current square and moves left, if possible.</li>
+          <li>The <b>Clear all progress</b> button below clears everything. There is currently no Undo. <b>Use with caution!</b> </li>
+        </ul>
+        <button id="reset_button" class="btn btn-danger">Clear all progress!</button>
       </div>
+% if ($user->id == $puzzle->user->id) {
+      <div id="sharing-dev" class="well">
+        <h2>Sharing</h2>
+          <label>
+            To invite a friend to <b>join you</b> solving this puzzle, share this link:</label>
+            <input class="input-block-level" type="text" onClick="this.select()" onFocus="this.select()"
+                   value="<%= url_for('solvepad_share', key => $share_key)->to_abs %>">
+          <label>
+            To give a friend <b>her own copy</b> of this puzzle, share this link:</label>
+            <input class="input-block-level" type="text" onClick="this.select()" onFocus="this.select()"
+                   value="<%= url_for('solvepad_recommend', key => $recommend_key)->to_abs %>">
+      </div>
+% }
     </div>
 
     <div id="graphical" class="span8">
+      <div id="no-data">
+        <h2>Analyzing the puzzle to find the regions, hang on...</h2>
+      </div>
       <div id="puzzle-side">
         <div id="puzzle-image-container">
           <img id="puzzle-image" src="/<%= basename($puzzle->solvepad_source->disk_file) %>">

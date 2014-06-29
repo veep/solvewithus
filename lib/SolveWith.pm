@@ -56,6 +56,8 @@ sub startup {
       to(controller => 'solvepad', action => 'updates');
   $r->route('/solvepad/share/:key', key => qr/\d+-\w+/)->name('solvepad_share')->
       to(controller => 'solvepad', action => 'share');
+  $r->route('/solvepad/recommend/:key', key => qr/\d+-\w+/)->name('solvepad_recommend')->
+      to(controller => 'solvepad', action => 'recommend');
   $r->route('/replay/:key', key => qr/\d+-\w+/)->name('solvepad_replay')->
       to(controller => 'solvepad', action => 'replay');
 

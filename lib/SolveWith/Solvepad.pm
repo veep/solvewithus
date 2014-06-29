@@ -45,7 +45,7 @@ sub main {
           }
         )->all()
     ) {
-        if ($puzzle->state eq 'closed') {
+        if ($puzzle->state && $puzzle->state eq 'closed') {
             push @closed_puzzles, $puzzle;
         } else {
             push @open_puzzles, $puzzle;
@@ -83,12 +83,21 @@ sub puzzle {
             )
         )
     ) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
+        return;
+    }
+    if (! $puzzle->solvepad_source->disk_file) {
+        Mojo::IOLoop->timer(1 => sub { 
+                                $self->redirect_to('solvepad_by_id', id => $puzzle->id);
+                                return;
+                            });
+        $self->render_later;
         return;
     }
     $self->stash('puzzle' => $puzzle);
     $self->stash('user' => $user);
     $self->stash('share_key' => $puzzle->get_share_key);
+    $self->stash('recommend_key' => $puzzle->get_recommend_key);
 }
 
 sub share {
@@ -115,16 +124,50 @@ sub share {
     $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle_id));
 }
 
+sub recommend {
+    my $self = shift;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    my $key = $self->param('key');
+    if ($key !~ /(\d+)-/) {
+        $self->redirect_to('solvepad');
+        return;
+    }
+    my $puzzle_id = $1;
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if (! $puzzle or $key ne $puzzle->recommend_key) {
+        warn "recommend key mismatch $key";
+        $self->redirect_to('solvepad');
+        return;
+    }
+
+    if ($puzzle->user_id != $user->id) {
+        my $new_puzzle = $self->db->resultset('SolvepadPuzzle')->find_or_new(
+            {
+                user_id => $user->id,
+                source_id => $puzzle->solvepad_source->id,
+            }
+        );
+        if (! $new_puzzle->in_storage ) {
+            $new_puzzle->title($puzzle->title);
+            $new_puzzle->state('open');
+            $new_puzzle->insert;
+        }
+        $self->redirect_to($self->url_for('solvepad_by_id', id => $new_puzzle->id));
+    } else {
+        $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle_id));
+    }
+}
+
 sub close_open {
     my $self = shift;
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     if (! $user) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
     }
     my $puzzle_id = $self->param('id');
     my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
     if ( !$puzzle or $puzzle->user_id != $user->id ) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
         return;
     }
     if ($puzzle->state eq 'closed') {
@@ -142,7 +185,7 @@ sub create {
     my ($self) = @_;
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     if (! $user) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
         return;
     }
 
@@ -151,7 +194,7 @@ sub create {
     my $fileuploaded = $self->req->upload('PuzzleUpload');
 
     if (! $url and ! $fileuploaded) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
         return;
     }
 
@@ -167,7 +210,7 @@ sub create {
     }
 
     if (! $body) {
-        $self->redirect_to('/solvepad');
+        $self->redirect_to('solvepad');
         return;
     }
 
@@ -205,7 +248,7 @@ sub create {
         $puzzle->title($title);
         $puzzle->update;
     }
-    $self->redirect_to('/solvepad');
+    $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle->id));
 }
 
 sub updates {
@@ -296,8 +339,8 @@ sub updates {
                 }
                 zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
             } else {
-                if (! scalar keys %state) {
-#                    warn "no state keys";
+                if (!  keys %state) {
+                    $self->app->log->debug('no state, checking');
                     send_state_if_updated($self,\%state, $puzzle, \$last_ts, $last_change_seen);
                 }
             }
@@ -334,6 +377,8 @@ sub send_state_if_updated {
     my ($self,$state,$puzzle,$tsref, $last_change_seen) = @_;
     my $json = Mojo::JSON->new();
 
+    my $updated = 0;
+
     # Check for hotspot changes
     for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
         {
@@ -341,11 +386,23 @@ sub send_state_if_updated {
         },
     )->all) {
         if (! exists $state->{$hotspot->id}) {
-            $state->{$hotspot->id} = 'clear';
+            my $id = $hotspot->id;
+            $state->{$id} = {
+                shape => $hotspot->shape,
+                state => 'clear',
+                id => $id,
+                up => $hotspot->up,
+                down => $hotspot->down,
+                left => $hotspot->left,
+                right => $hotspot->right,
+            };
+            ($state->{$id}{minx}, $state->{$id}{miny},
+             $state->{$id}{maxx}, $state->{$id}{maxy}) = split(',',$hotspot->shape_data);
+            $self->app->log->debug('added hotspot');
+            $updated = 1;
         }
     }
 
-    my $updated = 0;
     for my $update ($self->db->resultset('SolvepadHistory')->search (
         { puzzle_id => $puzzle->id,
           ts => { '>', $$tsref},

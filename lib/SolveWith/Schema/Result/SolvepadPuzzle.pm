@@ -18,6 +18,7 @@ __PACKAGE__->add_columns(
     'title',
     'view_url',
     'share_key',
+    'recommend_key',
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -54,15 +55,31 @@ sub get_share_key {
     return $self->update_share_key;
 }
 
+sub get_recommend_key {
+    my $self = shift;
+    if ($self->recommend_key) {
+        return $self->recommend_key;
+    }
+    return $self->update_recommend_key;
+}
+
 sub update_share_key {
     my $self = shift;
-    my $key = $self->new_share_key;
+    my $key = $self->new_secret_key;
     $self->set_column('share_key', $key);
     $self->update;
     return $key;
 }
 
-sub new_share_key {
+sub update_recommend_key {
+    my $self = shift;
+    my $key = $self->new_secret_key;
+    $self->set_column('recommend_key', $key);
+    $self->update;
+    return $key;
+}
+
+sub new_secret_key {
     my $self = shift;
     my $key = `cat /proc/sys/kernel/random/uuid`;
     chomp $key;
