@@ -166,11 +166,6 @@ caption {
     margin: 3px;
 }
 
-#sharing-dev {
-    position: absolute; 
-    bottom: 0;
-}
-
 #no-data {
     position: absolute; 
     top: 150px;

@@ -16,7 +16,10 @@
 %   if ($puzzle->state eq 'closed') {
         <label><a class="btn" href="<%= url_for('solvepad_reopen', id => $puzzle->id) %>">Reopen Puzzle</a></label>
 %   } else {
-        <label>When you're done: <a class="btn" href="<%= url_for('solvepad_close', id => $puzzle->id) %>">Mark Puzzle 'Closed'</a></label>
+        <label>
+          <a href="#sharing-dev" role="button" class="btn btn-primary" data-toggle="modal">Invite/Share</a>
+          <a class="btn" href="<%= url_for('solvepad_close', id => $puzzle->id) %>">Mark puzzle 'Closed'</a>
+        </label>
 %   }
 % }
 
@@ -35,19 +38,6 @@
         </ul>
         <button id="reset_button" class="btn btn-danger">Clear all progress!</button>
       </div>
-% if ($user->id == $puzzle->user->id) {
-      <div id="sharing-dev" class="well">
-        <h2>Sharing</h2>
-          <label>
-            To invite a friend to <b>join you</b> solving this puzzle, share this link:</label>
-            <input class="input-block-level" type="text" onClick="this.select()" onFocus="this.select()"
-                   value="<%= url_for('solvepad_share', key => $share_key)->to_abs %>">
-          <label>
-            To give a friend <b>her own copy</b> of this puzzle, share this link:</label>
-            <input class="input-block-level" type="text" onClick="this.select()" onFocus="this.select()"
-                   value="<%= url_for('solvepad_recommend', key => $recommend_key)->to_abs %>">
-      </div>
-% }
     </div>
 
     <div id="graphical" class="span8">
@@ -68,3 +58,25 @@
 
 
 <label id="connection"><%= url_for('solvepad_updates', id => $puzzle->id)->to_abs->scheme('ws') %></label>
+
+% if ($user->id == $puzzle->user->id) {
+      <div id="sharing-dev" class="modal hide fade">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>Sharing</h3>
+        </div>
+        <div class="modal-body">
+          <label>
+            To invite a friend to <b>join you</b> solving this puzzle, share this link:</label>
+            <input class="input-block-level" type="text" onClick="this.select()"
+                   value="<%= url_for('solvepad_share', key => $share_key)->to_abs %>">
+          <label>
+            To give a friend <b>her own copy</b> of this puzzle, share this link:</label>
+            <input class="input-block-level" type="text" onClick="this.select()"
+                   value="<%= url_for('solvepad_recommend', key => $recommend_key)->to_abs %>">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+        </div>
+      </div>
+% }
