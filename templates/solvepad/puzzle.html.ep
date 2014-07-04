@@ -31,6 +31,7 @@
             <label class="checkbox">
               <input id="click_fill" checked type="checkbox"> and toggles between empty, full, and "dot".
             </label></li>
+          <li>Dragging to a neighboring square connects the centers.
           <li>Typing a single <b>letter</b> or <b>number</b> enters it into the current square.</li>
           <li>The <b>arrow keys</b> will move you around the puzzle.</li>
           <li>The <b>space bar</b>, like clicking, rotates between empty, full, and "dot".</li>
