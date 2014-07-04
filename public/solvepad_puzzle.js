@@ -23,11 +23,11 @@ $(window).load(
                 state = results.values;
                 if (state && state.length) {
                     $('#no-data').hide();
+                    redisplay(state);
                 } else {
                     $('#no-data').show();
                     state = Array();
                 }
-                redisplay(state);
             }
             reset = results.reset;
             if (reset) {
