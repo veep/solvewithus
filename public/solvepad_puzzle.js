@@ -131,40 +131,41 @@ $(window).load(
         var datum = g.datum();
 
 //        console.log(datum);
-        var from;
-        var to;
-        mylastchange++;
-
-        if (datum.state == 'clear') {
-            from = 'clear';
-            to = 'fill';
-            datum.state = 'fill';
-        } else {
-            if (datum.state == 'fill') {
-                from = 'fill';
-                to = 'dot';
-                datum.state = 'dot';
+        if ($('#click_fill:checked').val()) {
+            var from;
+            var to;
+            mylastchange++;
+            
+            if (datum.state == 'clear') {
+                from = 'clear';
+                to = 'fill';
+                datum.state = 'fill';
             } else {
-                if (datum.state == 'dot') {
-                    from = 'dot';
-                    to = 'clear';
-                    datum.state = 'clear';
+                if (datum.state == 'fill') {
+                    from = 'fill';
+                    to = 'dot';
+                    datum.state = 'dot';
+                } else {
+                    if (datum.state == 'dot') {
+                        from = 'dot';
+                        to = 'clear';
+                        datum.state = 'clear';
+                    }
                 }
             }
+            g.datum(datum);
+            redisplay(state);
+            ws.send(
+                JSON.stringify({
+                    id: datum.id,
+                    from: from,
+                    to: to,
+                    change_number: mylastchange
+                })
+            );
         }
-        g.datum(datum);
         highlight_id = datum.id;
-//        console.log(highlight_id);
-        redisplay(state);
         update_highlight();
-        ws.send(
-            JSON.stringify({
-                id: datum.id,
-                from: from,
-                to: to,
-                change_number: mylastchange
-            })
-        );
     });
 
 

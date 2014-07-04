@@ -461,6 +461,9 @@ sub send_state_if_updated {
         ) {
             if ($update->newer eq 'on') {
                 $state->{$update->hotspot_id}{'state_' . $1} = 'on';
+                if ($state->{$update->hotspot_id}{'state'} eq 'dot') {
+                    $state->{$update->hotspot_id}{'state'} = 'clear';
+                }
             } else {
                 $state->{$update->hotspot_id}{'state_' . $1} = ''
             }
