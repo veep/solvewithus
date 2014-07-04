@@ -65,6 +65,8 @@ while (my $start_xy = (keys %px)[0]) {
     }
 }
 
+@results = remove_inners(\@results);
+
 add_adjacencies(\@results);
 
 use JSON::XS;
@@ -93,7 +95,6 @@ sub add_adjacencies {
                 }
                 if ($tminx > $maxx && $tminx < $best_right->[0] && ! $spots->[$i]{right}) {
                     $best_right = [$tminx, $spot];
-                    warn "right: $i $tminx\n";
                 }
             }
         }
@@ -110,4 +111,23 @@ sub add_adjacencies {
             $spots->[$i]{right} = $best_right->[1]{id};
         }
     }
+}
+
+sub remove_inners {
+    my @spots = @{$_[0]};
+  SMALLER:
+    for my $i (0..($#spots)) {
+        next unless $spots[$i];
+        my ($minx,$miny,$maxx,$maxy) = split(',',$spots[$i]{shape_data});
+        for my $j (0..$#spots) {
+            next if $i==$j;
+            my ($jminx,$jminy,$jmaxx,$jmaxy) = split(',',$spots[$j]{shape_data});
+            if ($minx >= $jminx && $miny >= $jminy
+                && $maxx <= $jmaxx && $maxy <= $jmaxy) {
+                splice(@spots, $i, 1);
+                redo SMALLER;
+            }
+        }
+    }
+    return @spots;
 }

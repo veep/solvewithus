@@ -52,7 +52,6 @@ $(window).load(
         var command;
         var g = d3.select(this);
         var datum = g.datum();
-        console.log(datum.left,drag_start.id,drag_start.right,datum.id);
         if (datum.up == drag_start.id) {
             if (datum.state_up == 'on' && drag_start.state_down == 'on') {
                 datum.state_up = '';
