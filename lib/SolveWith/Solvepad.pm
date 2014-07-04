@@ -305,7 +305,10 @@ sub updates {
         message => sub {
             my $message = $_[1];
             my $message_data = $json->decode($message);
-#            warn join(" ", %$message_data,"\n");
+            if (exists $message_data->{change_number}) {
+                $last_change_seen = $message_data->{change_number};
+            }
+
             if( exists $message_data->{id}
                 && exists $message_data->{to}
                 && exists $message_data->{from}
@@ -321,9 +324,6 @@ sub updates {
                         type => 'change',
                   }
                 );
-                if (exists $message_data->{change_number}) {
-                    $last_change_seen = $message_data->{change_number};
-                }
 #                warn "sending $puzzle_id " . ($hist->ts);
                 zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
             } elsif (exists $message_data->{cmd} && $message_data->{cmd} eq 'reset') {
@@ -335,10 +335,54 @@ sub updates {
                         type => 'reset',
                     }
                 );
-                if (exists $message_data->{change_number}) {
-                    $last_change_seen = $message_data->{change_number};
-                }
                 zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
+            } elsif (exists $message_data->{cmd} &&
+                     $message_data->{cmd} =~ /^line_(on|clear)$/) {
+                my $type = $1;
+                if ($message_data->{start_id} && $message_data->{stop_id}) {
+                    if (exists $state{$message_data->{start_id}}) {
+                        my ($dir, $reverse);
+                        if ($state{$message_data->{start_id}}{up}
+                            && $state{$message_data->{start_id}}{up} == $message_data->{stop_id}) {
+                            $dir = 'up'; $reverse = 'down';
+                        }
+                        if ($state{$message_data->{start_id}}{down}
+                            && $state{$message_data->{start_id}}{down} == $message_data->{stop_id}) {
+                            $dir = 'down'; $reverse = 'up';
+                        }
+                        if ($state{$message_data->{start_id}}{left}
+                            && $state{$message_data->{start_id}}{left} == $message_data->{stop_id}) {
+                            $dir = 'left'; $reverse = 'right';
+                        }
+                        if ($state{$message_data->{start_id}}{right}
+                            && $state{$message_data->{start_id}}{right} == $message_data->{stop_id}) {
+                            $dir = 'right'; $reverse = 'left';
+                        }
+                        if ($dir) {
+                            $self->db->resultset('SolvepadHistory')->create(
+                                {
+                                    solvepad_puzzle => $puzzle,
+                                    ts => (scalar Time::HiRes::time),
+                                    solvepad_user => $user,
+                                    hotspot_id => $message_data->{start_id},
+                                    newer => $type,
+                                    type => 'line_' . $dir,
+                                }
+                            );
+                            my $hist = $self->db->resultset('SolvepadHistory')->create(
+                                {
+                                    solvepad_puzzle => $puzzle,
+                                    ts => (scalar Time::HiRes::time),
+                                    solvepad_user => $user,
+                                    hotspot_id => $message_data->{stop_id},
+                                    newer => $type,
+                                    type => 'line_' . $reverse,
+                                }
+                            );
+                            zmq_sendmsg($publisher,"$puzzle_id " . $hist->ts);
+                        }
+                    }
+                }
             } else {
                 if (!  keys %state) {
                     $self->app->log->debug('no state, checking');
@@ -346,6 +390,7 @@ sub updates {
                 }
             }
 
+            warn 'end message ' . scalar Time::HiRes::time;
         }
     );
 
@@ -410,14 +455,17 @@ sub send_state_if_updated {
       },
         {order_by => { -asc => 'ts'}}
     )) {
-        if ($update->hotspot_id &&
-            exists $state->{$update->hotspot_id} &&
-            $state->{$update->hotspot_id}{state} eq $update->older) {
+        if ($update->type =~ /^line_(\w+)$/ 
+            && $update->hotspot_id
+            && exists $state->{$update->hotspot_id}
+        ) {
+            if ($update->newer eq 'on') {
+                $state->{$update->hotspot_id}{'state_' . $1} = 'on';
+            } else {
+                $state->{$update->hotspot_id}{'state_' . $1} = ''
+            }
             $updated = 1;
-            $state->{$update->hotspot_id}{state} = $update->newer;
-            $$tsref = $update->ts;
-        }
-        if ($update->type eq 'reset') {
+        } elsif ($update->type eq 'reset') {
             $updated = 1;
             for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
                 {
@@ -426,7 +474,16 @@ sub send_state_if_updated {
             )->all) {
                 my $id = $hotspot->id;
                 $state->{$id}{state} = 'clear';
+                for my $dir ('up','down','left','right') {
+                    $state->{$id}{'state_' . $dir} = '';
+                }
             }
+        } elsif ($update->hotspot_id &&
+            exists $state->{$update->hotspot_id} &&
+            $state->{$update->hotspot_id}{state} eq $update->older) {
+            $updated = 1;
+            $state->{$update->hotspot_id}{state} = $update->newer;
+            $$tsref = $update->ts;
         }
     }
     if ($updated) {

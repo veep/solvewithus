@@ -3,6 +3,7 @@ var ws;
 var svg;
 var mylastchange = 0;
 var highlight_id = '';
+var drag_start;
 
 $(window).load(
     function() {
@@ -17,23 +18,113 @@ $(window).load(
     // Parse incoming response and post it to the screen
         ws.onmessage = function (msg) {
             var results = JSON.parse(msg.data);
-            reset = results.reset;
-            state = results.values;
-            if (state && state.length) {
-                $('#no-data').hide();
-            } else {
-                $('#no-data').show();
-                state = Array();
-            }
             change = results.change_number;
+            if (!change || change == mylastchange) {
+                state = results.values;
+                if (state && state.length) {
+                    $('#no-data').hide();
+                } else {
+                    $('#no-data').show();
+                    state = Array();
+                }
+                redisplay(state);
+            }
+            reset = results.reset;
             if (reset) {
                 ws.close();
                 return;
             }
-            if (state && state.length && !change || change == mylastchange) {
-                redisplay(state);
-            }
         };
+
+    $('svg').on('mousedown', 'g', function(event) {
+        var g = d3.select(this);
+        var datum = g.datum();
+        drag_start = datum;
+    });
+
+    $('svg').on('mouseover', 'g', function(event) {
+        if (!drag_start) {
+            return;
+        }
+        drag_start = state.filter(function(item) {
+            return item.id === drag_start.id;
+        })[0];
+        var command;
+        var g = d3.select(this);
+        var datum = g.datum();
+        if (datum.up == drag_start.id) {
+            if (datum.state_up == 'on' && drag_start.state_down == 'on') {
+                datum.state_up = '';
+                drag_start.state_down = '';
+                command = 'clear';
+            } else {
+                datum.state_up = 'on';
+                drag_start.state_down = 'on';
+                command = 'on';
+            }
+        }
+        if (datum.down == drag_start.id) {
+            if (datum.state_down == 'on' && drag_start.state_up == 'on') {
+                datum.state_down = '';
+                drag_start.state_up = '';
+                command = 'clear';
+            } else {
+                datum.state_down = 'on';
+                drag_start.state_up = 'on';
+                command = 'on';
+            }
+        }
+        if (datum.left == drag_start.id) {
+            if (datum.state_left == 'on' && drag_start.state_right == 'on') {
+                datum.state_left = '';
+                drag_start.state_right = '';
+                command = 'clear';
+            } else {
+                datum.state_left = 'on';
+                drag_start.state_right = 'on';
+                command = 'on';
+            }
+        }
+        if (datum.right == drag_start.id) {
+            if (datum.state_right == 'on' && drag_start.state_left == 'on') {
+                datum.state_right = '';
+                drag_start.state_left = '';
+                command = 'clear';
+            } else {
+                datum.state_right = 'on';
+                drag_start.state_left = 'on';
+                command = 'on';
+            }
+        }
+        if (! command) {
+            return;
+        }
+        if (command == 'on') {
+            if (datum.state == 'dot') {
+                datum.state = 'clear';
+            }
+            if (drag_start.state == 'dot') {
+                drag_start.state = 'clear';
+            }
+        }
+        redisplay(state);
+        highlight_id = datum.id;
+        update_highlight();
+        mylastchange++;
+        ws.send(
+            JSON.stringify({
+                cmd: "line_" + command,
+                start_id: drag_start.id,
+                stop_id: datum.id,
+                change_number: mylastchange
+            })
+        );
+        drag_start = datum;
+    });
+
+    $('body').on('mouseup', function(event) {
+        drag_start = false;
+    });
         
     $('svg').on('click', 'g', function(event) {
         var g = d3.select(this);
@@ -79,7 +170,6 @@ $(window).load(
 
     $('body').on('keydown', function(event) {
         var value = event.which;
-        console.log('keydown',value);
 
         if (value == 32 || value == 46 || value == 8) {
             var g = svg.selectAll("g .highlightrect");
@@ -148,7 +238,6 @@ $(window).load(
     
     $('body').on('keypress', function(event) {
         var value = event.which;
-        console.log(value);
         if (value >= (96+1) && value <= (96+26)) {
             value=value-32;
         }
@@ -207,7 +296,6 @@ function setup_websocket() {
         lblStatus.text('');
         keepalive_timer_id = setInterval(
             function() {
-                console.log('Connection keepalive');
                 ws.send('{"cmd":"keepalive"}');
             },
             5*1000
@@ -225,6 +313,37 @@ function setup_websocket() {
 }
 
 var fill_opacity = function(d,type) {
+    if ( type === 'line_up') {
+        if (d.state_up && d.state_up === 'on') {
+            return 0.8;
+        } else {
+            return 0;
+        }
+    }
+    if ( type === 'line_down') {
+        if (d.state_down && d.state_down === 'on') {
+            return 0.8;
+        } else {
+            return 0;
+        }
+    }
+    if ( type === 'line_right') {
+        if (d.state_right && d.state_right === 'on') {
+            return 0.8;
+        } else {
+            return 0;
+        }
+    }
+    if ( type === 'line_left') {
+        if (d.state_left && d.state_left === 'on') {
+            return 0.8;
+        } else {
+            return 0;
+        }
+    }
+    if (! d.state) {
+        return 0;
+    }
     if ( d.state==='clear' || d.state.substr(0,6) == 'text: ') {
         return 0;
     }
@@ -304,13 +423,68 @@ function redisplay(state) {
                             d.state.substr(6) : '';
                           });
 
+    newg
+        .append("svg:rect")
+        .attr('class','line_up')
+        .attr('x', function(d) { return (Number(d.minx)+Number(d.maxx))/2})
+        .attr('y', function(d) { return Number(d.miny) })
+        .attr('width', function(d) { return 3 })
+        .attr('height', function(d) { return (d.maxy - d.miny)/2+1 })
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_up')})
+        .attr("fill", function(d) {return fill_color(d,'line_up')});
+    newg
+        .append("svg:rect")
+        .attr('class','line_down')
+        .attr('x', function(d) { return (Number(d.minx)+Number(d.maxx))/2})
+        .attr('y', function(d) { return (Number(d.miny)+Number(d.maxy))/2})
+        .attr('width', function(d) { return 3 })
+        .attr('height', function(d) { return (d.maxy - d.miny)/2+1 })
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_down')})
+        .attr("fill", function(d) {return fill_color(d,'line_down')});
+    newg
+        .append("svg:rect")
+        .attr('class','line_left')
+        .attr('x', function(d) { return (Number(d.minx))})
+        .attr('y', function(d) { return (Number(d.miny)+Number(d.maxy))/2})
+        .attr('width', function(d) { return (d.maxx - d.minx)/2+3  })
+        .attr('height', function(d) { return 3 })
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_left')})
+        .attr("fill", function(d) {return fill_color(d,'line_left')});
+    newg
+        .append("svg:rect")
+        .attr('class','line_right')
+        .attr('x', function(d) { return (Number(d.minx)+Number(d.maxx))/2})
+        .attr('y', function(d) { return (Number(d.miny)+Number(d.maxy))/2})
+        .attr('width', function(d) { return (d.maxx - d.minx)/2+2  })
+        .attr('height', function(d) { return 3 })
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_right')})
+        .attr("fill", function(d) {return fill_color(d,'line_right')});
+    // newg
+    //     .append("svg:rect")
+    //     .attr('class','regionrect')
+    //     .attr('x', function(d) { return d.minx})
+    //     .attr('y', function(d) { return d.miny})
+    //     .attr('width', function(d) { return d.maxx - d.minx + 1 })
+    //     .attr('height', function(d) { return d.maxy - d.miny + 1 })
+    //     .attr('fill-opacity', function(d) {return fill_opacity(d,'region')})
+    //     .attr("fill", function(d) {return fill_color(d,'region')});
+    // newg
+    //     .append("svg:rect")
+    //     .attr('class','regionrect')
+    //     .attr('x', function(d) { return d.minx})
+    //     .attr('y', function(d) { return d.miny})
+    //     .attr('width', function(d) { return d.maxx - d.minx + 1 })
+    //     .attr('height', function(d) { return d.maxy - d.miny + 1 })
+    //     .attr('fill-opacity', function(d) {return fill_opacity(d,'region')})
+    //     .attr("fill", function(d) {return fill_color(d,'region')});
+
     g.exit().remove();
     transg = g.transition()
         .duration(120);
 
     transg
         .select('.regiontext')
-        .text(function(d) { return d.state.substr(0,6) == 'text: ' ? 
+        .text(function(d) { return (d.state && d.state.substr(0,6) == 'text: ') ? 
                             d.state.substr(6) : '';
                           });
     transg
@@ -325,7 +499,28 @@ function redisplay(state) {
         .attr('fill-opacity', function(d) {return fill_opacity(d,'dot');})
         .attr("fill",function(d) {return fill_color(d,'dot');});
     
+    transg
+        .select(".line_up")
+        .ease('exp-out')
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_up') })
+        .attr("fill", function(d) {return fill_color(d,'line_up')} );
 
+    transg
+        .select(".line_down")
+        .ease('exp-out')
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_down') })
+        .attr("fill", function(d) {return fill_color(d,'line_down')} );
+
+    transg
+        .select(".line_left")
+        .ease('exp-out')
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_left') })
+        .attr("fill", function(d) {return fill_color(d,'line_left')} );
+    transg
+        .select(".line_right")
+        .ease('exp-out')
+        .attr('fill-opacity', function(d) {return fill_opacity(d,'line_right') })
+        .attr("fill", function(d) {return fill_color(d,'line_right')} );
 }
 
 function update_highlight() {
