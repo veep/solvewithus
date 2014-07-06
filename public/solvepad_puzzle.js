@@ -12,10 +12,8 @@ var Replay = function() {
 }
 
 Replay.prototype.launch = function() {
-    console.log('launch');
     var this_replay = this;
     $('body').on('Replay_play_steps', function(event, step) {
-//        console.log('in event with',step);
         this_replay.play_steps(step);
     });
     jQuery.getJSON(this.replay_updates_url, function (data) {
@@ -35,13 +33,11 @@ Replay.prototype.play_steps = function(step) {
            && (step === 0 || this.replay_steps[step].ts <= max_ts)
           ) {
         if (this.replay_steps[step].type == 'state') {
-            console.log('resetting');
             this.replay_state = this.replay_steps[step].values;
             updated = true;
         }
         if (this.replay_steps[step].type == 'new_state') {
             var new_value = this.replay_steps[step].values;
-            console.log(new_value.id);
             this.replay_state.forEach(function(item, index, array) {
                 if (item.id == new_value.id) {
                     array[index] = new_value;
@@ -87,7 +83,6 @@ $(window).load(
     function() {
         svg = d3.select("#svgoverlay");
         if (Replay.replay_updates_url) {
-            console.log(Replay.replay_updates_url);
             Replay.launch();
             return;
         }
