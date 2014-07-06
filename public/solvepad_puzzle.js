@@ -28,7 +28,6 @@ Replay.prototype.launch = function() {
 Replay.prototype.play_steps = function(step) {
     var now = Date.now();
     var max_ts = this.scaler(now);
-    console.log(now,max_ts);
     var updated = false;
     while (max_ts 
            && this.replay_steps.length 
@@ -37,7 +36,6 @@ Replay.prototype.play_steps = function(step) {
           ) {
         if (this.replay_steps[step].type == 'state') {
             this.replay_state = this.replay_steps[step].values;
-            redisplay(this.replay_state);
             updated = true;
         }
         if (this.replay_steps[step].type == 'new_state') {
@@ -48,12 +46,12 @@ Replay.prototype.play_steps = function(step) {
                     highlight_id = item.id;
                 }
             });
-            redisplay(this.replay_state);
             updated = true;
         }
         step++;
     }
     if (updated) {
+        redisplay(this.replay_state);
         update_highlight();
     }
     if (this.replay_steps[step]) {
@@ -71,7 +69,6 @@ Replay.prototype.data_ready = function() {
     this.duration = 30*1000;
     var time_length = (this.replay_steps[this.replay_steps.length-1].ts - this.replay_steps[1].ts)
     this.scaler = function (now) {
-        console.log(now,start_ts,this.duration);
         if (now > start_ts+this.duration || this.replay_steps.length < 2) {
             return this.replay_steps[this.replay_steps.length-1].ts;
         }

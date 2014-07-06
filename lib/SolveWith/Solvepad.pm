@@ -276,7 +276,7 @@ sub create {
 }
 
 sub _clean_state {
-    my ($self,$puzzle,$state) = @_;
+    my ($self,$puzzle,$state,$for_replay) = @_;
 
     for my $key (keys %$state) {
         delete $state->{$key};
@@ -288,17 +288,23 @@ sub _clean_state {
         },
     )->all) {
         my $id = $hotspot->id;
-        $state->{$id} =
-        { shape => $hotspot->shape,
-          state => 'clear',
-          id => $id,
-          up => $hotspot->up,
-          down => $hotspot->down,
-          left => $hotspot->left,
-          right => $hotspot->right,
-      };
+        $state->{$id} = { 
+            shape => $hotspot->shape,
+            state => 'clear',
+            id => $id,
+        };
         ($state->{$id}{minx}, $state->{$id}{miny},
          $state->{$id}{maxx}, $state->{$id}{maxy}) = split(',',$hotspot->shape_data);
+        if ($for_replay) {
+            for my $state_dir ('state_up','state_down','state_left','state_right') {
+                $state->{$id}{$state_dir} = '';
+            }
+        } else {
+            $state->{$id}{up} = $hotspot->up;
+            $state->{$id}{down} = $hotspot->down;
+            $state->{$id}{left} = $hotspot->left;
+            $state->{$id}{right} = $hotspot->right;
+        }
     }
 }
 
