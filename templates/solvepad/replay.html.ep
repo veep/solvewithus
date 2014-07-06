@@ -1,0 +1,40 @@
+% layout 'default';
+% title 'Solvepad Replay: ' . $puzzle->display;
+%= stylesheet '/solvepad.css'
+%= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
+%= javascript "http://d3js.org/d3.v3.min.js"
+%= javascript '/solvepad_puzzle.js' . '?' . app->code_version
+% use File::Spec;
+
+<div class="container-fluid">
+  <div class="row-fluid">
+    <div id="controls" class="span4">
+      <div class="well">
+        <a href="<%=  url_for('solvepad') %>">Solvepad Home</a>
+        <h3><%= $puzzle->display %></h3>
+      </div>
+      <div id="replay-controls" class="well">
+        Replay Controls
+      </div>
+    </div>
+
+    <div id="graphical" class="span8">
+      <div id="no-data">
+        <h2>Loading puzzle info...</h2>
+      </div>
+      <div id="puzzle-side">
+        <div id="puzzle-image-container">
+          <img id="puzzle-image" src="/<%= File::Spec->abs2rel($puzzle->solvepad_source->disk_file, $root) %>">
+        </div>
+        <svg class="unselectable" id="svgoverlay" 
+             style="position: absolute;top: 0px;">
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+%= javascript begin
+window.Replay = new Replay();
+window.Replay.replay_updates_url = '<%= url_for('solvepad_replay_updates', key => $player_key) %>';
+% end

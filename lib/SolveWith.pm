@@ -60,6 +60,8 @@ sub startup {
       to(controller => 'solvepad', action => 'recommend');
   $r->route('/replay/:key', key => qr/\d+-\w+/)->name('solvepad_replay')->
       to(controller => 'solvepad', action => 'replay');
+  $r->route('/replay_updates/:key', key => qr/\d+-\w+/)->name('solvepad_replay_updates')->
+      to(controller => 'solvepad', action => 'replay_updates');
 
   $r->route('/event')->name('events')->to(controller => 'event', action => 'all');
   $r->route('/event/add')->name('addevent')->to(controller => 'event', action => 'add');

@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
     'view_url',
     'share_key',
     'recommend_key',
+    'player_key',
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -63,6 +64,14 @@ sub get_recommend_key {
     return $self->update_recommend_key;
 }
 
+sub get_player_key {
+    my $self = shift;
+    if ($self->player_key) {
+        return $self->player_key;
+    }
+    return $self->update_player_key;
+}
+
 sub update_share_key {
     my $self = shift;
     my $key = $self->new_secret_key;
@@ -75,6 +84,14 @@ sub update_recommend_key {
     my $self = shift;
     my $key = $self->new_secret_key;
     $self->set_column('recommend_key', $key);
+    $self->update;
+    return $key;
+}
+
+sub update_player_key {
+    my $self = shift;
+    my $key = $self->new_secret_key;
+    $self->set_column('player_key', $key);
     $self->update;
     return $key;
 }

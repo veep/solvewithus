@@ -5,11 +5,94 @@ var mylastchange = 0;
 var highlight_id = '';
 var drag_start;
 
+var Replay = function() {
+    this.replay_steps = [];
+    this.replay_state = [];
+    this.replay_updates_url = '';
+}
+
+Replay.prototype.launch = function() {
+    console.log('launch');
+    var this_replay = this;
+    $('body').on('Replay_play_steps', function(event, step) {
+//        console.log('in event with',step);
+        this_replay.play_steps(step);
+    });
+    jQuery.getJSON(this.replay_updates_url, function (data) {
+        this_replay.replay_steps = data;
+        this_replay.data_ready();
+    });
+}
+
+
+Replay.prototype.play_steps = function(step) {
+    var now = Date.now();
+    var max_ts = this.scaler(now);
+    console.log(now,max_ts);
+    var updated = false;
+    while (max_ts 
+           && this.replay_steps.length 
+           && this.replay_steps[step]
+           && (step === 0 || this.replay_steps[step].ts <= max_ts)
+          ) {
+        if (this.replay_steps[step].type == 'state') {
+            this.replay_state = this.replay_steps[step].values;
+            updated = true;
+        }
+        if (this.replay_steps[step].type == 'new_state') {
+            var new_value = this.replay_steps[step].values;
+            this.replay_state.forEach(function(item, index, array) {
+                if (item.id == new_value.id) {
+                    array[index] = new_value;
+                    highlight_id = item.id;
+                }
+            });
+            updated = true;
+        }
+        step++;
+    }
+    if (updated) {
+        redisplay(this.replay_state);
+        update_highlight();
+    }
+    if (this.replay_steps[step]) {
+        window.setTimeout(function() {
+            $('body').triggerHandler('Replay_play_steps',step);
+        }, 250);
+    }
+}
+
+            
+
+Replay.prototype.data_ready = function() {
+    $('#no-data').hide();
+    var start_ts = Date.now();
+    this.duration = 60*1000;
+    var time_length = (this.replay_steps[this.replay_steps.length-1].ts - this.replay_steps[1].ts)
+    this.scaler = function (now) {
+        console.log(now,start_ts,this.duration);
+        if (now > start_ts+this.duration || this.replay_steps.length < 2) {
+            return this.replay_steps[this.replay_steps.length-1].ts;
+        }
+        return (this.replay_steps[1].ts + 
+                time_length
+                * (now - start_ts) / this.duration);
+    };
+    $('body').triggerHandler('Replay_play_steps',0);
+    $('#replay-controls').show();
+}
+
+
 $(window).load(
     function() {
+        svg = d3.select("#svgoverlay");
+        if (Replay.replay_updates_url) {
+            console.log(Replay.replay_updates_url);
+            Replay.launch();
+            return;
+        }
         server = $('#connection').text();
         ws = new WebSocket(server);
-        svg = d3.select("#svgoverlay");
 
         setup_svg();
         setup_websocket();

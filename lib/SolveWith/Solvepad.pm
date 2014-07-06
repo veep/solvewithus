@@ -6,6 +6,8 @@ use ZMQ::LibZMQ3;
 use ZMQ::Constants qw(ZMQ_FD ZMQ_PUB ZMQ_SUB ZMQ_SUBSCRIBE ZMQ_DONTWAIT);
 use Mojo::IOLoop;
 use Time::HiRes;
+use Data::Dump qw/pp/;
+use Storable qw/dclone/;
 
 sub intro {
     my $self = shift;
@@ -98,6 +100,7 @@ sub puzzle {
     $self->stash('user' => $user);
     $self->stash('share_key' => $puzzle->get_share_key);
     $self->stash('recommend_key' => $puzzle->get_recommend_key);
+    $self->stash('replay_key' => $puzzle->get_player_key);
     $self->stash('root' => $self->app->static->root);
 }
 
@@ -157,6 +160,26 @@ sub recommend {
     } else {
         $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle_id));
     }
+}
+
+sub replay {
+    my $self = shift;
+    my $key = $self->param('key');
+    if ($key !~ /(\d+)-/) {
+        $self->redirect_to('solvepad_intro');
+        return;
+    }
+    my $puzzle_id = $1;
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if (! $puzzle or $key ne $puzzle->player_key) {
+        warn "player key mismatch $key";
+        $self->redirect_to('solvepad_intro');
+        return;
+    }
+    $self->stash('puzzle' => $puzzle);
+    $self->stash('player_key' => $puzzle->get_player_key);
+    $self->stash('recommend_key' => $puzzle->get_recommend_key);
+    $self->stash('root' => $self->app->static->root);
 }
 
 sub close_open {
@@ -252,6 +275,94 @@ sub create {
     $self->redirect_to($self->url_for('solvepad_by_id', id => $puzzle->id));
 }
 
+sub _clean_state {
+    my ($self,$puzzle,$state) = @_;
+
+    for my $key (keys %$state) {
+        delete $state->{$key};
+    }
+
+    for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
+        {
+            source_id => $puzzle->solvepad_source->id,
+        },
+    )->all) {
+        my $id = $hotspot->id;
+        $state->{$id} =
+        { shape => $hotspot->shape,
+          state => 'clear',
+          id => $id,
+          up => $hotspot->up,
+          down => $hotspot->down,
+          left => $hotspot->left,
+          right => $hotspot->right,
+      };
+        ($state->{$id}{minx}, $state->{$id}{miny},
+         $state->{$id}{maxx}, $state->{$id}{maxy}) = split(',',$hotspot->shape_data);
+    }
+}
+
+sub replay_updates {
+    my $self = shift;
+    my $key = $self->param('key');
+    if ($key !~ /(\d+)-/) {
+        return $self->render(text => 'There has been a problem.', status => 500);
+    }
+    my $puzzle_id = $1;
+    my $puzzle = $self->db->resultset('SolvepadPuzzle')->find($puzzle_id);
+    if (! $puzzle or $key ne $puzzle->player_key) {
+        warn "player key mismatch $key";
+        return $self->render(text => 'There has been a problem.', status => 500);
+    }
+    my %state;
+    my @results;
+
+    $self->_clean_state($puzzle, \%state);
+
+    push @results, { init => 1, type => 'state', values => dclone([values %state]) };
+
+    for my $update ($self->db->resultset('SolvepadHistory')->search (
+        { puzzle_id => $puzzle->id,
+      },
+        {order_by => { -asc => 'ts'}}
+    )) {
+        my $updated;
+        my $full;
+        my $new_state;
+        if ($update->type =~ /^line_(\w+)$/ 
+            && $update->hotspot_id
+            && exists $state{$update->hotspot_id}
+        ) {
+            if ($update->newer eq 'on') {
+                $state{$update->hotspot_id}{'state_' . $1} = 'on';
+                if ($state{$update->hotspot_id}{'state'} eq 'dot') {
+                    $state{$update->hotspot_id}{'state'} = 'clear';
+                }
+            } else {
+                $state{$update->hotspot_id}{'state_' . $1} = ''
+            }
+            $new_state = $state{$update->hotspot_id};
+            $updated = 1;
+        } elsif ($update->type eq 'reset') {
+            $full = 1;
+            $self->_clean_state($puzzle, \%state);
+        } elsif ($update->hotspot_id
+                 && exists $state{$update->hotspot_id}
+                 && $state{$update->hotspot_id}{state} eq $update->older
+             ) {
+            $updated = 1;
+            $state{$update->hotspot_id}{state} = $update->newer;
+            $new_state = $state{$update->hotspot_id};
+        }
+        if ($full) {
+            push @results, { ts => $update->ts, type => 'state', values => dclone([values %state]) };
+        } elsif ($updated) {
+            push @results, { ts => $update->ts, type => 'new_state', values => dclone($new_state) };
+        }
+    }
+    return $self->render_json(\@results);
+}
+
 sub updates {
     my $self = shift;
     my $puzzle_id = $self->param('id');
@@ -267,25 +378,7 @@ sub updates {
     my $last_ts = 0;
     my $json = Mojo::JSON->new();
 
-
-    for my $hotspot ( $self->db->resultset('SolvepadHotspot')->search(
-        {
-            source_id => $puzzle->solvepad_source->id,
-        },
-    )->all) {
-        my $id = $hotspot->id;
-        $state{$id} =
-        { shape => $hotspot->shape,
-          state => 'clear',
-          id => $id,
-          up => $hotspot->up,
-          down => $hotspot->down,
-          left => $hotspot->left,
-          right => $hotspot->right,
-      };
-        ($state{$id}{minx}, $state{$id}{miny},
-         $state{$id}{maxx}, $state{$id}{maxy}) = split(',',$hotspot->shape_data);
-    }
+    $self->_clean_state($puzzle, \%state);
 
     $self->send_message(
         $json->encode({ values => [values %state]})

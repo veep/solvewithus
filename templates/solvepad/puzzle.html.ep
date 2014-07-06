@@ -78,6 +78,10 @@
             To give a friend <b>her own copy</b> of this puzzle, share this link:</label>
             <input class="input-block-level" type="text" onClick="this.select()"
                    value="<%= url_for('solvepad_recommend', key => $recommend_key)->to_abs %>">
+          <label>
+            To <b>show off</b> your work, share this link (no login needed to view):</label>
+          <input class="input-block-level" type="text" onClick="this.select()"
+                 value="<%= url_for('solvepad_replay', key => $replay_key)->to_abs %>">
         </div>
         <div class="modal-footer">
           <button type="button" class="btn" data-dismiss="modal" aria-hidden="true">Close</button>

@@ -20,3 +20,7 @@
 #no-data {
     background-color: pink;
 }
+
+#replay-controls {
+    display: none;
+}
