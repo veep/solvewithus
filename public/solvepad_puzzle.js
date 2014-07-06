@@ -451,7 +451,7 @@ var fill_color = function(d, type) {
 };
 
 function redisplay(state) {
-    var g =  svg.selectAll("g").data(state);
+    var g =  svg.selectAll("g").data(state, function (d) { return d.id});
     var newg = g.enter().append("g").attr('data-foo',function (d) { return d.id});
 
     if (! highlight_id) {
