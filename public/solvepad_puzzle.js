@@ -37,6 +37,7 @@ Replay.prototype.play_steps = function(step) {
           ) {
         if (this.replay_steps[step].type == 'state') {
             this.replay_state = this.replay_steps[step].values;
+            redisplay(this.replay_state);
             updated = true;
         }
         if (this.replay_steps[step].type == 'new_state') {
@@ -47,12 +48,12 @@ Replay.prototype.play_steps = function(step) {
                     highlight_id = item.id;
                 }
             });
+            redisplay(this.replay_state);
             updated = true;
         }
         step++;
     }
     if (updated) {
-        redisplay(this.replay_state);
         update_highlight();
     }
     if (this.replay_steps[step]) {
