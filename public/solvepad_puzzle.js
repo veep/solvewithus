@@ -35,11 +35,13 @@ Replay.prototype.play_steps = function(step) {
            && (step === 0 || this.replay_steps[step].ts <= max_ts)
           ) {
         if (this.replay_steps[step].type == 'state') {
+            console.log('resetting');
             this.replay_state = this.replay_steps[step].values;
             updated = true;
         }
         if (this.replay_steps[step].type == 'new_state') {
             var new_value = this.replay_steps[step].values;
+            console.log(new_value.id);
             this.replay_state.forEach(function(item, index, array) {
                 if (item.id == new_value.id) {
                     array[index] = new_value;
