@@ -13,11 +13,12 @@
         <a href="<%=  url_for('solvepad') %>">Solvepad Home</a>
         <h3><%= $puzzle->display %></h3>
 % if ($user->id == $puzzle->user->id) {
-%   if ($puzzle->state eq 'closed') {
-        <label><a class="btn" href="<%= url_for('solvepad_reopen', id => $puzzle->id) %>">Reopen Puzzle</a></label>
-%   } else {
         <label>
           <a href="#sharing-dev" role="button" class="btn btn-primary" data-toggle="modal">Invite/Share</a>
+%   if ($puzzle->state eq 'closed') {
+          <a class="btn" href="<%= url_for('solvepad_reopen', id => $puzzle->id) %>">Reopen Puzzle</a>
+        </label>
+%   } else {
           <a class="btn" href="<%= url_for('solvepad_close', id => $puzzle->id) %>">Mark puzzle 'Closed'</a>
         </label>
 %   }
