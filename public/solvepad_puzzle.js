@@ -67,7 +67,7 @@ Replay.prototype.play_steps = function(step) {
 Replay.prototype.data_ready = function() {
     $('#no-data').hide();
     var start_ts = Date.now();
-    this.duration = 60*1000;
+    this.duration = 30*1000;
     var time_length = (this.replay_steps[this.replay_steps.length-1].ts - this.replay_steps[1].ts)
     this.scaler = function (now) {
         console.log(now,start_ts,this.duration);
