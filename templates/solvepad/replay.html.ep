@@ -26,7 +26,7 @@
         <div id="puzzle-image-container">
           <img id="puzzle-image" src="/<%= File::Spec->abs2rel($puzzle->solvepad_source->disk_file, $root) %>">
         </div>
-        <svg class="unselectable" id="svgoverlay" 
+        <svg xmlns="http://www.w3.org/2000/svg" class="unselectable" id="svgoverlay" 
              style="position: absolute;top: 0px;">
         </svg>
       </div>

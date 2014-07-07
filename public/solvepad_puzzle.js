@@ -27,9 +27,8 @@ Replay.prototype.play_steps = function(step) {
     var now = Date.now();
     var max_ts = this.scaler(now);
     var updated = false;
-    while (max_ts 
-           && this.replay_steps.length 
-           && this.replay_steps[step]
+    while (max_ts > 0
+           && step < this.replay_steps.length
            && (step === 0 || this.replay_steps[step].ts <= max_ts)
           ) {
         if (this.replay_steps[step].type == 'state') {
@@ -63,6 +62,7 @@ Replay.prototype.play_steps = function(step) {
 
 Replay.prototype.data_ready = function() {
     $('#no-data').hide();
+    setup_svg();
     var start_ts = Date.now();
     this.duration = 30*1000;
     var time_length = (this.replay_steps[this.replay_steps.length-1].ts - this.replay_steps[1].ts)
