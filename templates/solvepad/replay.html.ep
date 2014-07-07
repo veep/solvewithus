@@ -12,7 +12,7 @@
   <div class="row-fluid">
     <div id="controls" class="span4">
       <div class="well">
-        <a href="<%=  url_for('solvepad') %>">Solvepad Home</a>
+        <a href="<%=  url_for('solvepad') %>">Solvepad Home</a> (Google login required)
         <h3><%= $puzzle->display %></h3>
       </div>
       <div id="replay-controls" class="well">
