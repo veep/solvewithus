@@ -4,6 +4,8 @@
 %= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
 %= javascript "http://d3js.org/d3.v3.min.js"
 %= javascript '/solvepad_puzzle.js' . '?' . app->code_version
+%= javascript '/js/jintervals-0.7-min.js'
+
 % use File::Spec;
 
 <div class="container-fluid">
@@ -14,7 +16,8 @@
         <h3><%= $puzzle->display %></h3>
       </div>
       <div id="replay-controls" class="well">
-        Replay Controls
+        <button class="btn btn-success" id="replay_play_pause">Play</button>
+        <span class="pull-right" id="time-remaining"></span>
       </div>
     </div>
 

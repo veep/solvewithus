@@ -24,3 +24,7 @@
 #replay-controls {
     display: none;
 }
+
+#time-remaining {
+    font-size: 24px;
+}

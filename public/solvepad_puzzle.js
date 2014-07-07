@@ -9,7 +9,7 @@ var Replay = function() {
     this.replay_steps = [];
     this.replay_state = [];
     this.replay_updates_url = '';
-}
+};
 
 Replay.prototype.launch = function() {
     var this_replay = this;
@@ -20,26 +20,56 @@ Replay.prototype.launch = function() {
         this_replay.replay_steps = data;
         this_replay.data_ready();
     });
-}
+    $('#replay_play_pause').click({ replay: this }, function(e) {
+        var replay = e.data.replay;
+        if (! $('#replay_play_pause').hasClass('disabled')) {
+            var start_ts = Date.now();
+            var time_length = (replay.replay_steps[replay.replay_steps.length-1].ts 
+                               - replay.replay_steps[1].ts);
+            replay.scaler = function (now) {
+                if (now > start_ts + replay.duration || replay.replay_steps.length < 2) {
+                    return replay.replay_steps[replay.replay_steps.length-1].ts;
+                }
+                return (replay.replay_steps[1].ts + 
+                        time_length
+                        * (now - start_ts) / replay.duration);
+            };
+            $('body').triggerHandler('Replay_play_steps',0);
+            $('#replay_play_pause').addClass('disabled');
+        }
+    });
+};
 
 
 Replay.prototype.play_steps = function(step) {
     var now = Date.now();
     var max_ts = this.scaler(now);
+    this.set_timing_bar(max_ts);
+
     var updated = false;
     while (max_ts > 0
            && step < this.replay_steps.length
            && (step === 0 || this.replay_steps[step].ts <= max_ts)
           ) {
         if (this.replay_steps[step].type == 'state') {
-            this.replay_state = this.replay_steps[step].values;
+            var this_rs = new Array;
+            this.replay_steps[step].values.forEach(function(item, index, array) {
+                var obj = {}
+                for (var prop in item) {
+                    obj[prop] = item[prop];
+                }
+                this_rs.push(obj);
+            });
+            this.replay_state = this_rs;
             updated = true;
         }
         if (this.replay_steps[step].type == 'new_state') {
             var new_value = this.replay_steps[step].values;
             this.replay_state.forEach(function(item, index, array) {
                 if (item.id == new_value.id) {
-                    array[index] = new_value;
+                    for (var prop in new_value) {
+                        array[index][prop] = new_value[prop];
+                    }
                     highlight_id = item.id;
                 }
             });
@@ -55,28 +85,26 @@ Replay.prototype.play_steps = function(step) {
         window.setTimeout(function() {
             $('body').triggerHandler('Replay_play_steps',step);
         }, 250);
+    } else {
+        $('#replay_play_pause').removeClass('disabled');
     }
-}
+};
 
-            
+Replay.prototype.set_timing_bar = function(timestamp) {
+    var time_length = Math.floor(this.replay_steps[this.replay_steps.length-1].ts - timestamp);
+    if (timestamp === 0) {
+        time_length = 0;
+    }
+    $('#time-remaining').html("Time Remaining: " + jintervals(time_length, "{M}:{ss}"));
+};
 
 Replay.prototype.data_ready = function() {
     $('#no-data').hide();
     setup_svg();
-    var start_ts = Date.now();
-    this.duration = 30*1000;
-    var time_length = (this.replay_steps[this.replay_steps.length-1].ts - this.replay_steps[1].ts)
-    this.scaler = function (now) {
-        if (now > start_ts+this.duration || this.replay_steps.length < 2) {
-            return this.replay_steps[this.replay_steps.length-1].ts;
-        }
-        return (this.replay_steps[1].ts + 
-                time_length
-                * (now - start_ts) / this.duration);
-    };
-    $('body').triggerHandler('Replay_play_steps',0);
+    this.duration = 10*1000;
+    this.set_timing_bar(this.replay_steps[1].ts);
     $('#replay-controls').show();
-}
+};
 
 
 $(window).load(
@@ -208,7 +236,6 @@ $(window).load(
         var g = d3.select(this);
         var datum = g.datum();
 
-//        console.log(datum);
         if ($('#click_fill:checked').val()) {
             var from;
             var to;
@@ -610,7 +637,6 @@ function update_highlight() {
         }
         return null;
     });
-    //        console.log(g);
     var d = g.datum();
     
     g.append("svg:rect")
