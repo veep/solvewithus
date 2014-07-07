@@ -101,7 +101,7 @@ Replay.prototype.set_timing_bar = function(timestamp) {
 Replay.prototype.data_ready = function() {
     $('#no-data').hide();
     setup_svg();
-    this.duration = 10*1000;
+    this.duration = 30*1000;
     this.set_timing_bar(this.replay_steps[1].ts);
     $('#replay-controls').show();
 };
