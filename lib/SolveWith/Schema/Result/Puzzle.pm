@@ -43,6 +43,12 @@ sub spreadsheet {
     return $url;
 }
 
+sub spreadsheet_peek {
+    my $self = shift;
+    my $url = $self->chat->get_spreadsheet;
+    return $url;
+}
+
 sub users_live {
     my ($self, $cache) = @_;
     my @loggedin;

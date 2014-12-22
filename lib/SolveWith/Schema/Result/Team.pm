@@ -79,9 +79,6 @@ sub has_access {
     } else {
         die;
     }
-    if ($success == 1) {
-        SolveWith::Spreadsheet::add_user_to_team($self->google_group, $this_user->google_name);
-    }
     $self->add_to_users($this_user, {member => $success});
     return $success;
 }

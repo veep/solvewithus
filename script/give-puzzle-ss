@@ -32,7 +32,7 @@ warn "$$ Got lock for puzzle $puzzle_id\n";
 my $schema = SolveWith::Schema->connect('dbi:SQLite:' . $FindBin::Bin . '/../db/puzzles.db');
 my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle found";
 
-my $url = $puzzle->spreadsheet;
+my $url = $puzzle->spreadsheet_peek;
 if ($url) {
     print "$$ puzzle $puzzle_id has SS already\n";
     exit 0;
@@ -43,7 +43,7 @@ if ($url) {
 }
 
 if ($url) {
-    if (not $puzzle->spreadsheet) {
+    if (not $puzzle->spreadsheet_peek) {
         $puzzle->spreadsheet($url);
     }
 } else {
@@ -53,7 +53,7 @@ if ($url) {
         from_title => 'Solvewith.us Spreadsheet Creation Script' ,
         to      => 'ecp@prestemon.com' ,
         subject => $puzzle->display_name . " SS creation failed" ,
-        msg     => "I could not create the SS for puzzle id $puzzle_id" ,
+        msg     => "I could not create the SS for puzzle id $puzzle_id\n$@\n" ,
     ) ;
     print "$$ Email status: $status\n";
     exit 1;

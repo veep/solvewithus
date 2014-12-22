@@ -1,0 +1,142 @@
+#!/usr/bin/env perl
+
+use common::sense;
+
+use LWP::UserAgent;
+use HTTP::Request::Common;
+use URI;
+use URI::Escape;
+use FindBin;
+use Getopt::Long;
+use File::Slurp;
+use JSON::XS;
+use Data::Dump qw/pp/;
+
+my $conf_dir = "$FindBin::Bin/..";
+
+my $conf = "$conf_dir/solve_with.conf";
+my $access_token_file = "$conf_dir/access_token";
+my $ua = LWP::UserAgent->new;
+
+main();
+
+sub main {
+    my ($newthing, $findthing, $parentid, $name);
+    die unless GetOptions (
+        'new:s' => \$newthing,
+        'find:s' => \$findthing,
+        'parentid:s' => \$parentid,
+        'name:s'     => \$name,
+    );
+    if ($findthing and $findthing eq 'folder') {
+        handle_findfolder($parentid, $name);
+    }
+    if ($findthing and $findthing eq 'sheet') {
+        handle_findsheet($parentid, $name);
+    }
+    if ($newthing and $newthing eq 'sheet') {
+        handle_newsheet($parentid, $name);
+    }
+    if ($newthing and $newthing eq 'folder') {
+        handle_newfolder($parentid, $name);
+    }
+}
+
+
+
+sub handle_newsheet {
+    my ($parentid, $name) = @_;
+    die "--new sheet needs   --parentid ID --name NAME    also" unless ($parentid and $name);
+    new_thing('application/vnd.google-apps.spreadsheet',$name,$parentid);
+}
+
+sub handle_newfolder {
+    my ($parentid, $name) = @_;
+    die "--new sheet needs   --parentid ID --name NAME    also" unless ($parentid and $name);
+    new_thing('application/vnd.google-apps.folder',$name,$parentid);
+}
+
+sub handle_findfolder {
+    my ($parentid, $name) = @_;
+    die "--find folder needs  --name NAME" unless $name;
+    find_thing('application/vnd.google-apps.folder',$name,$parentid);
+}
+
+sub handle_findsheet {
+    my ($parentid, $name) = @_;
+    die "--find folder needs  --name NAME" unless $name;
+    find_thing('application/vnd.google-apps.spreadsheet',$name,$parentid);
+}
+
+sub new_thing {
+    my ($mime, $name, $parentid) = @_;
+    my $access_token = get_current_solvewithus_access_token();
+    my $req = HTTP::Request->new('POST');
+    $req->uri('https://www.googleapis.com/drive/v2/files?pinned=true');
+    $req->header('Content-Type' => 'application/json');
+    $req->header(Authorization => "Bearer $access_token");
+    $req->content(encode_json({ mimeType => $mime, title => $name, parents => [ {id => $parentid} ]}));
+    warn $req->as_string;
+    my $response = $ua->request($req);
+    warn $response->content;
+    die unless $response->is_success;
+    my $item = decode_json($response->content);
+    print encode_json( { id => $item->{id}, weblink => $item->{alternateLink} }) . "\n";
+    exit 0;
+}
+
+sub find_thing {
+    my ($mime, $name, $parentid) = @_;
+    my $access_token = get_current_solvewithus_access_token();
+    my $req = HTTP::Request->new('GET');
+    my $uri = URI->new('https://www.googleapis.com/drive/v2/files');
+    $uri->query('q=' . uri_escape('title=' . "'$name'" . ' and ' .
+                                  ($mime ? 'mimeType=' . "'$mime'" . ' and ' : ' ') .
+                                  'trashed=false' .
+                                  ($parentid ? " and '$parentid' in parents" : ' ')
+                              )
+            );
+    $req->uri($uri);
+    $req->header(Authorization => "Bearer $access_token");
+    warn $req->as_string;
+    my $response = $ua->request($req);
+    die unless $response->is_success;
+    my $item = decode_json($response->content)->{items}[0];
+    print encode_json( { id => $item->{id}, weblink => $item->{alternateLink} }) . "\n";
+    exit 0;
+}
+
+sub get_current_solvewithus_access_token {
+    my ($access_token) = read_file($access_token_file);
+    if ($access_token) {
+        chomp($access_token);
+        if (is_access_token_ok($access_token)) {
+            return $access_token;
+        }
+    }
+    my $config = do $conf;
+    my $refresh_token = $config->{solvewithus_refresh_token};
+    my $res = $ua->request(   POST
+                              'https://accounts.google.com/o/oauth2/token',
+                              [   'refresh_token' => uri_unescape($refresh_token),
+                                  'client_id' => $config->{client_id},
+                                  'client_secret' => $config->{client_secret},
+                                  'grant_type' => 'refresh_token',
+                              ],
+                          );
+    if ($res->is_success) {
+        $access_token = decode_json($res->content)->{access_token};
+        warn $access_token;
+        write_file($access_token_file,$access_token);
+        return $access_token;
+    }
+    die "No access token!";
+}
+
+sub is_access_token_ok {
+    my ($token) = @_;
+    my $req = HTTP::Request->new(GET => 'https://www.googleapis.com/drive/v2/about');
+    $req->header(Authorization => "Bearer $token");
+    my $response = $ua->request($req);
+    return $response->is_success;
+}

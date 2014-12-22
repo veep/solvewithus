@@ -2,8 +2,17 @@ package SolveWith::Spreadsheet;
 use strict;
 use Net::Google::DocumentsList;
 use Mojo::Home;
+use File::Slurp;
+use LWP::UserAgent;
+use HTTP::Request::Common;
+use URI::Escape;
+use Mojo::JSON;
 
 my $debug = 1;
+
+my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
+my $conf = "$rootdir/solve_with.conf";
+my $access_token_file = "$rootdir/access_token";
 
 {
     my $_service;
@@ -15,102 +24,217 @@ my $debug = 1;
     }
 }
 
-sub shares_folder {
-    my $service = _service();
-    my ($subfolder) = $service->items( {
-        'title' => 'Shares',
-        'title-exact' => 'true',
-        'category' => 'folder',
-    });
-    if (! $subfolder) {
-        $subfolder = $service->add_folder( { title => 'Shares' } );
+sub get_current_solvewithus_access_token {
+    my ($access_token) = read_file($access_token_file);
+    my $ua = LWP::UserAgent->new;
+    if ($access_token) {
+        chomp($access_token);
+        if (is_access_token_ok($access_token)) {
+            return $access_token;
+        }
+    }
+    my $config = do $conf;
+    my $refresh_token = $config->{solvewithus_refresh_token};
+    die "NO REFRESH TOKEN" unless $refresh_token;
+    my $res = $ua->request(   POST
+                              'https://accounts.google.com/o/oauth2/token',
+                              [   'refresh_token' => uri_unescape($refresh_token),
+                                  'client_id' => $config->{client_id},
+                                  'client_secret' => $config->{client_secret},
+                                  'grant_type' => 'refresh_token',
+                              ],
+                          );
+    if ($res->is_success) {
+        my $json = Mojo::JSON->new;
+        $access_token = $json->decode($res->content)->{access_token};
+        warn "new access token: $access_token";
+        write_file($access_token_file,$access_token);
+        return $access_token;
+    }
+    die "No access token!";
+}
+
+sub is_access_token_ok {
+    my ($token) = @_;
+    my $req = HTTP::Request->new(GET => 'https://www.googleapis.com/drive/v2/about');
+    $req->header(Authorization => "Bearer $token");
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->request($req);
+    return $response->is_success;
+}
+
+sub find_a_thing {
+    my ($mime, $name, $parentid) = @_;
+    my $access_token = get_current_solvewithus_access_token();
+    my $req = HTTP::Request->new('GET');
+    my $uri = URI->new('https://www.googleapis.com/drive/v2/files');
+    $uri->query('q=' . uri_escape('title=' . "'$name'" . ' and ' .
+                                  ($mime ? 'mimeType=' . "'$mime'" . ' and ' : ' ') .
+                                  'trashed=false' .
+                                  ($parentid ? " and '$parentid' in parents" : ' ')
+                              )
+            );
+    $req->uri($uri);
+    $req->header(Authorization => "Bearer $access_token");
+    warn $req->as_string if $debug;
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->request($req);
+    return unless $response->is_success;
+    my $json = Mojo::JSON->new;
+    my $item = $json->decode($response->content)->{items}[0];
+    return( { id => $item->{id}, weblink => $item->{alternateLink} });
+}
+
+sub find_a_folder_id {
+    my ($parentid, $name) = @_;
+    my $info = find_a_thing('application/vnd.google-apps.folder',$name,$parentid);
+    return $info->{id};
+}
+
+sub find_a_sheet {
+    my ($parentid, $name) = @_;
+    my $info = find_a_thing('application/vnd.google-apps.spreadsheet',$name,$parentid);
+    return $info;
+}
+
+sub add_a_thing {
+    my ($mime, $name, $parentid) = @_;
+    my $access_token = get_current_solvewithus_access_token();
+    my $req = HTTP::Request->new('POST');
+    $req->uri('https://www.googleapis.com/drive/v2/files?pinned=true');
+    $req->header('Content-Type' => 'application/json');
+    $req->header(Authorization => "Bearer $access_token");
+    my $json = Mojo::JSON->new;
+    $req->content($json->encode({ mimeType => $mime, title => $name, parents => [ {id => $parentid} ]}));
+    warn $req->as_string;
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->request($req);
+    warn $response->content;
+    die unless $response->is_success;
+    my $item = $json->decode($response->content);
+    return( { id => $item->{id}, weblink => $item->{alternateLink} });
+}
+
+
+sub add_a_sheet {
+    my ($parentid, $name) = @_;
+    my $info = add_a_thing('application/vnd.google-apps.spreadsheet',$name,$parentid);
+    return $info;
+}
+
+sub add_a_folder {
+    my ($parentid, $name) = @_;
+    my $info = add_a_thing('application/vnd.google-apps.folder',$name,$parentid);
+    return $info;
+}
+
+sub shares_folder_id {
+    my $shares_id = find_a_folder_id('root','Shares');
+    if ($shares_id) {
+        warn "Found shares id: $shares_id" if $debug;
+    } else {
         warn "Creating Shares folder\n" if $debug;
+        #TODO
+        die "shouldn't get here";
     }
-    return $subfolder;
+    return $shares_id;
 }
 
-sub auth_folder {
-    my $service = _service();
-    my ($subfolder) = $service->items( {
-        'title' => 'Auths',
-        'title-exact' => 'true',
-        'category' => 'folder',
-    });
-    if (! $subfolder) {
-        $subfolder = $service->add_folder( { title => 'Auths' } );
+sub auth_folder_id {
+    my $auth_id = find_a_folder_id('root','Auths');
+    if ($auth_id) {
+        warn "Found auth id: $auth_id" if $debug;
+    } else {
         warn "Creating Auths folder\n" if $debug;
+        #TODO
+        die "shouldn't get here";
     }
-    return $subfolder;
+    return $auth_id;
 }
 
 
-sub team_folder {
-    my ($group_name) = @_;
-    my $shares = shares_folder();
-    my $folder_name = "SolveWith.Us: $group_name";
+sub team_folder_id {
+    my ($group_email) = @_;
+    my $shares_id = shares_folder_id();
+    return unless $shares_id;
+    my $folder_name = "SolveWith.Us: $group_email";
     $folder_name =~ s/@.*//;
-    my ($subfolder) = $shares->items( {
-        'title' => $folder_name,
-        'title-exact' => 'true',
-        'category' => 'folder',
-    });
-    if (! $subfolder) {
-        $subfolder = $shares->add_folder( { title => $folder_name } );
-        warn "Creating '$folder_name' under Shares\n" if $debug;
-        update_acl($subfolder,'group',$group_name,'writer');
+    my $team_folder_id = find_a_folder_id($shares_id, $folder_name);
+    if ($team_folder_id) {
+        warn "TEAM FOLDER ID: $team_folder_id" if $debug;
+        return $team_folder_id;
+    } else {
+        warn "Creating '$folder_name'\n" if $debug;
+        my $team_folder_info = add_a_folder($shares_id, $folder_name);
+        die "Can't create team folder" unless $team_folder_info->{id};
+        give_group_permission($team_folder_info->{id},$group_email,'writer');
+        return $team_folder_info->{id};
     }
-    return $subfolder;
 }
 
 sub team_auth_spreadsheet {
-    my ($group_name) = @_;
-    my $auth = auth_folder();
-    my $ss_name = "Auth: $group_name";
-    my ($ss) = $auth->items( {
-        'title' => $ss_name,
-        'title-exact' => 'true',
-        'category' => 'spreadsheet',
-    });
-    if (! $ss) {
-        $ss = $auth->add_item( { title => $ss_name, kind => 'spreadsheet' } );
-        warn "Creating '$ss_name' under Auth\n" if $debug;
+    my ($group_email) = @_;
+    my $auths_id = auth_folder_id();
+    die unless $auths_id;
+    my $ss_name = "Auth: $group_email";
+    my $team_auth_sheet_info = find_a_sheet($auths_id, $ss_name);
+    if ($team_auth_sheet_info->{weblink}) {
+        warn "found sheet: $ss_name, $team_auth_sheet_info->{weblink}" if $debug;
+    } else  {
+        warn "Creating '" . $ss_name . "' in $auths_id\n" if $debug;
+        $team_auth_sheet_info = add_a_sheet($auths_id, $ss_name);
+        give_group_permission($team_auth_sheet_info->{id},$group_email,'reader');
     }
-    update_acl($ss,'group',$group_name,'reader');
-    return $ss->alternate;
+    die unless $team_auth_sheet_info->{weblink};
+    return $team_auth_sheet_info->{weblink};
 }
 
-sub event_folder {
+#    my $auth = auth_folder();
+#    my ($ss) = $auth->items( {
+#        'title' => $ss_name,
+#        'title-exact' => 'true',
+#        'category' => 'spreadsheet',
+#    });
+#    if (! $ss) {
+#        $ss = $auth->add_item( { title => $ss_name, kind => 'spreadsheet' } );
+#        warn "Creating '$ss_name' under Auth\n" if $debug;
+#    }
+#    update_acl($ss,'group',$group_name,'reader');
+#    return $ss->alternate;
+#}
+
+sub event_folder_id {
     my $event = shift;
     my $team = $event->team;
-    my $team_folder = team_folder($team->google_group);
-    die unless $team_folder;
-    my ($event_folder) = $team_folder->items( {
-        'title' => $event->display_name,
-        'title-exact' => 'true',
-        'category' => 'folder',
-    });
-    if (! $event_folder) {
-        $event_folder = $team_folder->add_item( { title => $event->display_name, kind => 'folder' } );
-        warn "Creating '" . $event->display_name . "' in team\n" if $debug;
+    my $team_folder_id = team_folder_id($team->google_group);
+    die unless $team_folder_id;
+    my $event_folder_id = find_a_folder_id($team_folder_id, $event->display_name);
+    if ($event_folder_id) {
+        warn "EVENT FOLDER ID: $event_folder_id" if $debug;
+        return $event_folder_id;
+    } else {
+        warn "Creating '$event->display_name'\n" if $debug;
+        my $event_folder_info = add_a_folder($team_folder_id, $event->display_name);
+        die "Can't create event folder" unless $event_folder_info->{id};
+        return $event_folder_info->{id};
     }
-    return $event_folder;
 }
 
-sub round_folder {
+sub round_folder_id {
     my $round = shift;
     my $event = $round->event;
-    my $event_folder = event_folder($event);
-    die unless $event_folder;
-    my ($round_folder) = $event_folder->items( {
-        'title' => $round->display_name,
-        'title-exact' => 'true',
-        'category' => 'folder',
-    });
-    if (! $round_folder) {
-        $round_folder = $event_folder->add_item( { title => $round->display_name, kind => 'folder' } );
-        warn "Creating '" . $round->display_name . "' in event\n" if $debug;
+    my $event_folder_id = event_folder_id($event);
+    die unless $event_folder_id;
+    my $round_folder_id = find_a_folder_id($event_folder_id, $round->display_name);
+    if ($round_folder_id) {
+        warn "ROUND FOLDER ID: $event_folder_id" if $debug;
+        return $round_folder_id;
+    } else {
+        warn "Creating '$round->display_name' in '$event->display_name'\n" if $debug;
+        my $round_folder_info = add_a_folder($event_folder_id, $round->display_name);
+        die "Can't create round folder" unless $round_folder_info->{id};
+        return $round_folder_info->{id};
     }
-    return $round_folder;
 }
 
 sub trigger_puzzle_spreadsheet {
@@ -124,81 +248,49 @@ sub trigger_puzzle_spreadsheet {
     system("$rootdir/script/give-puzzle-ss " . $puzzle->id );
 }
 
-sub trigger_folder {
-    my ($c, $obj) = @_;
-    my $type = $obj->result_source->name;
-    if ($type ne 'event' and $type ne 'round') {
-        warn "BAD TRIGGER FOLDER TYPE: $type";
-        return;
-    }
-    my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
-    if ($c) {
-        $c->app->log->info("Starting Folder for $type " . $obj->id . ' from ' . $rootdir);
-    } else {
-        warn ("Starting SS for $type " . $obj->id . ' from ' . $rootdir);
-    }
-    system("$rootdir/script/give-folder $type " . $obj->id );
-}
-
 sub puzzle_spreadsheet {
     my $puzzle = shift;
     my $round = $puzzle->rounds->first;
-    my $parent_folder;
+    my $parent_folder_id;
     if ($round->display_name eq '_catchall') {
-        $parent_folder = event_folder($round->event);
+        $parent_folder_id = event_folder_id($round->event);
     } else {
-        $parent_folder = round_folder($round);
+        $parent_folder_id = round_folder_id($round);
     }
-    die unless $parent_folder;
-    my ($puzzle_ss) = $parent_folder->items( {
-        'title' => $puzzle->display_name,
-        'title-exact' => 'true',
-        'category' => 'spreadsheet',
-    });
-    if (! $puzzle_ss) {
-        $puzzle_ss = $parent_folder->add_item( { title => $puzzle->display_name, kind => 'spreadsheet' } );
-        warn "Creating '" . $puzzle->display_name . "' in round\n" if $debug;
+    die unless $parent_folder_id;
+    my $puzzle_sheet_info = find_a_sheet($parent_folder_id, $puzzle->display_name);
+    if ($puzzle_sheet_info->{weblink}) {
+        warn "found sheet: $puzzle->displayname , $puzzle_sheet_info->{weblink}" if $debug;
+    } else  {
+        warn "Creating '" . $puzzle->display_name . "' in $parent_folder_id\n" if $debug;
+        $puzzle_sheet_info = add_a_sheet($parent_folder_id, $puzzle->display_name);
     }
-    die unless $puzzle_ss;
-    return $puzzle_ss->alternate;
+    die unless $puzzle_sheet_info;
+    return $puzzle_sheet_info->{weblink};
 }
 
-sub add_user_to_team {
-    my ($group, $email) = @_;
-    my $folder = team_folder($group);
-    return 0 unless $folder;
-    return update_acl($folder,'user',$email,'reader');
-}
-
-sub update_acl {
-    my ($item, $scope_type, $scope_value, $role) = @_;
-    eval {
-        my @acls = $item->acls;
-        foreach my $acl (@acls) {
-            if ($acl->scope->{type} eq  $scope_type
-                && $acl->scope->{value} eq $scope_value) {
-                if ($role ne $acl->role) {
-                    warn "Changing $scope_type/$scope_value to $role\n" if $debug;
-                    $acl->role($role);
-                } else {
-                    $acl->role($role);
-                    warn "No change: $scope_type/$scope_value already $role\n" if $debug;
-                }
-                return;
-            }
-        }
-        warn "Adding $scope_type/$scope_value to $role\n" if $debug;
-        $item->add_acl(
-            {
-                role => $role,
-                scope => {
-                    type => $scope_type,
-                    value => $scope_value,
-                },
-                send_notification_emails => 'false',
-            }
-        );
+sub give_group_permission {
+    my ($id, $email, $role) = @_;
+    warn $email;
+    my $access_token = get_current_solvewithus_access_token();
+    my $req = HTTP::Request->new('POST');
+    $req->uri('https://www.googleapis.com/drive/v2/files/' . $id . '/permissions?' . uri_escape('sendNotificationEmails=false'));
+    $req->header('Content-Type' => 'application/json');
+    $req->header(Authorization => "Bearer $access_token");
+    my $json = Mojo::JSON->new;
+    $req->content($json->encode({
+        role => $role,
+        type => 'group',
+        value => $email,
+    }));
+    warn $req->as_string if $debug;
+    warn $req->content if $debug;
+    my $ua = LWP::UserAgent->new;
+    my $response = $ua->request($req);
+    if (! $response->is_success()) {
+        warn $response->content;
     }
+    return;
 }
 
 1;
