@@ -25,7 +25,10 @@ my $access_token_file = "$rootdir/access_token";
 }
 
 sub get_current_solvewithus_access_token {
-    my ($access_token) = read_file($access_token_file);
+    my ($access_token);
+    eval {
+        ($access_token) = read_file($access_token_file);
+    };
     my $ua = LWP::UserAgent->new;
     if ($access_token) {
         chomp($access_token);
