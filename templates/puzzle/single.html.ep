@@ -68,10 +68,10 @@
                 </span>
                 <br/>
                 <span id="puzzle-info-link-<%= $current->id %>">
-                  <a href="#" data-toggle="modal" class="btn btn-mini puzzle-info-button"
+                  <a href="#" data-toggle="modal" class="btn btn-info btn-mini puzzle-info-button"
                      data-remote="<%== url_for ('infomodal', id => $current->id); %>"
                      data-target="#infoModal">
-                    <i class="icon-edit"></i> Info
+                    <i class="icon-edit"></i> Info / Status
                   </a>
                 </span>
               </small>
