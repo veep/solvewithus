@@ -96,6 +96,7 @@ var last_seen = new Object();
 last_seen.event = new Array();
 last_seen.puzzle = new Array();
 
+var hidden_stickies = new Object();
 
 var event_source = new Object();
 
@@ -111,15 +112,22 @@ function setup_chat_text_boxes () {
     );
     setup_combined_chat_filler(chats);
     $(".chat-sticky-messages").on('click','.trash-sticky-message',function (event) {
-        if ($(this).parents('.chat-sticky-messages').find('.trash-sticky-message').length <=1) {
-            $(this).parents('.chat-sticky-messages').hide();
+        var msgid = $(this).data('msgid');
+        remove_sticky_message($(this));
+        if (msgid) {
+            $.post('/chat/unstick', { msgid: msgid });
         }
-        $(this).parent().remove();
-        resize_chat_box($("#chat-box"));
     });
-        
 }
 
+function remove_sticky_message(msgbutton) {
+    if (msgbutton.parents('.chat-sticky-messages').find('.trash-sticky-message').length <=1) {
+        msgbutton.parents('.chat-sticky-messages').hide();
+    }
+    msgbutton.parent().remove();
+    resize_chat_box($("#chat-box"));
+}
+    
 function check_eventsources() {
     for (var es in event_source) {
         if (event_source.hasOwnProperty(es)) {
@@ -203,6 +211,20 @@ function setup_combined_chat_filler (chats) {
             mydiv.trigger('liveupdate');
             return;
         }
+        if (msg.type === 'sticky_status') {
+            var statuses = msg.status;
+            for (var msgid in statuses) {
+                if (statuses[msgid] === 'hidden') {
+                    var icon = $(".trash-sticky-message").filter('[data-msgid="' + msgid +'"]').first();
+                    if (icon) {
+                        remove_sticky_message(icon);
+                    }
+                    hidden_stickies[msgid] = 1;
+                } else {
+                    hidden_stickies[msgid] = 0;
+                }
+            }
+        }
             
         if (msg.target_type === 'puzzle' && msg.type === 'loggedin') {
             var usersspan = $("#usersspan");
@@ -221,7 +243,9 @@ function setup_combined_chat_filler (chats) {
             return;
         }
         render_msg(msg.type, msg.text, msg.timestamp, ( msg.author ? msg.author : ''),
-                   ['chat','text',msg.target_type,msg.target_id].join('-') );
+                   ['chat','text',msg.target_type,msg.target_id].join('-'),
+                   msg.id
+                  );
     };        
         
 }
@@ -229,7 +253,7 @@ function setup_combined_chat_filler (chats) {
 
 var last_daystring = new Object;
                                
-function render_msg (type, text, ts, author, div_id) {
+function render_msg (type, text, ts, author, div_id, message_id) {
     var result = '';
     var d = new Date(ts*1000);
     var daystring = '<span style="background: #CCC">' + d.toDateString() + '</span>' ;
@@ -239,17 +263,19 @@ function render_msg (type, text, ts, author, div_id) {
         (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ': ' +
         '</span>';
     if (type === 'sticky') {
-        var chatdiv = $("#" + div_id);
-        var stickydiv = chatdiv.prev('.chat-sticky-messages');
-        var stickyresult = '<i class="icon-trash trash-sticky-message"></i> ';
-        if (text.substr(0,4) === '/me ') {
+        if (! hidden_stickies[message_id] ) {
+            var chatdiv = $("#" + div_id);
+            var stickydiv = chatdiv.prev('.chat-sticky-messages');
+            var stickyresult = '<i data-msgid="' + message_id + '" class="icon-trash trash-sticky-message"></i> ';
+            if (text.substr(0,4) === '/me ') {
             stickyresult += daystring + ' ' + ds + '<i>' + author  + text.substr(3) + '</i>';
-        } else {
-            stickyresult += daystring + ' ' + ds + '<B>' + author + '</B>: ' + text;
+            } else {
+                stickyresult += daystring + ' ' + ds + '<B>' + author + '</B>: ' + text;
+            }
+            stickydiv.append('<div>' + stickyresult + '</div>');
+            stickydiv.show();
+            resize_chat_box($("#chat-box"));
         }
-        stickydiv.append('<div>' + stickyresult + '</div>');
-        stickydiv.show();
-        resize_chat_box($("#chat-box"));
         return;
     }
     if (daystring != last_daystring[div_id]) {

@@ -92,6 +92,7 @@ sub startup {
       ->name('combined stream')->to(controller => 'updates', action => 'getstream');
 
   $r->route('/chat')->to(controller => 'updates', action => 'chat');
+  $r->route('/chat/unstick')->to(controller => 'updates', action => 'unstick');
 
   $r->get('/oauth2callback' => sub {
               my $self = shift;

@@ -40,6 +40,33 @@ sub getstream {
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
     my @waits_and_loops;
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    my $last_sticky_status = '';
+    push @waits_and_loops, Mojo::IOLoop->recurring(
+        5 => sub {
+            if (my @sticky_statuses = $user->user_messages()) {
+                my $output = "data: " .
+                $json->encode({
+                    type => 'sticky_status',
+                    status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+                })
+                ."\n\n";
+                if ($output ne $last_sticky_status) {
+                    $self->write($output);
+                    $last_sticky_status = $output;
+                }
+            }
+        });
+    if (my @sticky_statuses = $user->user_messages()) {
+        my $output = "data: " .
+        $json->encode({
+            type => 'sticky_status',
+            status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+        })
+        ."\n\n";
+        $self->write($output);
+        $last_sticky_status = $output;
+    }
     if ($puzzle_id) {
         # every 5 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
@@ -396,5 +423,18 @@ sub chat {
     $self->render(text => 'OK', status => 200);
 }
 
+sub unstick {
+    my $self = shift;
+    my $msgid = $self->param('msgid');
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    if ($msgid && $user) {
+        my $user_message_status = $user->user_messages->find_or_create({message_id => $msgid});
+        $user_message_status->status('hidden');
+        $user_message_status->update;
+        $self->render(text => 'OK', status => 200);
+        return;
+    }
+    $self->render(text => 'Issue', status => 500);
+}
 
 1;
