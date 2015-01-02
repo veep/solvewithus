@@ -15,16 +15,16 @@
     </div>
     <div class="span9">
       <div class="btn-group">
-        <a class="btn add-a-round-button">
+        <button class="btn add-a-round-button">
           Add a Round
-        </a>
-        <a class="btn add-a-puzzle-button">
+        </button>
+        <button class="btn add-a-puzzle-button">
           Add a Puzzle
-        </a>
-        <a id="show-closed-button" event_id="<%= $event->id %>" class="btn">
-          Hide Closed Puzzles
-        </a>
+        </button>
       </div>
+      <button id="show-closed-button" event_id="<%= $event->id %>" class="btn">
+        Hide Closed Puzzles
+      </button>
       <div class="hide well" id="new-round-form-well">
         <form class="form-horizontal new-round-form">
           <input type="hidden" name="eventid" value="<%= $event->id %>">

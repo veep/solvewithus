@@ -68,7 +68,7 @@ sub getstream {
         $last_sticky_status = $output;
     }
     if ($puzzle_id) {
-        # every 5 seconds send current logged in status
+        # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(10 => sub {
@@ -137,20 +137,23 @@ sub getstream {
                     };
                     $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
-                my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
-                if ($form_round_list_html ne $last_form_round_list_html) {
-                    $last_form_round_list_html = $form_round_list_html;
-                    $last_update_time = time;
-                    my $output_hash = {
-                        type => 'div',
-                        divname => "form-round-list",
-                        divhtml => $form_round_list_html,
-                    };
-                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
-                }
             }
         );
     }
+    push @waits_and_loops, Mojo::IOLoop->recurring(
+        1 => sub {
+            my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
+            if ($form_round_list_html ne $last_form_round_list_html) {
+                $last_form_round_list_html = $form_round_list_html;
+                $last_update_time = time;
+                my $output_hash = {
+                    type => 'div',
+                    divname => "form-round-list",
+                    divhtml => $form_round_list_html,
+                };
+                $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+            }
+        });
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => sub {
             my @messages = $self->db->resultset('Message')->search(
