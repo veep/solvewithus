@@ -11,6 +11,7 @@ $(document).ready(
                 var pieces = $(this).attr("id").split("-");
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
+                console.log( { text: text, type: type, id: puzzle_id } );
                 $.post('/chat', { text: text, type: type, id: puzzle_id });
                 var textdiv = $(this).parents('.control-group').prev();
                 textdiv.scrollTop(textdiv.prop("scrollHeight") - textdiv.height() );
@@ -25,6 +26,10 @@ $(document).ready(
 
         setInterval (check_eventsources, 10000);
         $('#infoModal').on('hidden', function() {
+            $(this).removeData('modal');
+            $(this).find('.modal-body').html('');
+        });
+        $('#eventInfoModal').on('hidden', function() {
             $(this).removeData('modal');
             $(this).find('.modal-body').html('');
         });
@@ -105,6 +110,14 @@ function setup_chat_text_boxes () {
         }
     );
     setup_combined_chat_filler(chats);
+    $(".chat-sticky-messages").on('click','.trash-sticky-message',function (event) {
+        if ($(this).parents('.chat-sticky-messages').find('.trash-sticky-message').length <=1) {
+            $(this).parents('.chat-sticky-messages').hide();
+        }
+        $(this).parent().remove();
+        resize_chat_box($("#chat-box"));
+    });
+        
 }
 
 function check_eventsources() {
@@ -219,14 +232,28 @@ var last_daystring = new Object;
 function render_msg (type, text, ts, author, div_id) {
     var result = '';
     var d = new Date(ts*1000);
-    var daystring = '<span style="background: #CCC">' + d.toDateString() + '</span><br/>' ;
+    var daystring = '<span style="background: #CCC">' + d.toDateString() + '</span>' ;
     var ds = '<span class="chat-date-time-string">' + 
         (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + 
         (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + 
         (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + ': ' +
         '</span>';
+    if (type === 'sticky') {
+        var chatdiv = $("#" + div_id);
+        var stickydiv = chatdiv.prev('.chat-sticky-messages');
+        var stickyresult = '<i class="icon-trash trash-sticky-message"></i> ';
+        if (text.substr(0,4) === '/me ') {
+            stickyresult += daystring + ' ' + ds + '<i>' + author  + text.substr(3) + '</i>';
+        } else {
+            stickyresult += daystring + ' ' + ds + '<B>' + author + '</B>: ' + text;
+        }
+        stickydiv.append('<div>' + stickyresult + '</div>');
+        stickydiv.show();
+        resize_chat_box($("#chat-box"));
+        return;
+    }
     if (daystring != last_daystring[div_id]) {
-        ds = daystring + ds;
+        ds = daystring + '<br/>' + ds;
         last_daystring[div_id] = daystring;
     }
     if (type === 'created') {

@@ -80,6 +80,8 @@ sub startup {
   $r->route('/puzzle/modal')->to(controller => 'puzzle', action => 'modal');
   $r->route('/puzzle/infomodal/:id', id=> qr/\d+/)->name('infomodal')->
              to(controller => 'puzzle', action => 'infomodal');
+  $r->route('/event/infomodal/:id', id=> qr/\d+/)->name('eventinfomodal')->
+             to(controller => 'event', action => 'infomodal');
 
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');

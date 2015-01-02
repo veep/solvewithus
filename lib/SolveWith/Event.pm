@@ -414,4 +414,35 @@ sub expire_puzzle_table_cache {
     return;
 }
 
+sub infomodal {
+    my $self = shift;
+    my $id = $self->stash('id');
+    my $event = $self->db->resultset('Event')->find($id);
+    return $self->redirect_to('about:blank') unless $event;
+    my $access = 0;
+    eval {
+        $access = $event->team->has_access($self->session->{userid},$self->session->{token});
+    };
+    if ($@ or not $access) {
+        return $self->redirect_to('about:blank');
+    }
+    $self->db->storage->debug(1);
+    my $user = $self->db->resultset('User')->find($self->session->{userid});
+    my $messages_rs = $event->chat->search_related('messages',
+                                                   {
+                                                       type => ['sticky','sticky_delete','sticky_undelete'],
+                                                       'user_id.id' => [ undef, $user->id],
+                                                   },
+                                                   {
+                                                       join =>  {'user_messages' => 'user_id'},
+                                                       prefetch => 'user_messages',
+                                                       order_by => '-me.id',
+                                                   },
+                                               );
+    $self->render('event/info-modal', current => $event,
+                  messages => $messages_rs,
+              );
+    $self->db->storage->debug(0);
+}
+
 1;

@@ -12,9 +12,19 @@
                 </a>
               </li>
             </ul>
+            <br/>
+            <div class="pull-right chat-bar-links">
+              <small><a href="#" data-toggle="modal" class="btn btn-info btn-mini puzzle-info-button"
+                        data-remote="<%== url_for ('eventinfomodal', id => $event->id); %>"
+                data-target="#eventInfoModal">
+                <i class="icon-edit"></i> Edit Sticky Messages
+              </a>
+              </small>
+            </div>
           </div>
         </div>
         <div id="full-chat-event-<%= $event->id %>" class="collapse in">
+          <div class="chat-sticky-messages"><b>Sticky messages:</b></div>
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
           </div>
           <div class="control-group">
@@ -25,3 +35,13 @@
             </div>
           </div>
         </div>
+%= include 'event/info-modal-frame'
+<div id="initial-event-info-modal" class="modal hide" tabindex="-1">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Event-Wide Messages</h3>
+  </div>
+  <div class="modal-body">
+  </div>
+</div>
+

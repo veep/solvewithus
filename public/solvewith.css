@@ -36,7 +36,7 @@ html, body, iframe {
 }
 
 .chat-header .navbar-inner  {
-   padding-left: 2px;
+    padding-left: 2px;
 }
 
 .chat-header .nav > li > a   {
@@ -88,10 +88,12 @@ td.puzzle-name-cell {
 
 .chat-bar-links {
     margin-right: -15px; 
-    text-align: right; 
-    width: 30%; 
+    text-align: right;
+    vertical-align: middle;
+    min-width: 30%; 
     overflow: hidden; 
     white-space: nowrap;
+    position: relative;
 }
 
 .modal-body {
@@ -102,6 +104,19 @@ td.puzzle-name-cell {
     white-space: nowrap;
 }
 
+.trash-sticky-message:hover {
+    background-color: coral;
+}
+
+   
+.chat-sticky-messages {
+    padding: 6px;
+    margin: 2px;
+    background-color: antiquewhite;
+    border-radius: 8px;
+    display:none;
+}
+    
 .table input[type="text"],input[type="select"] {
     margin-bottom: 0px;
 }

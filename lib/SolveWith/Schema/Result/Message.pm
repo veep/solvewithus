@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
 
 
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->has_many('user_messages' => 'SolveWith::Schema::Result::UserMessage', 'message_id');
 __PACKAGE__->belongs_to('chat' => 'SolveWith::Schema::Result::Chat', 'chat_id');
 __PACKAGE__->belongs_to('user' => 'SolveWith::Schema::Result::User', 'user_id',
                         { join_type => 'left' }
