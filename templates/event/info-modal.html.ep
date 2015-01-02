@@ -1,0 +1,44 @@
+% use Mojo::Util qw/html_escape/;
+<input type="hidden" name="formname" value="Event Info">
+<input type="hidden" name="id" value="<%= $current->id %>">
+<input type="hidden" name="type" value="event">
+<input type="hidden" name="sticky" value="1">
+
+
+  <ul>
+% while (my $message = $messages->next) {
+    <li><%= $message->id . ' ' . $message->text . ' '. ($message->user_messages->first ? '(' . $message->user_messages->first->status.')' :'') %>   
+    </li>
+% }
+  </ul>
+
+  <input class="input-block-level" name="text" type="text" id="new-sticky-message"></input>
+  <button id="add-sticky-event-<%= $current->id %>" class="btn add-sticky-event">Add a sticky message</button>
+
+%= javascript begin
+$('.info-modal-timestamp').each(
+  function() {
+    ts = $(this).attr("value");
+    if (ts > 0) {
+      var d = new Date(ts*1000);
+      result = '<span style="white-space: nowrap;">' + d.toDateString() + '</span> ' +         
+               '<span style="white-space: nowrap;">' +
+               (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + 
+               (d.getMinutes() < 10 ? '0' : '') + d.getMinutes() + ':' + 
+               (d.getSeconds() < 10 ? '0' : '') + d.getSeconds() + '</span>';
+      $(this).html(result);
+    }
+    $(this).removeClass('info-modal-timestamp');
+  });
+
+$('#eventInfoModal').css({
+   width: 'auto',
+   'max-width': '95%',
+   'max-height': '95%',
+   'margin-left': function () {
+      return -($(this).width() / 2);
+   }
+});
+ $('#eventInfoModal').find('h3').html("Messages for: <%= $current->display_name %>");
+%end
+    

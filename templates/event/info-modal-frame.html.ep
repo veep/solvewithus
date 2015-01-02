@@ -1,0 +1,27 @@
+<div class="modal hide" id="eventInfoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
+  <form id="infoForm" class="modal-form form-inline" action="/chat" data-remote="true" method="POST">
+    <input type="hidden" name="last-button" value="">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3>Loading...</h3>
+    </div>
+    <div class="modal-body">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-link" data-dismiss="modal">No Changes</button>
+    </div>
+  </form>
+</div>
+
+%= javascript begin
+
+        $("#eventInfoModal").on('hidden', function(e) {
+             $(this).find('h3').html("Loading...");
+        });
+        $('.modal-form').on('submit', function(e) {
+            e.preventDefault();
+            jQuery.post('/chat', $(this).serialize());
+            $(this).parents('.modal').first().modal('hide');
+        });
+
+%end
