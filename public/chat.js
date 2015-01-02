@@ -51,13 +51,15 @@ function resize_chat_box(cb) {
 
     openchats.each(
         function() {
-//            console.warn($(this).scrollTop(), $(this).prop("scrollHeight"), $(this).height());
-            if ($(this).scrollTop() < ($(this).prop("scrollHeight") - $(this).height())) {
-                $(this).data('at_bottom','no');
-//                console.warn('not at bottom');
-            } else {
-                $(this).data('at_bottom','yes');
-//                console.warn('at bottom');
+            if (! $(this).data('at_bottom')) {
+//                console.warn($(this).scrollTop(), $(this).prop("scrollHeight"), $(this).height());
+                if ($(this).scrollTop() < ($(this).prop("scrollHeight") - $(this).height())) {
+                    $(this).data('at_bottom','no');
+//                    console.warn('not at bottom');
+                } else {
+                    $(this).data('at_bottom','yes');
+//                    console.warn('at bottom');
+                }
             }
         }
     );
@@ -298,7 +300,6 @@ function render_msg (type, text, ts, author, div_id, message_id) {
         console.log(text);
         var icon = $(".trash-sticky-message").filter('[data-msgid="' + text +'"]').first();
         if (icon) {
-            console.log('removing',icon);
             remove_sticky_message(icon);
         }
         return;
