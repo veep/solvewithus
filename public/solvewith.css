@@ -97,10 +97,14 @@ td.puzzle-name-cell {
 }
 
 .modal-body {
-    max-height: 80%;
+    max-height: 500px;
 }
 
 .puzzle-info-button {
+    white-space: nowrap;
+}
+
+.mynowrap {
     white-space: nowrap;
 }
 

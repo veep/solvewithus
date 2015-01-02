@@ -103,7 +103,7 @@ sub getstream {
     my $backlog_sent = 0;
     my @types = qw/created chat spreadsheet url aha note priority puzzle puzzleinfo puzzlejson
                    puzzleurl removed_puzzleurl removed_puzzleinfo removed_solution
-                   removal state solution sticky/;
+                   removal state solution sticky sticky_delete/;
     # Subscribe to chat messages for this chat
     # Send chat messages that exist, update my cutoff to highest value
     my ($event_chat_id, $puzzle_chat_id);
@@ -415,10 +415,12 @@ sub chat {
     };
     unless ($access) { $self->render_exception('Bad chat request: no access'); return; }
 
-    if ($sticky) {
-        $chat->add_of_type('sticky',$text,$self->session->{userid});
-    } else {
-        $chat->add_of_type('chat',$text,$self->session->{userid});
+    if ($text =~ /\S/) {
+        if ($sticky) {
+            $chat->add_of_type('sticky',$text,$self->session->{userid});
+        } else {
+            $chat->add_of_type('chat',$text,$self->session->{userid});
+        }
     }
     $self->render(text => 'OK', status => 200);
 }
@@ -426,11 +428,25 @@ sub chat {
 sub unstick {
     my $self = shift;
     my $msgid = $self->param('msgid');
+    my $state = $self->param('state') || 'hidden';
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     if ($msgid && $user) {
-        my $user_message_status = $user->user_messages->find_or_create({message_id => $msgid});
-        $user_message_status->status('hidden');
-        $user_message_status->update;
+        if ($state eq 'kill') {
+            my $message = $self->db->resultset('Message')->find($msgid);
+            $message->chat->add_of_type('sticky_delete',$msgid,$self->session->{userid});
+        } else {
+            my $user_message_status = $user->user_messages->find_or_create({message_id => $msgid});
+            if ($state eq 'toggle') {
+                if ($user_message_status->status && $user_message_status->status eq 'hidden') {
+                    $user_message_status->status('shown');
+                } else {
+                $user_message_status->status('hidden');
+            }
+            } else {
+                $user_message_status->status('hidden');
+            }
+            $user_message_status->update;
+        }
         $self->render(text => 'OK', status => 200);
         return;
     }

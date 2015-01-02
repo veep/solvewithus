@@ -4,16 +4,45 @@
 <input type="hidden" name="type" value="event">
 <input type="hidden" name="sticky" value="1">
 
+<input class="input-block-level" name="text" type="text" id="new-sticky-message"></input>
+<button id="add-sticky-event-<%= $current->id %>" class="btn add-sticky-event">Add a sticky message</button>
 
-  <ul>
-% while (my $message = $messages->next) {
-    <li><%= $message->id . ' ' . $message->text . ' '. ($message->user_messages->first ? '(' . $message->user_messages->first->status.')' :'') %>   
-    </li>
-% }
-  </ul>
+<hr/><h4>Current Messages</h4>
+<table class="table table-condensed">
+  <thead>
+    <tr><th>For Everyone</th><th>For You</th><th>Who</th><th>When</th><th>Message</th></tr>
+  </thead>
+  <tbody>
+    % my %deleted_stickies;
+    % while (my $message = $messages->next) {
+    % if ($message->type eq 'sticky_delete') {
+    %    $deleted_stickies{$message->text} = 1;
+    %    next;
+    % }
+    % my $my_state = 'shown';
+    % if ($message->user_messages->first && $message->user_messages->first->status eq 'hidden') {
+    %    $my_state = 'hidden';
+    % }
+    % my $row_class = ($my_state eq 'hidden' ? ' ' : 'success');
+    % my $deleted = ( $deleted_stickies{$message->id} ? 1 : 0);
+    % $row_class = ($deleted ? 'disabled' : $row_class);
+    <tr class="<%= $row_class %>">
+      % if ($deleted) {
+      <td colspan="2">Killed</td>
+      % } else {
+      <td class="mynowrap"><button data-stickyid="<%= $message->id %>"
+        class="kill-sticky btn btn-danger btn-mini">Kill</button> Live</td>
+      <td class="mynowrap"><%= $my_state %> <button data-stickyid="<%= $message->id %>"
+        class="toggle-mysticky btn btn-mini btn-info">Toggle</button></td>
+      % }
+      <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
+      <td class="mynowrap"><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span></td>
+      <td><strong><%= $message->text %></strong></td>
+    </tr>
+    % }
+  </tbody>
+</table>
 
-  <input class="input-block-level" name="text" type="text" id="new-sticky-message"></input>
-  <button id="add-sticky-event-<%= $current->id %>" class="btn add-sticky-event">Add a sticky message</button>
 
 %= javascript begin
 $('.info-modal-timestamp').each(

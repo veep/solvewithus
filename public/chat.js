@@ -118,6 +118,22 @@ function setup_chat_text_boxes () {
             $.post('/chat/unstick', { msgid: msgid });
         }
     });
+    $("#eventInfoModal").on('click','.toggle-mysticky',function (event) {
+        event.preventDefault();
+        var msgid = $(this).data('stickyid');
+        if (msgid) {
+            $.post('/chat/unstick', { msgid: msgid, state: 'toggle' });
+        }
+        $(this).parents('.modal').first().modal('hide');
+    });
+    $("#eventInfoModal").on('click','.kill-sticky',function (event) {
+        event.preventDefault();
+        var msgid = $(this).data('stickyid');
+        if (msgid) {
+            $.post('/chat/unstick', { msgid: msgid, state: 'kill' });
+        }
+        $(this).parents('.modal').first().modal('hide');
+    });
 }
 
 function remove_sticky_message(msgbutton) {
@@ -275,6 +291,15 @@ function render_msg (type, text, ts, author, div_id, message_id) {
             stickydiv.append('<div>' + stickyresult + '</div>');
             stickydiv.show();
             resize_chat_box($("#chat-box"));
+        }
+        return;
+    }
+    if (type === 'sticky_delete') {
+        console.log(text);
+        var icon = $(".trash-sticky-message").filter('[data-msgid="' + text +'"]').first();
+        if (icon) {
+            console.log('removing',icon);
+            remove_sticky_message(icon);
         }
         return;
     }
