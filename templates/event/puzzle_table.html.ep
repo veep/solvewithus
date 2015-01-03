@@ -1,8 +1,5 @@
 % use List::MoreUtils qw/any none/;
 
-% if ($event->id == 18) {
-<b>Hunt Sites:</b> <a href="http://www.coinheist.com/login">http://www.coinheist.com/login</a> <a href="http://enigmavalley.com" target="_blank">http://enigmavalley.com</a> User/pw: luck / reservoirhorta
-%}
 <table class="table table-bordered table-condensed">
 <thead>
   <tr><th class="lead">
@@ -65,7 +62,7 @@ Set Open Puzzle Priorities:
 <tr>
 %           }
   <td<%== $puz_class %>>
-    <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
+    <a href="/puzzle/<%= $puzzle->{id} %>"><%= $puzzle->{display_name}%></a>
 % if ($puzzle->{summary}) {
     <br><span class="front-page-summary">Summary: <%== $puzzle->{summary} %></span>
 % }
@@ -89,7 +86,7 @@ Set Open Puzzle Priorities:
 %         } else {
 <tr class="muted closed-row">
   <td class="puzzle-name-cell">
-    <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } => (class => 'muted')%> 
+    <a class="muted" href="/puzzle/<%= $puzzle->{id} %>"><%= $puzzle->{display_name}%></a>
 % if ($puzzle->{summary}) {
     <br><span class="muted front-page-summary">Summary: <%== $puzzle->{summary} %></span>
 % }

@@ -69,7 +69,12 @@ sub users_live {
         }
     }
     my @rv =  sort @loggedin ;
-    $cache->set('users_live_puzzle_'. $self->id, \@rv, {expires_in => 30, expires_variance => .2} );
+    my $expire_time=30;
+    if (! @rv) {
+        # People will invalidate it when they join
+        $expire_time=3600;
+    }
+    $cache->set('users_live_puzzle_'. $self->id, \@rv, {expires_in => $expire_time, expires_variance => .2} );
     return @rv;
 }
 

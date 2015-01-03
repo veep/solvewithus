@@ -403,7 +403,7 @@ sub get_puzzle_table_html {
     $self->stash(tree => $event->get_puzzle_tree($self->app));
     $self->stash(event => $event);
     $self->app->log->info(join(" ","Unrendered tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
-    my $tree =  $self->render('event/puzzle_table', partial=>1);
+    my $tree = $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     $cache->set($key, $tree, {expires_in => 30, expires_variance => .8});
 }
