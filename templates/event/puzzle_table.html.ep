@@ -57,7 +57,7 @@ Set Open Puzzle Priorities:
 %         }
 %         if ($puzzle->{state} eq 'open') {
 %           my $puz_class='';
-%           if (lc($puzzle->{priority}) eq 'high') {
+%           if ($puzzle->{priority} and lc($puzzle->{priority}) eq 'high') {
 %             $puz_class=' class="lead puzzle-name-cell"';
 <tr class="row-high">
 %           } else {
@@ -79,7 +79,9 @@ Set Open Puzzle Priorities:
       </a>
     </span>
     <small>
-    <%= ucfirst($puzzle->{priority}) . " Priority" unless lc($puzzle->{priority}) eq 'normal' %>
+      % if ($puzzle->{priority} &&  $puzzle->{priority} ne 'normal') {
+      <%= ucfirst($puzzle->{priority}) . " Priority" %>
+      % }
     </small>
 </td>
   <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || ' ' %></td>
@@ -218,7 +220,6 @@ $(".revive_puzzle_button").click(function () {
                );
 });
 $(".set_round_priority").click(function () {
-    $(this).parent().parent().fadeTo('fast', 0.2);
     jQuery.post('/event/modal', { formname : 'set_round_priority', 
                                    roundid : $(this).attr('round_id'),                                                        
                                   priority : $(this).text()
