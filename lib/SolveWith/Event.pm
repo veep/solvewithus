@@ -395,11 +395,14 @@ sub get_puzzle_table_html {
     return '' unless $cache;
     my $key = 'puzzle_table '  . $event->id . ' all_html';
     my $table = $cache->get($key);
-    return $table if $table;
-
+    if ($table) {
+#        $self->app->log->info("Returning cached table");
+        return $table;
+    }
     my $st = Time::HiRes::time;
     $self->stash(tree => $event->get_puzzle_tree($self->app));
     $self->stash(event => $event);
+    $self->app->log->info(join(" ","Unrendered tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     $cache->set($key, $tree, {expires_in => 30, expires_variance => .8});
@@ -434,7 +437,7 @@ sub expire_puzzle_table_cache {
 
     my $key = 'puzzle_table '  . $event->id . ' all_html';
 
-    $cache->set($key, $tree,{expires_in => 300, expires_variance => .95 });
+    $cache->set($key, $tree,{expires_in => 30, expires_variance => .8 });
     return;
 }
 

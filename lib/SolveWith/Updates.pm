@@ -71,8 +71,14 @@ sub getstream {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
-        push @waits_and_loops, Mojo::IOLoop->recurring(10 => sub {
-            $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+          10 => sub {
+            if (! $cache->get(join(' ','in puzzle',$puzzle_id,$self->session->{userid}))) {
+                $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
+                $puzzle->expire_users_live_cache($cache);
+            } else {
+                $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
+            }
 #            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
             my @logged_in = $puzzle->users_live($cache);
             @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
@@ -120,7 +126,8 @@ sub getstream {
 
     if (! $puzzle_id) {
         push @waits_and_loops, Mojo::IOLoop->recurring(
-            5 => sub {
+            3 => sub {
+                my $st = scalar Time::HiRes::time;
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
                     my $first_time_html = '';
@@ -137,6 +144,7 @@ sub getstream {
                     };
                     $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
+#                $self->app->log->info('table html loop: ' . (Time::HiRes::time - $st));
             }
         );
     }

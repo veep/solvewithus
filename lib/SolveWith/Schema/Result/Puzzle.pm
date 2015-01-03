@@ -51,6 +51,9 @@ sub spreadsheet_peek {
 
 sub users_live {
     my ($self, $cache) = @_;
+    if (my $cached_user_list = $cache->get('users_live_puzzle_'. $self->id)) {
+        return @$cached_user_list;
+    }
     my @loggedin;
     my $max_id = $cache->compute( 'max user id',
                                   {expires_in => '300', busy_lock => 10},
@@ -66,7 +69,13 @@ sub users_live {
         }
     }
     my @rv =  sort @loggedin ;
+    $cache->set('users_live_puzzle_'. $self->id, \@rv, {expires_in => 30, expires_variance => .2} );
     return @rv;
+}
+
+sub expire_users_live_cache {
+    my ($self, $cache) = @_;
+    $cache->remove('users_live_puzzle_'. $self->id);
 }
 
 sub summary {
