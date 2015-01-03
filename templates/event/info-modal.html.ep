@@ -10,7 +10,7 @@
 <hr/><h4>Current Messages</h4>
 <table class="table table-condensed">
   <thead>
-    <tr><th>For Everyone</th><th>For You</th><th>Who</th><th>When</th><th>Message</th></tr>
+    <tr><th class="mynowrap">For Everyone</th><th class="mynowrap">For You</th><th>Who</th><th>When</th><th>Message</th></tr>
   </thead>
   <tbody>
     % my %deleted_stickies;
@@ -25,16 +25,28 @@
     % }
     % my $row_class = ($my_state eq 'hidden' ? ' ' : 'success');
     % my $deleted = ( $deleted_stickies{$message->id} ? 1 : 0);
-    % $row_class = ($deleted ? 'disabled' : $row_class);
+    % if (! $deleted) {
     <tr class="<%= $row_class %>">
-      % if ($deleted) {
-      <td colspan="2">Killed</td>
-      % } else {
-      <td class="mynowrap"><button data-stickyid="<%= $message->id %>"
-        class="kill-sticky btn btn-danger btn-mini">Kill</button> Live</td>
+      <td class="mynowrap"><button class="show-kill-sticky btn btn-danger btn-mini">Kill</button> Live</td>
       <td class="mynowrap"><%= $my_state %> <button data-stickyid="<%= $message->id %>"
         class="toggle-mysticky btn btn-mini btn-info">Toggle</button></td>
-      % }
+      <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
+      <td class="mynowrap"><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span></td>
+      <td><strong><%= $message->text %></strong></td>
+    </tr>
+    <tr class="kill-sticky-row">
+      <td colspan="4"><strong>Irreversibly</strong> remove this for everyone? <button  data-stickyid="<%= $message->id %>"
+        class="btn btn-mini btn-danger kill-sticky">Yes</button> <button data-dismiss="modal" class="btn btn-primary btn-mini">No</button></td>
+      <td><strong><%= $message->text %></strong></td>
+    </tr>
+    % }
+    % }
+    % $messages->reset;
+    % while (my $message = $messages->next) {
+    %     next unless  $deleted_stickies{$message->id};
+    %     my $row_class = 'disabled';
+    <tr class="<%= $row_class %>">
+      <td colspan="2">Killed</td>
       <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
       <td class="mynowrap"><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span></td>
       <td><strong><%= $message->text %></strong></td>

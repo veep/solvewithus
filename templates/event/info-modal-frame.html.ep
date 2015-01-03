@@ -16,7 +16,7 @@
 %= javascript begin
 
         $("#eventInfoModal").on('hidden', function(e) {
-             $(this).find('h3').html("Loading...");
+             $(this).find('h3').html("Loading... (retry if nothing happens)");
         });
         $('.modal-form').on('submit', function(e) {
             e.preventDefault();

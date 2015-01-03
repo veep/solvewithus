@@ -128,6 +128,11 @@ function setup_chat_text_boxes () {
         }
         $(this).parents('.modal').first().modal('hide');
     });
+    $("#eventInfoModal").on('click','.show-kill-sticky',function (event) {
+        event.preventDefault();
+        $(this).parents('tr').next().show();
+        $(this).parents('tr').first().hide();
+    });
     $("#eventInfoModal").on('click','.kill-sticky',function (event) {
         event.preventDefault();
         var msgid = $(this).data('stickyid');

@@ -96,6 +96,10 @@ td.puzzle-name-cell {
     position: relative;
 }
 
+.kill-sticky-row {
+    display: none;
+}
+
 .modal-body {
     max-height: 500px;
 }
