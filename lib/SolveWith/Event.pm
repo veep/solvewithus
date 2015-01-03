@@ -149,6 +149,14 @@ sub modal {
 
         if ($form eq 'New Round') {
             my $new_name = $self->param('RoundName');
+            my $new_url = $self->param('RoundURL');
+            if ($new_url) {
+                $new_url =~ s/^\s+//;
+                $new_url =~ s/\s+$//;
+                $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+                chomp($new_url);
+            }
+            my $create_meta = $self->param('create-puzzle-for-meta');
             if ($new_name && $new_name =~ /\S/) {
                 my $old_round = $event->find_related ('rounds', {
                     display_name => $new_name,
@@ -160,6 +168,22 @@ sub modal {
                     if ($round) {
                         $round->set_column('state','open');
                         $round->update;
+                        if ($new_url) {
+                            $event->chat->add_of_type('round_url',( $round->id . ' ' . $new_url));
+                        }
+                        if ($create_meta) {
+                            my $puzzle = $self->db->resultset('Puzzle')->create({
+                                display_name => "$new_name - META",
+                                state => 'open',
+                            });
+                            if ($puzzle) {
+                                $round->add_puzzle( $puzzle );
+                            }
+                            if ($new_url) {
+                                $puzzle->chat->add_of_type('puzzleurl',$new_url,$self->session->{userid});
+                            }
+                            SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                        }
                         SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
                         $self->render(text => 'OK', status => 200);
                         return;

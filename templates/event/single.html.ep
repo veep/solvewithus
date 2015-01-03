@@ -32,11 +32,18 @@
           <div class="control-group">
             <label class="control-label" for="inputRoundName">Round Name</label>
             <div class="controls">
-              <input type="text" id="inputRoundName" class="input_xlarge" name="RoundName" placeholder="Round Name">
+              <input type="text" id="inputRoundName" class="input-xlarge" name="RoundName" placeholder="Round Name">
+            </div>
+            <label class="control-label" for="inputRoundURL">Round URL<br/>(if applicable)</label>
+            <div class="controls">
+              <input type="text" id="inputRoundURL" class="input-xxlarge" name="RoundURL" placeholder="Round URL">
             </div>
           </div>
           <div class="control-group">
             <div class="controls">
+              <label class="checkbox">
+                <input name="create-puzzle-for-meta" type="checkbox"> Also create a "Round Name - META" puzzle.
+              </label>
               <button type="submit" class="btn btn-small btn-primary">Add Round</button>
               <button type="button" class="btn btn-small add-a-round-button">Cancel</button>
             </div>
