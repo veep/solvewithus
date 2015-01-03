@@ -27,7 +27,7 @@
     % my $deleted = ( $deleted_stickies{$message->id} ? 1 : 0);
     % if (! $deleted) {
     <tr class="<%= $row_class %>">
-      <td class="mynowrap"><button class="show-kill-sticky btn btn-danger btn-mini">Kill</button> Live</td>
+      <td class="mynowrap">Live <button class="show-kill-sticky btn btn-danger btn-mini">Kill</button></td>
       <td class="mynowrap"><%= $my_state %> <button data-stickyid="<%= $message->id %>"
         class="toggle-mysticky btn btn-mini btn-info">Toggle</button></td>
       <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
