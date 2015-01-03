@@ -19,17 +19,17 @@
     %    $deleted_stickies{$message->text} = 1;
     %    next;
     % }
-    % my $my_state = 'shown';
+    % my $my_state = 'Shown';
     % if ($message->user_messages->first && $message->user_messages->first->status eq 'hidden') {
-    %    $my_state = 'hidden';
+    %    $my_state = 'Hidden';
     % }
-    % my $row_class = ($my_state eq 'hidden' ? ' ' : 'success');
+    % my $row_class = ($my_state eq 'Hidden' ? ' ' : 'success');
     % my $deleted = ( $deleted_stickies{$message->id} ? 1 : 0);
     % if (! $deleted) {
     <tr class="<%= $row_class %>">
       <td class="mynowrap">Live <button class="show-kill-sticky btn btn-danger btn-mini">Kill</button></td>
       <td class="mynowrap"><%= $my_state %> <button data-stickyid="<%= $message->id %>"
-        class="toggle-mysticky btn btn-mini btn-info">Toggle</button></td>
+        class="toggle-mysticky btn btn-mini btn-info">Toggle<%= ($my_state eq 'Hidden' ? ' (requires reload)' : '');%></button></td>
       <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
       <td class="mynowrap"><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span></td>
       <td><strong><%= $message->text %></strong></td>
