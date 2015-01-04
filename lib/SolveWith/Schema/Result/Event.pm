@@ -26,8 +26,17 @@ sub get_puzzle_tree {
     my @data = $self->result_source->schema->resultset('Round')->search( { event_id => $self->id}, {
         prefetch => { 'puzzle_rounds' => { 'puzzle_id' => 'puzzle_info'}},
     });
+    my %round_urls;
+    for my $round_url_message (@{ $self->chat->get_all_of_type('round_url') }) {
+        my ($id,$url) = split(' ',$round_url_message->text,2);
+        $round_urls{$id} = $url;
+    }
     foreach my $round (@data) {
-        push @result, {round => $round, round_id => $round->id, puzzles => $round->get_puzzle_tree($c)};
+        my $round_id = $round->id;
+        push @result, {round => $round, round_id => $round_id,
+                       round_url => $round_urls{$round_id},
+                       puzzles => $round->get_puzzle_tree($c)
+                   };
     }
     return \@result;
 }

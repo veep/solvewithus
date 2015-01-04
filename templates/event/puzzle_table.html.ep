@@ -21,7 +21,7 @@
 %        $only_closed_puzzles = $only_closed_puzzles && (any {$_->{state} eq 'closed'} @{ $tree_round->{puzzles} });
 <tr class="round-row<%== ($only_closed_puzzles ? ' closed-row' : '') %>">
   <td colspan="6">
-    <b>Round: <%= $round_name %></b>
+    <b>Round: <%= $round_name %></b> <%== $tree_round->{round_url} ? "(URL: " . $tree_round->{round_url} . " )" : '' %>
     <span class="round_priority">
 %        if (any {$_->{state} and $_->{state} eq 'open'} @{ $tree_round->{puzzles}  }) {
 Set Open Puzzle Priorities:
