@@ -27,7 +27,7 @@ sub get_puzzle_tree {
         prefetch => { 'puzzle_rounds' => { 'puzzle_id' => 'puzzle_info'}},
     });
     foreach my $round (@data) {
-        push @result, {round => $round, puzzles => $round->get_puzzle_tree($c)};
+        push @result, {round => $round, round_id => $round->id, puzzles => $round->get_puzzle_tree($c)};
     }
     return \@result;
 }

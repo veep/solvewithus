@@ -144,7 +144,7 @@ sub getstream {
                     };
                     $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
-#                $self->app->log->info('table html loop: ' . (Time::HiRes::time - $st));
+                $self->app->log->debug('table html loop: ' . (Time::HiRes::time - $st));
             }
         );
     }

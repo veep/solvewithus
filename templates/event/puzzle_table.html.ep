@@ -10,9 +10,9 @@
 </thead>
 <tbody>
 % my (%rounds_for_dead);
-% for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
+  % for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round_id} <=> $b->{round_id};} @$tree ) {
 %     if ($tree_round->{round}->state eq 'dead') {
-%           $rounds_for_dead{$tree_round->{round}->id} =1;
+%           $rounds_for_dead{$tree_round->{round_id}} =1;
 %           next;
 %     }
 %     my $round_name = $tree_round->{round}->display_name;
@@ -23,33 +23,33 @@
   <td colspan="6">
     <b>Round: <%= $round_name %></b>
     <span class="round_priority">
-%        if (any {$_->{state} eq 'open'} @{ $tree_round->{puzzles}  }) {
+%        if (any {$_->{state} and $_->{state} eq 'open'} @{ $tree_round->{puzzles}  }) {
 Set Open Puzzle Priorities:
       <div class="btn-group">
-        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round_id} %>">
           Low
         </a>
-        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round_id} %>">
           Normal
         </a>
-        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round}->id %>">
+        <a class="btn btn-mini set_round_priority" round_id="<%= $tree_round->{round_id} %>">
           High
         </a>
       </div>
 %        }
 %        if ($tree_round->{round}->state eq 'closed') {
-      <button type="button" class="btn btn-mini complete_round_button" state="open" round_id="<%= $tree_round->{round}->id %>">Reopen</button>
+      <button type="button" class="btn btn-mini complete_round_button" state="open" round_id="<%= $tree_round->{round_id} %>">Reopen</button>
 %        } else {
-      <button type="button" class="btn btn-mini complete_round_button" state="closed" round_id="<%= $tree_round->{round}->id %>">No More Puzzles</button>
+      <button type="button" class="btn btn-mini complete_round_button" state="closed" round_id="<%= $tree_round->{round_id} %>">No More Puzzles</button>
 %        }
-      <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round}->id %>">Kill Round</button>
+      <button type="button" class="btn btn-mini kill_round_button" round_id="<%= $tree_round->{round_id} %>">Kill Round</button>
     </span>
   </td>
 </tr>
 %     }
 %     for my $puzzle ( sort { $a->{open_time} <=> $b->{open_time} } @{ $tree_round->{puzzles} } ) {
 %         if ($puzzle->{state} eq 'dead') {
-%            $rounds_for_dead{$tree_round->{round}->id} =1;
+%            $rounds_for_dead{$tree_round->{round_id}} =1;
 %            next;
 %         }
 %         if ($puzzle->{state} eq 'open') {
@@ -70,7 +70,7 @@ Set Open Puzzle Priorities:
   <td class="state-column-cell">
     <span id="puzzle-info-link-<%= $puzzle->{id} %>">
       <a href="#" data-toggle="modal" class="btn btn-mini puzzle-info-button"
-         data-remote="<%== url_for ('infomodal', id => $puzzle->{id}); %>"
+         data-remote="/puzzle/infomodal/<%= $puzzle->{id} %>"
          data-target="#infoModal">
         <i class="icon-edit"></i> Info
       </a>
@@ -94,7 +94,7 @@ Set Open Puzzle Priorities:
   <td class="state-column-cell">
     <span id="puzzle-info-link-<%= $puzzle->{id} %>">
       <a href="#" data-toggle="modal" class="btn btn-mini puzzle-info-button"
-         data-remote="<%== url_for ('infomodal', id => $puzzle->{id}); %>"
+         data-remote="/puzzle/infomodal/<%= $puzzle->{id} %>"
          data-target="#infoModal">
         <i class="icon-edit"></i> Info
       </a>
@@ -104,11 +104,11 @@ Set Open Puzzle Priorities:
   <td><%== join(', ', map { "<b>$_</b>"} @{ $puzzle->{solutions} }) || '---' %></td>
   <td class="users-column-cell"><%= join(', ', @{ $puzzle->{users_live}})%></td>
 %         }
-<td><%== verbose_timediff($puzzle->{open_time}) %></td>
+<td><%== verbose_timediff(($currenttime||time), $puzzle->{open_time}) %></td>
 %         if ($puzzle->{state} eq 'open') {
-<td><%== verbose_timediff($puzzle->{activity_time}, 1) %></td>
+<td><%== verbose_timediff(($currenttime||time), $puzzle->{activity_time}, 1) %></td>
 %         } else {
-<td><%== verbose_timediff($puzzle->{state_change_time} || time) %></td>
+<td><%== verbose_timediff(($currenttime||time), $puzzle->{state_change_time} || time) %></td>
 %         }
 </tr>
 %     }
@@ -128,14 +128,14 @@ Set Open Puzzle Priorities:
     <th class="lead">Opened</th><th class="lead">Killed</th></tr>
 </thead>
 <tbody>
-%   for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round}->id <=> $b->{round}->id;} @$tree ) {
-%     next unless ($rounds_for_dead{$tree_round->{round}->id});
+%   for my $tree_round ( sort { my $an = $a->{round}->display_name; my $bn = $b->{round}->display_name; return 0 if $an eq $bn; return -1 if $an eq '_catchall'; return 1 if $bn eq '_catchall'; return $a->{round_id} <=> $b->{round_id};} @$tree ) {
+%     next unless ($rounds_for_dead{$tree_round->{round_id}});
 %     my $round_name = $tree_round->{round}->display_name;
 %     if ($round_name ne '_catchall' ) {
 %        if ($tree_round->{round}->state eq 'dead') {
 <tr class="round-row dead-row">
   <td><b>Round: <%= $round_name %></b></td>
-  <td colspan="3">Dead <button type="button" round_id="<%= $tree_round->{round}->id %>" class="btn btn-mini revive_round_button">Revive Round</button></td>
+  <td colspan="3">Dead <button type="button" round_id="<%= $tree_round->{round_id} %>" class="btn btn-mini revive_round_button">Revive Round</button></td>
 </tr>
 %        } else {
 <tr class="round-row"><td colspan="4"><b>Round: <%= $round_name %></b></td></tr>
@@ -146,16 +146,16 @@ Set Open Puzzle Priorities:
 %         next if ($round_name eq '_catchall' and scalar $puzzle->{puzzle}->rounds > 1);
 <tr class="dead-row">
   <td>
-    <%= link_to $puzzle->{display_name} => puzzle => { id => $puzzle->{id} } %>
+    <a href="/puzzle/<%= $puzzle->{id} %>"><%= $puzzle->{display_name}%></a>
   </td>
   <td>
     Dead <button type="button" puzzle_id="<%= $puzzle->{id} %>" class="btn btn-mini revive_puzzle_button">Revive Puzzle</button>
   </td>
   <td>
-    <%== verbose_timediff($puzzle->{open_time}) %>
+    <%== verbose_timediff(($currenttime||time), $puzzle->{open_time}) %>
   </td>
   <td>
-    <%== verbose_timediff($puzzle->{state_change_time}) %>
+    <%== verbose_timediff(($currenttime||time), $puzzle->{state_change_time}) %>
   </td>
 </tr>
 %     }
@@ -171,10 +171,9 @@ Set Open Puzzle Priorities:
 
 
 
-
 % sub verbose_timediff {
-%    my $diff = time-shift;
-%    my $idle = shift;
+%    my ($now,$base,$idle) = @_;
+%    my $diff =  $now - $base;
 %    return ($idle ? '<b>Active</b>' : '<b>Just Now</b>') if $diff < 60;
 %    my ($num, $unit) = (int($diff/(60*60*24)), 'Day');
 %    ($num,$unit) = (int(10*$diff/(60*60))/10, 'Hour') if $diff < 60*60*24*2;

@@ -401,7 +401,7 @@ sub get_puzzle_table_html {
     }
     my $st = Time::HiRes::time;
     $self->stash(tree => $event->get_puzzle_tree($self->app));
-    $self->stash(event => $event);
+    $self->stash(currenttime => (scalar time));
     $self->app->log->info(join(" ","Unrendered tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $tree = $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
@@ -431,7 +431,7 @@ sub expire_puzzle_table_cache {
 
     my $st = Time::HiRes::time;
     $self->stash(tree => $event->get_puzzle_tree($self->app));
-    $self->stash(event => $event);
+    $self->stash(currenttime => (scalar time));
     my $tree =  $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Expire Tree time for", $self->session->{userid}, Time::HiRes::time - $st));
 

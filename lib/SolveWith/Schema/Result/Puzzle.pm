@@ -51,7 +51,8 @@ sub spreadsheet_peek {
 
 sub users_live {
     my ($self, $cache) = @_;
-    if (my $cached_user_list = $cache->get('users_live_puzzle_'. $self->id)) {
+    my $puzzle_id = $self->id;
+    if (my $cached_user_list = $cache->get('users_live_puzzle_'. $puzzle_id)) {
         return @$cached_user_list;
     }
     my @loggedin;
@@ -59,7 +60,7 @@ sub users_live {
                                   {expires_in => '300', busy_lock => 10},
                                   sub { $self->result_source->schema->resultset('User')->get_column('id')->max();}
                               );
-    my $results = $cache->get_multi_arrayref( [ map { "in puzzle " . $self->id . " " . $_ } (0..$max_id) ] );
+    my $results = $cache->get_multi_arrayref( [ map { "in puzzle " . $puzzle_id . " " . $_ } (0..$max_id) ] );
     for my $user_id (0..$max_id) {
         if ($$results[$user_id]) {
             my $user = $self->result_source->schema->resultset('User')->find($user_id);
@@ -74,7 +75,7 @@ sub users_live {
         # People will invalidate it when they join
         $expire_time=3600;
     }
-    $cache->set('users_live_puzzle_'. $self->id, \@rv, {expires_in => $expire_time, expires_variance => .2} );
+    $cache->set('users_live_puzzle_'. $puzzle_id, \@rv, {expires_in => $expire_time, expires_variance => .2} );
     return @rv;
 }
 
