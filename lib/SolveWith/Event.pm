@@ -394,7 +394,7 @@ sub get_puzzle_table_html {
     eval { $cache = $self->app->cache; };
     return '' unless $cache;
     my $key = 'puzzle_table '  . $event->id . ' all_html';
-    my $table = $cache->get($key);
+    my $table = $cache->get($key, busy_lock => 1);
     if ($table) {
 #        $self->app->log->info("Returning cached table");
         return $table;
@@ -405,7 +405,7 @@ sub get_puzzle_table_html {
     $self->app->log->info(join(" ","Unrendered tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     my $tree = $self->render('event/puzzle_table', partial=>1);
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
-    $cache->set($key, $tree, {expires_in => 30, expires_variance => .8});
+    $cache->set($key, $tree, {expires_in => 10});
 }
 
 sub get_form_round_list_html {
