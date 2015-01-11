@@ -124,7 +124,7 @@ sub getstream {
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
 
-    {
+    if (! $puzzle_id) {
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(
           10 => sub {
@@ -152,8 +152,6 @@ sub getstream {
                 $self->app->log->debug($output);
             }
         });
-    }
-    if (! $puzzle_id) {
         push @waits_and_loops, Mojo::IOLoop->recurring(
             2 => sub {
                 my $st = scalar Time::HiRes::time;

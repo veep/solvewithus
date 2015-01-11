@@ -265,6 +265,17 @@ function setup_combined_chat_filler (chats) {
             var usercount = msg.text.split(",").length;
             var newhtml = '<b>Here (' + usercount + '):</b> ' + msg.text;
             if (!(oldhtml === newhtml)) {
+                var mydiv = $("#" + ['chat','text',msg.target_type,msg.target_id].join('-'));
+                console.warn(mydiv.scrollTop(), mydiv.prop("scrollHeight"), mydiv.height());
+                if (! mydiv.data('at_bottom')) {
+                    if (mydiv.scrollTop() < (mydiv.prop("scrollHeight") - mydiv.height())) {
+                        mydiv.data('at_bottom','no');
+                        console.warn('not at bottom (chat)');
+                    } else {
+                        mydiv.data('at_bottom','yes');
+                        console.warn('at bottom (chat)');
+                    }
+                }
                 usersspan.html(newhtml);
                 resize_chat_box($("#chat-box"));
             }                                       

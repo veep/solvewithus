@@ -23,6 +23,9 @@
             </div>
           </div>
         </div>
+        <div class="userlist">
+          <span id="event_usersspan"></span>
+        </div>
         <div id="full-chat-event-<%= $event->id %>" class="collapse in">
           <div class="chat-sticky-messages"><b>Sticky messages:</b></div>
           <div id="chat-text-event-<%= $event->id %>" class="chat-text">
@@ -34,9 +37,6 @@
               </div>
             </div>
           </div>
-        </div>
-        <div class="userlist">
-          <span id="event_usersspan">&nbsp;</span>
         </div>
 %= include 'event/info-modal-frame'
 
