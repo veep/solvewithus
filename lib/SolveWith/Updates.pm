@@ -126,7 +126,7 @@ sub getstream {
 
     if (! $puzzle_id) {
         push @waits_and_loops, Mojo::IOLoop->recurring(
-            3 => sub {
+            2 => sub {
                 my $st = scalar Time::HiRes::time;
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
