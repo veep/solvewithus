@@ -262,7 +262,8 @@ function setup_combined_chat_filler (chats) {
         if (msg.target_type === 'event' && msg.type === 'loggedin') {
             var usersspan = $("#event_usersspan");
             var oldhtml = usersspan.html();
-            var newhtml = '<b>Here:</b> ' + msg.text;
+            var usercount = msg.text.split(",").length;
+            var newhtml = '<b>Here (' + usercount + '):</b> ' + msg.text;
             if (!(oldhtml === newhtml)) {
                 usersspan.html(newhtml);
                 resize_chat_box($("#chat-box"));
