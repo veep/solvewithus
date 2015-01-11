@@ -35,5 +35,8 @@
             </div>
           </div>
         </div>
+        <div class="userlist">
+          <span id="event_usersspan">&nbsp;</span>
+        </div>
 %= include 'event/info-modal-frame'
 

@@ -47,5 +47,41 @@ sub new {
     $_[0]->{chat_id} = $chat->id;
     return $self->next::method( @_ );
 }
+
+sub users_live {
+    my ($self, $cache) = @_;
+    my $event_id = $self->id;
+    if (my $cached_user_list = $cache->get('users_live_event_'. $event_id)) {
+        return @$cached_user_list;
+    }
+    my @loggedin;
+    my $max_id = $cache->compute( 'max user id',
+                                  {expires_in => '300', busy_lock => 10},
+                                  sub { $self->result_source->schema->resultset('User')->get_column('id')->max();}
+                              );
+    my $results = $cache->get_multi_arrayref( [ map { "in event " . $event_id . " " . $_ } (0..$max_id) ] );
+    for my $user_id (0..$max_id) {
+        if ($$results[$user_id]) {
+            my $user = $self->result_source->schema->resultset('User')->find($user_id);
+            if ($user) {
+                push @loggedin, ($user->display_name // $user->google_name // $user->id );
+            }
+        }
+    }
+    my @rv =  sort @loggedin ;
+    my $expire_time=30;
+    if (! @rv) {
+        # People will invalidate it when they join
+        $expire_time=3600;
+    }
+    $cache->set('users_live_event_'. $event_id, \@rv, {expires_in => $expire_time, expires_variance => .2} );
+    return @rv;
+}
+
+sub expire_users_live_cache {
+    my ($self, $cache) = @_;
+    $cache->remove('users_live_event_'. $self->id);
+}
+
 1;
 

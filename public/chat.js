@@ -259,6 +259,16 @@ function setup_combined_chat_filler (chats) {
             }                                       
             return;
         }
+        if (msg.target_type === 'event' && msg.type === 'loggedin') {
+            var usersspan = $("#event_usersspan");
+            var oldhtml = usersspan.html();
+            var newhtml = '<b>Here:</b> ' + msg.text;
+            if (!(oldhtml === newhtml)) {
+                usersspan.html(newhtml);
+                resize_chat_box($("#chat-box"));
+            }                                       
+            return;
+        }
         if (last_seen_id === undefined || 
             (msg.id && last_seen_id < msg.id)) {
             last_seen_id = msg.id;
