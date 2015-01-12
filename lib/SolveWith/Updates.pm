@@ -123,8 +123,7 @@ sub getstream {
     my $last_update_time = 0;
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
-
-    if (! $puzzle_id) {
+    {
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(
           10 => sub {
@@ -135,23 +134,27 @@ sub getstream {
                 $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
             }
 #            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
-            my @logged_in = $event->users_live($cache);
-            @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
-            my $new_text = join(", ", @logged_in);
-            if ($new_text ne $last_set_of_names) {
-                $last_set_of_names = $new_text;
-                my $output = "data: " .
-                             $json->encode({
-                                 type => 'loggedin',
-                                 text => $new_text,
-                                 target_type => 'event',
-                                 target_id => $event_id,
-                             })
-                             ."\n\n";
-                $self->write($output);
-                $self->app->log->debug($output);
+            if (! $puzzle_id) {
+                my @logged_in = $event->users_live($cache);
+                @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
+                my $new_text = join(", ", @logged_in);
+                if ($new_text ne $last_set_of_names) {
+                    $last_set_of_names = $new_text;
+                    my $output = "data: " .
+                    $json->encode({
+                        type => 'loggedin',
+                        text => $new_text,
+                        target_type => 'event',
+                        target_id => $event_id,
+                    })
+                    ."\n\n";
+                    $self->write($output);
+                    $self->app->log->debug($output);
+                }
             }
         });
+    }
+    if (! $puzzle_id) {
         push @waits_and_loops, Mojo::IOLoop->recurring(
             2 => sub {
                 my $st = scalar Time::HiRes::time;
