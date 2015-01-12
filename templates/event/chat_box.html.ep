@@ -1,4 +1,4 @@
-        <div class="navbar chat-header">
+        <div class="navbar chat-header hide_on_small_screen">
           <div class="navbar-inner">
             <ul class="nav">
               <li><a data-toggle="collapse" data-target="#full-chat-event-<%= $event->id %>" href="#" 
@@ -23,7 +23,7 @@
             </div>
           </div>
         </div>
-        <div class="userlist">
+        <div class="userlist hide_on_small_screen">
           <span id="event_usersspan"></span>
         </div>
         <div id="full-chat-event-<%= $event->id %>" class="collapse in">

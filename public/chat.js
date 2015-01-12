@@ -33,6 +33,10 @@ $(document).ready(
             $(this).removeData('modal');
             $(this).find('.modal-body').html('');
         });
+        $('#small_screen_toggle').click(function() {
+            resize_chat_box($("#chat-box"));
+        });
+                                        
         String.prototype.ucfirst = function()
         {
              return this.charAt(0).toUpperCase() + this.substr(1);
@@ -41,6 +45,15 @@ $(document).ready(
 );
 
 function resize_chat_box(cb) {
+    if ($("#small_screen_toggle:checked").length > 0) {
+//        console.log('hiding');
+        $(".hide_on_small_screen").hide();
+        $(".show_on_small_screen").show();
+    } else {
+//        console.log('not hiding');
+        $(".hide_on_small_screen").show();
+        $(".show_on_small_screen").hide();
+    }        
     var target = $(window).height();
     var outer_current = cb.height();
     openchats = cb.children().filter('[class*="in"]').filter('[class*="collapse"]').children('.chat-text');
@@ -68,12 +81,16 @@ function resize_chat_box(cb) {
     openchats.each(
         function() {
             inner_current += $(this).height();
+//            console.log('adding',$(this).height());
         }
     );
 
     cb.siblings().each(
         function() {
-            target = target - $(this).outerHeight(true);
+            if ($(this).filter(':visible').length) {
+                target = target - $(this).outerHeight(true);
+//                console.log('subtracting',$(this).outerHeight(true),$(this).html());
+            }
         }
     );
     
@@ -91,7 +108,6 @@ function resize_chat_box(cb) {
             $(this).scrollLeft(0);
         }
     );
-            
 }
           
 var last_seen = new Object();
@@ -174,11 +190,17 @@ function setup_combined_chat_filler (chats) {
             var puzzle_id = chatbox[2];
             $(chatbox[0]).parent().on('puzzleurl',function(event, url) {
                 if (url) {
-                    $('#puzzle-link-default-' + puzzle_id).hide();
-                    $('#puzzle-link-' + puzzle_id).html(url);
+                    $('.puzzle-link-default-' + puzzle_id).hide();
+                    $('.puzzle-link-' + puzzle_id).html(url);
+                    var oldtext=$('.puzzle-link-small-' + puzzle_id).find('a').first().text();
+//                    console.log(oldtext);
+                    $('.puzzle-link-small-' + puzzle_id).html(url);
+                    $('.puzzle-link-small-' + puzzle_id).find('a').first().text(oldtext);
+                    $('.puzzle-link-small-' + puzzle_id).show();
                 } else {
-                    $('#puzzle-link-default-' + puzzle_id).show();
-                    $('#puzzle-link-' + puzzle_id).html('');
+                    $('.puzzle-link-default-' + puzzle_id).show();
+                    $('.puzzle-link-' + puzzle_id).html('');
+                    $('.puzzle-link-' + puzzle_id).html('');
                 }
             });
         }

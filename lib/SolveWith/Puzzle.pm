@@ -26,6 +26,7 @@ sub single {
   if ($status_msg) {
       $state = $status_msg->text;
   }
+  $self->stash( small_screen => ($self->session->{toggle_small} ? 'checked' : '') );
   $self->stash( current => $puzzle);
   $self->stash( event => $event);
   $self->stash( tree => $event->get_puzzle_tree());

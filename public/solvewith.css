@@ -100,12 +100,26 @@ td.puzzle-name-cell {
     display: none;
 }
 
+.show_on_small_screen {
+    background-color: #DDD;
+    display: none;
+    padding-left: 4px;
+}
+
 .modal-body {
     max-height: 500px;
 }
 
 .puzzle-info-button {
     white-space: nowrap;
+}
+
+.small-link-with-url {
+    display: none;
+}
+
+#small_screen_toggle_container {
+    display: none;
 }
 
 .mynowrap {
@@ -240,6 +254,7 @@ td {
     height: 10px;
     font-size: 4px;
 }
+
 
 #show-closed-button {
     display: none;

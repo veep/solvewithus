@@ -1,4 +1,4 @@
-<div>
+<div class="hide_on_small_screen">
   <ul class="breadcrumb">
     <li><%= link_to $event->team->display_name => '/' %> <span class="divider">/</span></li>
 % if ($current) {
@@ -10,3 +10,4 @@
 % }
   </li></ul>
 </div>
+<div class="show_on_small_screen"><%= link_to $event->display_name => event => { id => $event->id} %></div>

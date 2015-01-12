@@ -349,6 +349,11 @@ sub modal {
             $self->render(text => 'OK', status => 200);
             return;
         }
+        if ($form eq 'toggle_small') {
+            $self->session->{toggle_small} = !$self->session->{toggle_small};
+            $self->render(text => 'OK', status => 200);
+            return;
+        }
     }
     $self->render(text => 'There has been a problem.', status => 500);
 }
@@ -388,7 +393,6 @@ sub status {
     }
     $self->render_json(\@results);
 }
-
 
 sub get_puzzle_table_html {
     my (undef, $self, $event) = @_;
