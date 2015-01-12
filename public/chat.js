@@ -49,10 +49,12 @@ function resize_chat_box(cb) {
 //        console.log('hiding');
         $(".hide_on_small_screen").hide();
         $(".show_on_small_screen").show();
+        $(".chat-input").attr('rows',1);
     } else {
 //        console.log('not hiding');
         $(".hide_on_small_screen").show();
         $(".show_on_small_screen").hide();
+        $(".chat-input").attr('rows',2);
     }        
     var target = $(window).height();
     var outer_current = cb.height();
