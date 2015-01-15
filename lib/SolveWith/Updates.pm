@@ -233,7 +233,7 @@ sub getstream {
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => $message_loop_sub,
     );
-    &$message_loop_sub;
+#    &$message_loop_sub;
     {
         my $last_set_of_names = 'N/A';
         my $names_in_event_sub = sub {
