@@ -25,9 +25,17 @@ sub _check_access {
     return "OK!";
 }
 
+sub tyler_log {
+    my $self = shift;
+    if ($self->session->{userid} == 1 or $self->session->{userid} == 28) {
+        $self->app->log->info(join(" ",$self->session->{userid},@_));
+    }
+}
+
 sub getstream {
     my $self = shift;
     return unless _check_access($self);
+    tyler_log($self,'done with access');
     my $event_id = $self->stash('event_id');
     my $puzzle_id = $self->stash('puzzle_id');
     my $last_update = $self->stash('last') || 0;
@@ -42,8 +50,10 @@ sub getstream {
     my @waits_and_loops;
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     my $last_sticky_status = '';
+    tyler_log($self,'starting loops');
     push @waits_and_loops, Mojo::IOLoop->recurring(
         5 => sub {
+            tyler_log($self,'sticky loop start');
             if (my @sticky_statuses = $user->user_messages()) {
                 my $output = "data: " .
                 $json->encode({
@@ -56,6 +66,7 @@ sub getstream {
                     $last_sticky_status = $output;
                 }
             }
+            tyler_log($self,'sticky loop end');
         });
     if (my @sticky_statuses = $user->user_messages()) {
         my $output = "data: " .
@@ -73,6 +84,7 @@ sub getstream {
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(
           10 => sub {
+            tyler_log($self,'loggedin start');
             if (! $cache->get(join(' ','in puzzle',$puzzle_id,$self->session->{userid}))) {
                 $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
                 $puzzle->expire_users_live_cache($cache);
@@ -96,6 +108,7 @@ sub getstream {
                 $self->write($output);
                 $self->app->log->debug($output);
             }
+            tyler_log($self,'loggedin end');
         });
         $self->app->log->debug("IO Loops so far: " .  join(", ",@waits_and_loops));
     }
@@ -127,31 +140,33 @@ sub getstream {
         my $last_set_of_names = 'N/A';
         push @waits_and_loops, Mojo::IOLoop->recurring(
           10 => sub {
-            if (! $cache->get(join(' ','in event',$event_id,$self->session->{userid}))) {
-                $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
-                $event->expire_users_live_cache($cache);
-            } else {
-                $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
-            }
+              tyler_log($self,'names start');
+              if (! $cache->get(join(' ','in event',$event_id,$self->session->{userid}))) {
+                  $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
+                  $event->expire_users_live_cache($cache);
+              } else {
+                  $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
+              }
 #            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
-            if (! $puzzle_id) {
-                my @logged_in = $event->users_live($cache);
-                @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
-                my $new_text = join(", ", @logged_in);
-                if ($new_text ne $last_set_of_names) {
-                    $last_set_of_names = $new_text;
-                    my $output = "data: " .
-                    $json->encode({
-                        type => 'loggedin',
-                        text => $new_text,
-                        target_type => 'event',
-                        target_id => $event_id,
-                    })
-                    ."\n\n";
-                    $self->write($output);
-                    $self->app->log->debug($output);
-                }
-            }
+              if (! $puzzle_id) {
+                  my @logged_in = $event->users_live($cache);
+                  @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
+                  my $new_text = join(", ", @logged_in);
+                  if ($new_text ne $last_set_of_names) {
+                      $last_set_of_names = $new_text;
+                      my $output = "data: " .
+                      $json->encode({
+                          type => 'loggedin',
+                          text => $new_text,
+                          target_type => 'event',
+                          target_id => $event_id,
+                      })
+                      ."\n\n";
+                      $self->write($output);
+                      $self->app->log->debug($output);
+                  }
+              }
+              tyler_log($self,'names end');
         });
     }
     if (! $puzzle_id) {
