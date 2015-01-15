@@ -5,7 +5,8 @@
    <div class="row-fluid">
      <div class="span4">
        <h2>Thanks!</h2>
-           <p>Thanks for signing up! We'll let you know when there's news.</p>
+       <p>Thanks for signing up! We'll let you know when there's news.</p>
+       <p>If you reached this page in error, you can try to a reset: <a href="/reset" class="btn">Reset Login</a></p>
      </div>
    </div>
  </div>
