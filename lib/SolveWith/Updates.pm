@@ -27,6 +27,7 @@ sub _check_access {
 
 sub tyler_log {
     my $self = shift;
+    return;
     if ($self->session->{userid} == 1 or $self->session->{userid} == 28) {
         $self->app->log->info(join(" ",$self->session->{userid},@_));
     }
@@ -54,11 +55,6 @@ sub getstream {
     my $last_sticky_status = '';
     tyler_log($self,'starting loops');
 
-    if (!$puzzle_id) {
-        push @waits_and_loops, Mojo::IOLoop->timer(
-            25 => sub {$stream->close();},
-        );
-    }
     if ($puzzle_id) {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
