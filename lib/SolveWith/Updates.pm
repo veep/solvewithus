@@ -51,33 +51,6 @@ sub getstream {
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     my $last_sticky_status = '';
     tyler_log($self,'starting loops');
-    push @waits_and_loops, Mojo::IOLoop->recurring(
-        5 => sub {
-            tyler_log($self,'sticky loop start');
-            if (my @sticky_statuses = $user->user_messages()) {
-                my $output = "data: " .
-                $json->encode({
-                    type => 'sticky_status',
-                    status => { map { $_->message_id->id => $_->status } @sticky_statuses },
-                })
-                ."\n\n";
-                if ($output ne $last_sticky_status) {
-                    $self->write($output);
-                    $last_sticky_status = $output;
-                }
-            }
-            tyler_log($self,'sticky loop end');
-        });
-    if (my @sticky_statuses = $user->user_messages()) {
-        my $output = "data: " .
-        $json->encode({
-            type => 'sticky_status',
-            status => { map { $_->message_id->id => $_->status } @sticky_statuses },
-        })
-        ."\n\n";
-        $self->write($output);
-        $last_sticky_status = $output;
-    }
     if ($puzzle_id) {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
@@ -170,8 +143,7 @@ sub getstream {
         });
     }
     if (! $puzzle_id) {
-        push @waits_and_loops, Mojo::IOLoop->recurring(
-            2 => sub {
+        my $puzzle_html_table = sub {
                 my $st = scalar Time::HiRes::time;
                 my $table_html = SolveWith::Event->get_puzzle_table_html($self, $event);
                 if ($table_html ne $last_puzzle_table_html) {
@@ -190,7 +162,10 @@ sub getstream {
                     $self->write( "data: " . $json->encode($output_hash) . "\n\n");
                 }
                 $self->app->log->debug('table html loop: ' . (Time::HiRes::time - $st));
-            }
+            };
+        &$puzzle_html_table;
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            2 => $puzzle_html_table,
         );
     }
     push @waits_and_loops, Mojo::IOLoop->recurring(
@@ -263,7 +238,27 @@ sub getstream {
             }
         }
     );
-};
+    my $sticky_status_sub = sub {
+        tyler_log($self,'sticky loop start');
+        if (my @sticky_statuses = $user->user_messages()) {
+            my $output = "data: " .
+            $json->encode({
+                type => 'sticky_status',
+                status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+            })
+            ."\n\n";
+            if ($output ne $last_sticky_status) {
+                $self->write($output);
+                $last_sticky_status = $output;
+            }
+        }
+        tyler_log($self,'sticky loop end');
+    };
+    &$sticky_status_sub;
+    push @waits_and_loops, Mojo::IOLoop->recurring(
+        5 => $sticky_status_sub,
+    );
+}
 
 sub _get_rendered_message {
     my ($self, $message, $json, $target_type, $target_id) = @_;
