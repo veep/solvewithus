@@ -59,8 +59,7 @@ sub getstream {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
-        push @waits_and_loops, Mojo::IOLoop->recurring(
-          10 => sub {
+        my $logged_in_puzzle_loop = sub {
             tyler_log($self,'loggedin start');
             if (! $cache->get(join(' ','in puzzle',$puzzle_id,$self->session->{userid}))) {
                 $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
@@ -86,7 +85,11 @@ sub getstream {
                 $self->app->log->debug($output);
             }
             tyler_log($self,'loggedin end');
-        });
+        };
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            10 => $logged_in_puzzle_loop
+        );
+        &$logged_in_puzzle_loop;
         $self->app->log->debug("IO Loops so far: " .  join(", ",@waits_and_loops));
     }
     $self->on(finish => sub {
@@ -113,39 +116,6 @@ sub getstream {
     my $last_update_time = 0;
     my $last_puzzle_table_html = '';
     my $last_form_round_list_html = '';
-    {
-        my $last_set_of_names = 'N/A';
-        push @waits_and_loops, Mojo::IOLoop->recurring(
-          10 => sub {
-              tyler_log($self,'names start');
-              if (! $cache->get(join(' ','in event',$event_id,$self->session->{userid}))) {
-                  $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
-                  $event->expire_users_live_cache($cache);
-              } else {
-                  $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
-              }
-#            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
-              if (! $puzzle_id) {
-                  my @logged_in = $event->users_live($cache);
-                  @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
-                  my $new_text = join(", ", @logged_in);
-                  if ($new_text ne $last_set_of_names) {
-                      $last_set_of_names = $new_text;
-                      my $output = "data: " .
-                      $json->encode({
-                          type => 'loggedin',
-                          text => $new_text,
-                          target_type => 'event',
-                          target_id => $event_id,
-                      })
-                      ."\n\n";
-                      $self->write($output);
-                      $self->app->log->debug($output);
-                  }
-              }
-              tyler_log($self,'names end');
-        });
-    }
     if (! $puzzle_id) {
         my $puzzle_html_table = sub {
                 my $st = scalar Time::HiRes::time;
@@ -186,62 +156,6 @@ sub getstream {
                 $self->write( "data: " . $json->encode($output_hash) . "\n\n");
             }
         });
-    push @waits_and_loops, Mojo::IOLoop->recurring(
-        1 => sub {
-            my @messages = $self->db->resultset('Message')->search(
-                { type => \@types,
-                  id => { '>', $last_update},
-                  chat_id => [@chat_ids],
-                },
-                {order_by => 'id'}
-            );
-            my ($event_sent, $puzzle_sent) = (0,0);
-            for my $message (@messages) {
-                my ($target_type, $target_id);
-                if ($message->chat_id == $event_chat_id) {
-                    ($target_type, $target_id) = ('event', $event_id);
-                    $event_sent = 1;
-                } else {
-                    ($target_type, $target_id) = ('puzzle', $puzzle_id);
-                    $puzzle_sent = 1;
-                }
-                my $rendered = $cache->compute(join(' ',
-                                                    'rendered message with target',
-                                                    $message->id,
-                                                    $message->type,
-                                                ),
-                                               {expires_in => 7200, expires_variance => 0.2},
-                                               sub {
-                                                   return _get_rendered_message($self,
-                                                                                $message,
-                                                                                $json,
-                                                                                $target_type,
-                                                                                $target_id,
-                                                                            );
-                                               }
-                                           );
-                $self->write( "data: $rendered\n\n");
-                $last_update_time = time;
-                $last_update = $message->id;
-            }
-            if ($event_sent) {
-                $self->write( "data: " . $json->encode(
-                    {
-                        type => 'done', target_type => 'event', target_id => $event_id,
-                    }) . "\n\n");
-            }
-            if ($puzzle_sent) {
-                $self->write( "data: " . $json->encode(
-                    {
-                        type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
-                    }) . "\n\n");
-            }
-            if (time - $last_update_time > 15) {
-                $last_update_time = time;
-                $self->write( "ping: $last_update_time\n\n");
-            }
-        }
-    );
     my $sticky_status_sub = sub {
         tyler_log($self,'sticky loop start');
         if (my @sticky_statuses = $user->user_messages()) {
@@ -262,6 +176,100 @@ sub getstream {
     push @waits_and_loops, Mojo::IOLoop->recurring(
         5 => $sticky_status_sub,
     );
+    my $message_loop_sub = sub {
+        my @messages = $self->db->resultset('Message')->search(
+            { type => \@types,
+              id => { '>', $last_update},
+              chat_id => [@chat_ids],
+          },
+                {order_by => 'id'}
+            );
+        my ($event_sent, $puzzle_sent) = (0,0);
+        for my $message (@messages) {
+            my ($target_type, $target_id);
+            if ($message->chat_id == $event_chat_id) {
+                ($target_type, $target_id) = ('event', $event_id);
+                $event_sent = 1;
+            } else {
+                ($target_type, $target_id) = ('puzzle', $puzzle_id);
+                $puzzle_sent = 1;
+            }
+            my $rendered = $cache->compute(join(' ',
+                                                'rendered message with target',
+                                                $message->id,
+                                                $message->type,
+                                            ),
+                                           {expires_in => 7200, expires_variance => 0.2},
+                                           sub {
+                                               return _get_rendered_message($self,
+                                                                            $message,
+                                                                            $json,
+                                                                            $target_type,
+                                                                            $target_id,
+                                                                        );
+                                           }
+                                       );
+            $self->write( "data: $rendered\n\n");
+            $last_update_time = time;
+            $last_update = $message->id;
+        }
+        if ($event_sent) {
+            $self->write( "data: " . $json->encode(
+                {
+                    type => 'done', target_type => 'event', target_id => $event_id,
+                }) . "\n\n");
+        }
+        if ($puzzle_sent) {
+            $self->write( "data: " . $json->encode(
+                {
+                    type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
+                }) . "\n\n");
+        }
+        if (time - $last_update_time > 15) {
+            $last_update_time = time;
+            $self->write( "ping: $last_update_time\n\n");
+        }
+    };
+    push @waits_and_loops, Mojo::IOLoop->recurring(
+        1 => $message_loop_sub,
+    );
+    &$message_loop_sub;
+    {
+        my $last_set_of_names = 'N/A';
+        my $names_in_event_sub = sub {
+            tyler_log($self,'names start');
+            if (! $cache->get(join(' ','in event',$event_id,$self->session->{userid}))) {
+                $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
+                $event->expire_users_live_cache($cache);
+            } else {
+                $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
+            }
+            #            $self->app->log->debug(join(" ","Updated time for", $self->session->{userid}, $puzzle->id));
+            if (! $puzzle_id) {
+                my @logged_in = $event->users_live($cache);
+                  @logged_in = map { my $foo = $_; $foo =~ s/( .).*/$1/; $foo} @logged_in;
+                my $new_text = join(", ", @logged_in);
+                if ($new_text ne $last_set_of_names) {
+                    $last_set_of_names = $new_text;
+                    my $output = "data: " .
+                    $json->encode({
+                        type => 'loggedin',
+                        text => $new_text,
+                        target_type => 'event',
+                        target_id => $event_id,
+                    })
+                    ."\n\n";
+                    $self->write($output);
+                    $self->app->log->debug($output);
+                }
+            }
+            tyler_log($self,'names end');
+        };
+        &$names_in_event_sub;
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            10 => $names_in_event_sub
+        );
+    }
 }
 
 sub _get_rendered_message {
