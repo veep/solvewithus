@@ -41,7 +41,7 @@ sub getstream {
     my $last_update = $self->stash('last') || 0;
     $self->res->headers->content_type('text/event-stream');
     $self->res->headers->header('X-Accel-Buffering' => 'no');
-    Mojo::IOLoop->stream($self->tx->connection)->timeout(120);
+    my $stream = Mojo::IOLoop->stream($self->tx->connection)->timeout(120);
 
     my $json = Mojo::JSON->new();
     my $cache;
@@ -51,6 +51,12 @@ sub getstream {
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     my $last_sticky_status = '';
     tyler_log($self,'starting loops');
+
+    if (!$puzzle_id) {
+        push @waits_and_loops, Mojo::IOLoop->timer(
+            25 => sub {$stream->close();},
+        );
+    }
     if ($puzzle_id) {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
