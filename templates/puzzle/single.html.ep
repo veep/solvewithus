@@ -4,7 +4,7 @@
 %= javascript '/chat.js' . '?' . app->code_version
 % if ($puzzle_stream_host) {
 %= javascript begin
-var puzzle_stream_host = '<%= $puzzle_stream_host %>';
+puzzle_stream_host = '<%= $puzzle_stream_host %>';
 %end
 % }
 
