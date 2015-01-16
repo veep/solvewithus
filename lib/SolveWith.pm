@@ -20,6 +20,7 @@ sub startup {
   $self->plugin('Config');
   $self->secret("***REMOVED***");
   $self->sessions->default_expiration(3000000);
+  $self->sessions->cookie_domain('.solvewith.us');
 
   if ($self->mode eq 'production') {
       my $cmd = '/usr/bin/svnversion ' . $self->static->root;

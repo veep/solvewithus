@@ -33,6 +33,11 @@ sub single {
   $self->stash( ss_url => $self->url_for('puzzle_ss', id => $id));
   $self->stash( state => $state );
   $self->stash( info => \@info );
+  if ($self->app->mode eq 'production') {
+      $self->stash( puzzle_stream_host => "$id.puzzle.solvewith.us");
+  } else {
+      $self->stash( puzzle_stream_host => '');
+  }
 }
 
 sub modal {
