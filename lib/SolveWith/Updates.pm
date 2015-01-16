@@ -37,6 +37,7 @@ sub getstream {
     my $self = shift;
     $self->res->headers->add(Pragma => 'no-cache');
     $self->res->headers->add('Cache-Control' => 'no-cache, no-store');
+    $self->res->headers->add('Access-Control-Allow-Origin' => 'http://solvewith.us, http://puzzles.solvewith.us');
     return unless _check_access($self);
     tyler_log($self,'done with access');
     my $event_id = $self->stash('event_id');

@@ -1,5 +1,3 @@
-var puzzle_stream_host = '';
-
 $(document).ready(
     function() {
         setup_chat_text_boxes();
@@ -186,7 +184,10 @@ function check_eventsources() {
 var last_seen_id = 0;
 
 function setup_combined_chat_filler (chats) {
-    var stream_url = puzzle_stream_host + '/stream';
+    var stream_url = '/stream';
+    if (puzzle_stream_host != undefined && puzzle_stream_host) {
+        stream_url = 'http://' + puzzle_stream_host + '/stream';
+    }
     $.each(chats, function (i, chatbox) {
         stream_url = Array(stream_url, chatbox[1], chatbox[2]).join('/');
 
