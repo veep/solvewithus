@@ -21,7 +21,7 @@
 <li><u><%= $puzzle->{puzzle}->display_name %></u>
 %            } elsif ($puzzle->{state} eq 'open') {
 <li>
-    %            if ($puzzle->{priority} eq 'high') {
+    %            if ($puzzle->{priority} && $puzzle->{priority} eq 'high') {
   <b><%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %></b>
   %            } else {
 <%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %>
@@ -30,9 +30,9 @@
   <li class="muted"><span class="label">Closed</span>
     <%= link_to $puzzle->{puzzle}->display_name => puzzle => { id => $puzzle->{puzzle}->id } %>
 % }
-%            if ($puzzle->{priority} eq 'high') {
+%            if ($puzzle->{priority} && $puzzle->{priority} eq 'high') {
 <span class="label label-success">High</span>
-%            } elsif ($puzzle->{priority} eq 'low') {
+%            } elsif ($puzzle->{priority} && $puzzle->{priority} eq 'low') {
 <span class="label">Low</span>
 %            }
 (Open <%= timediff($puzzle->{open_time}) %><!--
