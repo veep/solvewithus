@@ -130,4 +130,21 @@ resize_chat_box($('#chat-box'));
    <a type="button" class="btn btn-mini" href="<%== $current->spreadsheet // $ss_url %>" data-placement="bottom" rel="tooltip" title="Direct to Google Doc">
      Jump to Google Doc
    </a>
- </div>
+</div>
+
+% if (!defined($toggle_small)) {
+%=javascript begin
+$(document).ready(
+  function () {
+    if ($(window).height() < 1000) {
+      $('#small_screen_toggle').click();
+      resize_chat_box($('#chat-box'));
+       setTimeout(function () {
+        jQuery.post('/event/modal', { formname : 'toggle_small', eventid : <%= $event->id %> });
+        }, 5000);
+    }
+  }
+);
+%end
+% }
+ 
