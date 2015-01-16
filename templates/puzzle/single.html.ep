@@ -1,14 +1,12 @@
 % layout 'default';
 % title $current->display_name;
 %= javascript '/puzzle.js' . '?' . app->code_version
-%= javascript begin
-% if ($puzzle_stream_host) {
-var puzzle_stream_host = <%= $puzzle_stream_host %>;
-% } else {
-var puzzle_stream_host = '';
-% }
-%end
 %= javascript '/chat.js' . '?' . app->code_version
+% if ($puzzle_stream_host) {
+%= javascript begin
+var puzzle_stream_host = <%= $puzzle_stream_host %>;
+%end
+% }
 
 %= include 'puzzle/info-modal-frame'
 

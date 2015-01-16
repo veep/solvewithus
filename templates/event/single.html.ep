@@ -1,9 +1,6 @@
 % layout 'default';
 % title $event->display_name;
 %= javascript '/event.js' . '?' . app->code_version
-%= javascript begin
-var puzzle_stream_host = '';
-%end
 %= javascript '/chat.js' . '?' . app->code_version
 
 %= include 'puzzle/info-modal-frame'

@@ -1,3 +1,5 @@
+var puzzle_stream_host = '';
+
 $(document).ready(
     function() {
         setup_chat_text_boxes();
