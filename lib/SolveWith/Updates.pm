@@ -35,7 +35,8 @@ sub tyler_log {
 
 sub getstream {
     my $self = shift;
-    $self->res->headers->add('Access-Control-Allow-Origin' => 'http://solvewith.us');
+    $self->res->headers->add(Pragma => 'no-cache');
+    $self->res->headers->add('Cache-Control' => 'no-cache, no-store');
     return unless _check_access($self);
     tyler_log($self,'done with access');
     my $event_id = $self->stash('event_id');
