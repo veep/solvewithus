@@ -21,7 +21,7 @@
         $('.modal-form').on('submit', function(e) {
             e.preventDefault();
             jQuery.post('/puzzle/modal', $(this).serialize());
-            $(this).parents('.modal').first().modal('hide');
+            $('.modal').modal('hide');
         });
 
 %end

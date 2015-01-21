@@ -69,9 +69,8 @@ Set Open Puzzle Priorities:
   </td>
   <td class="state-column-cell">
     <span id="puzzle-info-link-<%= $puzzle->{id} %>">
-      <a href="#" data-toggle="modal" class="btn btn-mini puzzle-info-button"
-         data-remote="/puzzle/infomodal/<%= $puzzle->{id} %>"
-         data-target="#infoModal">
+      <a href="#" class="btn btn-mini puzzle-info-button"
+         onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '/puzzle/infomodal/<%= $puzzle->{id} %>'});$('#infoModal').modal('show');false;">
         <i class="icon-edit"></i> Info
       </a>
     </span>

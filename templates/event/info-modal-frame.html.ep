@@ -20,7 +20,6 @@
         });
         $('.modal-form').on('submit', function(e) {
             e.preventDefault();
-            jQuery.post('/chat', $(this).serialize());
             $(this).parents('.modal').first().modal('hide');
         });
 
