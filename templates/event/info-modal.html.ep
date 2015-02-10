@@ -29,7 +29,7 @@
     <tr class="<%= $row_class %>">
       <td class="mynowrap">Live <button class="show-kill-sticky btn btn-danger btn-mini">Kill</button></td>
       <td class="mynowrap"><%= $my_state %> <button data-stickyid="<%= $message->id %>"
-        class="toggle-mysticky btn btn-mini btn-info">Toggle<%= ($my_state eq 'Hidden' ? ' (requires reload)' : '');%></button></td>
+        class="toggle-mysticky btn btn-mini btn-info"><%= ($my_state eq 'Hidden' ? 'Show (requires reload)' : 'Hide');%></button></td>
       <td class="mynowrap"><%= ( $message->user ? $message->user->display_name : '') %></td>
       <td class="mynowrap"><span class="info-modal-timestamp" value="<%= $message->timestamp %>"></span></td>
       <td><strong><%= $message->text %></strong></td>
