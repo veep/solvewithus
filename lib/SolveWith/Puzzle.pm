@@ -243,4 +243,27 @@ sub infomodal {
               );
 }
 
+sub testsolve_create {
+    my $self = shift;
+    my $title = $self->param('title');
+    if (!defined($title)) {
+        return $self->render(text => 'There has been a problem. Please include a title param', status => 500);
+    }
+    my $puzzle = $self->db->resultset('Puzzle')->create({
+        display_name => $title,
+        state => 'open',
+    });
+    my $token = `cat /proc/sys/kernel/random/uuid`;
+    chomp $token;
+    $puzzle->direct_token($token);
+    return $self->render(text => $self->url_for(
+        'puzzle_direct', token => $token)->to_abs->to_string, status => 200);
+}
+
+sub direct {
+    my $self = shift;
+    my $token = $self->stash('token');
+    return $self->render(text=> $token, status => 200);
+}
+
 1;

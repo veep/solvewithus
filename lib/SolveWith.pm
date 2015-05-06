@@ -75,6 +75,7 @@ sub startup {
   $r->route('/event/status/:id/:puzzle_id', id => qr/\d+/, puzzle_id => qr/\d+/)->
              name('event_status')->to(controller => 'event', action => 'status');
 
+  $r->route('/puzzle/direct/:token')->name('puzzle_direct')->to(controller => 'puzzle', action => 'direct');
   $r->route('/puzzle/:id', id => qr/\d+/)->name('puzzle')->to(controller => 'puzzle', action => 'single');
   $r->route('/puzzle/:id/ss', id => qr/\d+/)->name('puzzle_ss')->to(controller => 'puzzle', action => 'spreadsheet_url');
   $r->route('/puzzle/modal')->to(controller => 'puzzle', action => 'modal');
@@ -82,6 +83,8 @@ sub startup {
              to(controller => 'puzzle', action => 'infomodal');
   $r->route('/event/infomodal/:id', id=> qr/\d+/)->name('eventinfomodal')->
              to(controller => 'event', action => 'infomodal');
+
+  $r->route('/testsolve_url')->to(controller => 'puzzle', action => 'testsolve_create');
 
   $r->route('/updates/:type/:id/:last', id => qr/\d+/, type => ['event','puzzle'])
       ->name('updates')->to(controller => 'updates', action => 'getnew');
