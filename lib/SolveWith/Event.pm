@@ -45,10 +45,19 @@ sub single {
 sub all {
   my $self = shift;
 
-  my $gs = $self->db->resultset('Team');
-  my @teams;
   my $user = $self->db->resultset('User')->find($self->session->{userid});
 
+  my @puz = $self->db->resultset('Puzzle')->search(
+      {
+          'puzzle_users.user_id' => $user->id,
+          'messages.type' => 'direct_token',
+      },
+      {
+          join => [ 'puzzle_users', {'chat' => 'messages'} ],
+      }
+  )->all();
+  my @teams;
+  my $gs = $self->db->resultset('Team');
   while (my $team = $gs->next) {
       my $has_access = 0;
       eval {
@@ -67,6 +76,7 @@ sub all {
   }
   $self->stash(user => $user);
   $self->stash(teams => \@teams);
+  $self->stash(token_puzzles => \@puz);
 }
 
 sub add {

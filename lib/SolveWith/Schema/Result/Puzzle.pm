@@ -49,6 +49,14 @@ sub spreadsheet_peek {
     return $url;
 }
 
+sub direct_token {
+    my ($self, $token, $user_id) = @_;
+    if (defined($token)) {
+        $self->chat->add_of_type('direct_token',$token,$user_id);
+    }
+    return $self->chat->get_latest_of_type('direct_token');
+}
+
 sub users_live {
     my ($self, $cache) = @_;
     my $puzzle_id = $self->id;
