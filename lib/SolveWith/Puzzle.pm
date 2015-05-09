@@ -188,6 +188,22 @@ sub spreadsheet_url {
     $self->render('puzzle/waiting_for_spreadsheet');
 }
 
+sub spreadsheet_url_direct {
+    my $self = shift;
+    my $token = $self->stash('token');
+    my $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+    return $self->redirect_to('about:blank') unless $puzzle;
+    if ($puzzle->spreadsheet) {
+        my $user = $self->db->resultset('User')->find($self->session->{userid});
+        if ($user) {
+            SolveWith::Spreadsheet::make_user_token_puzzle_editor($user, $puzzle->display_name, $token);
+        }
+        return $self->redirect_to($puzzle->spreadsheet);
+    }
+    $self->res->headers->add('Refresh', '2; url=' . $self->url_for('puzzle_ss_direct', token => $token));
+    $self->render('puzzle/waiting_for_spreadsheet');
+}
+
 sub infomodal {
     my $self = shift;
     my $id = $self->stash('id');
@@ -261,9 +277,25 @@ sub testsolve_create {
 }
 
 sub direct {
-    my $self = shift;
-    my $token = $self->stash('token');
-    return $self->render(text=> $token, status => 200);
+  my $self = shift;
+  my $token = $self->stash('token');
+  my $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+  return $self->redirect_to('events') unless $puzzle;
+  my @info = $puzzle->chat->search_related('messages',
+                                           { type => 'puzzleinfo', },
+                                           {order_by => 'id'});
+  my $status_msg = $puzzle->chat->get_latest_of_type('state');
+  my $state = 'open';
+  if ($status_msg) {
+      $state = $status_msg->text;
+  }
+  $self->stash( toggle_small => $self->session->{toggle_small});
+  $self->stash( small_screen => ($self->session->{toggle_small} ? 'checked' : '') );
+  $self->stash( current => $puzzle);
+  $self->stash( ss_url => $self->url_for('puzzle_ss_direct', token => $token));
+  $self->stash( state => $state );
+  $self->stash( info => \@info );
+  $self->stash( token => $token);
 }
 
 1;

@@ -8,12 +8,18 @@ use SolveWith::Spreadsheet;
 use Mail::SendEasy;
 use Fcntl qw(:flock);
 use App::Daemon qw(daemonize);
+use Log::Log4perl;
 
 my $puzzle_id = shift;
+my $token = shift;
 
 $App::Daemon::logfile    = $FindBin::Bin . "/../log/give-puzzle-ss.log";
 $App::Daemon::pidfile    = $FindBin::Bin . "/give-puzzle-ss-$puzzle_id.pid";
 daemonize();
+
+my $logger = Log::Log4perl->get_logger('house.bedrm.desk.topdrwr');
+
+$logger->info('starting',$puzzle_id, $token);
 
 my $lock = $FindBin::Bin . '/do-google-docs-stuff.lock';
 my $lock_fh;
@@ -35,10 +41,12 @@ my $puzzle = $schema->resultset('Puzzle')->find($puzzle_id) || die "No puzzle fo
 my $url = $puzzle->spreadsheet_peek;
 if ($url) {
     print "$$ puzzle $puzzle_id has SS already\n";
+    $logger->info("$puzzle_id already has a SS");
     exit 0;
 } else {
     eval {
-        $url = SolveWith::Spreadsheet::puzzle_spreadsheet($puzzle);
+        $logger->info("$puzzle_id trying puzzle_spreadsheet $token");
+        $url = SolveWith::Spreadsheet::puzzle_spreadsheet($puzzle, $token || '',$logger);
     };
 }
 

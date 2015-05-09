@@ -38,7 +38,9 @@ sub spreadsheet {
     }
     $url = $self->chat->get_spreadsheet;
     if (! defined($url)) {
-        SolveWith::Spreadsheet::trigger_puzzle_spreadsheet(undef,$self);
+        my $token = $self->direct_token();
+        $token = $token->text if defined($token);
+        SolveWith::Spreadsheet::trigger_puzzle_spreadsheet(undef,$self,$token);
     }
     return $url;
 }

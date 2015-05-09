@@ -1,0 +1,148 @@
+% layout 'default';
+% title $current->display_name;
+%= javascript '/puzzle.js' . '?' . app->code_version
+%= javascript '/chat.js' . '?' . app->code_version
+
+%= include 'puzzle/info-modal-frame'
+
+% if ($state ne 'open' or @{$info}) {
+
+<div id="initial-puzzle-info-modal" class="modal hide" tabindex="-1">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    <h3>Puzzle Information You May Have Missed...</h3>
+  </div>
+  <div class="modal-body">
+% if ($state eq 'closed') {
+<p>This puzzle is closed</p>
+% } elsif ($state eq 'dead') {
+<p>This puzzle is "dead" (marked invalid)</p>
+% } elsif ($state ne 'open') {
+<p>This puzzle is in a very weird state</p>
+%}
+% for my $info_message (@{$info}) {
+<p>Info: <%== $info_message->text %></p>
+%}
+
+  </div>
+  <div class="modal-footer">
+    <button data-dismiss="modal" class="btn">Noted</a>
+  </div>
+</div>
+
+%}
+
+
+<div class="container-fluid">
+  <div class="row-fluid everything-row">
+    <div id="everything" class="span3">
+      <div id="small_screen_toggle_container"><input id="small_screen_toggle" type="checkbox" <%= $small_screen %> />Small screen optimize</div>
+      <!--sidebar content-->
+      <div id="chat-box" >
+        <div class="navbar chat-header hide_on_small_screen">
+          <div class="navbar-inner">
+            <ul class="nav">
+              <li>
+                <a data-toggle="collapse" data-target="#full-chat-puzzle-<%= $current->id %>" href="#" 
+                   onclick="return false;">
+                  <span class="chat-collapse-indicator">
+                    <i class="chat-open-close icon-chevron-down">
+                    </i>
+                    <span class="badge chat-unread-count"></span>
+                  </span>
+                  <%= $current->display_name %>
+                </a>
+              </li>
+            </ul>
+            <div class="pull-right chat-bar-links">
+              <small>
+                <span class="puzzle-link-default-<%= $current->id %>">
+                  <a class="muted" href="#" 
+                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal', id => $current->id); %>'});$('#infoModal').modal('show');false;"
+                    >
+                    Link to Puzzle
+                  </a>
+                </span>
+                <span class="puzzle-link-<%= $current->id %>">
+                </span>
+                <br/>
+                <span id="puzzle-info-link-<%= $current->id %>">
+                  <a href="#" class="btn btn-info btn-mini puzzle-info-button"
+                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal', id => $current->id); %>'});$('#infoModal').modal('show');false;"
+                    >
+                    <i class="icon-edit"></i> Info / Status
+                  </a>
+                </span>
+              </small>
+            </div>
+          </div>
+        </div>
+        <div class="show_on_small_screen small-screen-header">
+          <span class="puzzle-link-default-<%= $current->id %>">
+            <a "muted" href="#" data-toggle="modal" 
+               data-remote="<%== url_for ('infomodal', id => $current->id); %>"
+              data-target="#infoModal">
+              <%= $current->display_name %>
+            </a>
+          </span>
+          <span class="small-link-with-url puzzle-link-small-<%= $current->id %>">
+            <a href="#"><%= $current->display_name %></a>
+          </span>
+        </div>
+        <div class="userlist hide_on_small_screen">
+          <span id="usersspan">&nbsp;</span>
+        </div>
+        <div id="full-chat-puzzle-<%= $current->id %>" class="collapse in">
+          <div id="chat-text-puzzle-<%= $current->id %>" class="chat-text">
+          </div>
+          <div class="control-group">
+            <div class="controls my-chat-input">
+              <textarea class="chat-input" rows="2" id="textarea-puzzle-<%= $current->id %>"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="span9" id="spreadsheet-div">
+      <iframe id="spreadsheet-iframe" src="<%== $ss_url %>">
+      </iframe>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="hide-buttons">
+  Toggle: <button type="button" class="btn btn-mini" onclick="
+$('#small_screen_toggle').click();
+resize_chat_box($('#chat-box'));
+  jQuery.post('/event/modal', { formname : 'toggle_small', eventid : <%= 0 %> });
+  "
+  title="Show&nbsp;less&nbsp;info&nbsp;in&nbsp;chat&nbsp;column" data-placement="bottom" rel="tooltip">Small Screen</button>
+   <button type="button" class="btn btn-mini" onclick="$('#everything').toggle();$('#spreadsheet-div').toggleClass('span9').toggleClass('expanded-spreadsheet-div');resize_chat_box($('#chat-box'))" data-placement="bottom" rel="tooltip" title="Hide/Show&nbsp;Left&nbsp;Column">
+     Chats
+   </button>
+   <button type="button" class="btn btn-mini" onclick="$('#spreadsheet-div').toggle();$('#everything').toggleClass('span3').toggleClass('expanded-chat-div');resize_chat_box($('#chat-box'))" data-placement="bottom" rel="tooltip" title="Hide/Show&nbsp;Right&nbsp;Column">
+     Spreadsheet
+   </button>
+   <a type="button" class="btn btn-mini" href="<%== $current->spreadsheet // $ss_url %>" data-placement="bottom" rel="tooltip" title="Direct to Google Doc">
+     Jump to Google Doc
+   </a>
+</div>
+
+% if (!defined($toggle_small)) {
+%=javascript begin
+$(document).ready(
+  function () {
+    if ($(window).height() < 1000) {
+      $('#small_screen_toggle').click();
+      resize_chat_box($('#chat-box'));
+       setTimeout(function () {
+        jQuery.post('/event/modal', { formname : 'toggle_small', eventid : <%= 0 %> });
+        }, 5000);
+    }
+  }
+);
+%end
+% }
+ 
