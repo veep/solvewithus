@@ -9,6 +9,10 @@ sub _check_access {
     my $event_id = $self->stash('event_id');
     my ($event, $team);
 
+    if ($self->stash('token') && ! $event_id) {
+        return "OK";
+    }
+
     unless ($event_id) { $self->render_exception('Bad updates request: no event'); return; }
 
     $event = $self->db->resultset('Event')->find($event_id);
@@ -41,6 +45,11 @@ sub getstream {
     tyler_log($self,'done with access');
     my $event_id = $self->stash('event_id');
     my $puzzle_id = $self->stash('puzzle_id');
+    my $token = $self->stash('token');
+    if ($token) {
+        my $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+        return unless ($puzzle && $puzzle->id == $puzzle_id);
+    }
     my $last_update = $self->stash('last') || 0;
     $self->res->headers->content_type('text/event-stream');
     $self->res->headers->header('X-Accel-Buffering' => 'no');
@@ -105,10 +114,14 @@ sub getstream {
                    removal state solution sticky sticky_delete/;
     # Subscribe to chat messages for this chat
     # Send chat messages that exist, update my cutoff to highest value
-    my ($event_chat_id, $puzzle_chat_id);
-    my $event = $self->db->resultset('Event')->find($event_id);
-    $event_chat_id = $event->chat->id;
-    my @chat_ids = ($event_chat_id);
+    my ($event, $event_chat_id, $puzzle_chat_id);
+    $event_chat_id = 0;
+    my @chat_ids;
+    if (! $token) {
+        $event = $self->db->resultset('Event')->find($event_id);
+        $event_chat_id = $event->chat->id;
+        push @chat_ids, $event_chat_id;
+    }
     if ($puzzle_id) {
         $puzzle_chat_id = $self->db->resultset('Puzzle')->find($puzzle_id)->chat->id;
         push @chat_ids, $puzzle_chat_id;
@@ -142,40 +155,42 @@ sub getstream {
             2 => $puzzle_html_table,
         );
     }
-    push @waits_and_loops, Mojo::IOLoop->recurring(
-        1 => sub {
-            my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
-            if ($form_round_list_html ne $last_form_round_list_html) {
-                $last_form_round_list_html = $form_round_list_html;
-                $last_update_time = time;
-                my $output_hash = {
-                    type => 'div',
-                    divname => "form-round-list",
-                    divhtml => $form_round_list_html,
-                };
-                $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+    if (! $token) {
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            1 => sub {
+                my $form_round_list_html = SolveWith::Event->get_form_round_list_html($self, $event);
+                if ($form_round_list_html ne $last_form_round_list_html) {
+                    $last_form_round_list_html = $form_round_list_html;
+                    $last_update_time = time;
+                    my $output_hash = {
+                        type => 'div',
+                        divname => "form-round-list",
+                        divhtml => $form_round_list_html,
+                    };
+                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                }
+            });
+        my $sticky_status_sub = sub {
+            tyler_log($self,'sticky loop start');
+            if (my @sticky_statuses = $user->user_messages()) {
+                my $output = "data: " .
+                $json->encode({
+                    type => 'sticky_status',
+                    status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+                })
+                ."\n\n";
+                if ($output ne $last_sticky_status) {
+                    $self->write($output);
+                    $last_sticky_status = $output;
+                }
             }
-        });
-    my $sticky_status_sub = sub {
-        tyler_log($self,'sticky loop start');
-        if (my @sticky_statuses = $user->user_messages()) {
-            my $output = "data: " .
-            $json->encode({
-                type => 'sticky_status',
-                status => { map { $_->message_id->id => $_->status } @sticky_statuses },
-            })
-            ."\n\n";
-            if ($output ne $last_sticky_status) {
-                $self->write($output);
-                $last_sticky_status = $output;
-            }
-        }
-        tyler_log($self,'sticky loop end');
-    };
-    &$sticky_status_sub;
-    push @waits_and_loops, Mojo::IOLoop->recurring(
-        5 => $sticky_status_sub,
-    );
+            tyler_log($self,'sticky loop end');
+        };
+        &$sticky_status_sub;
+        push @waits_and_loops, Mojo::IOLoop->recurring(
+            5 => $sticky_status_sub,
+        );
+    }
     my $message_loop_sub = sub {
         my @messages = $self->db->resultset('Message')->search(
             { type => \@types,
@@ -233,8 +248,8 @@ sub getstream {
     push @waits_and_loops, Mojo::IOLoop->recurring(
         1 => $message_loop_sub,
     );
-#    &$message_loop_sub;
-    {
+    #    &$message_loop_sub;
+    if (! $token) {
         my $last_set_of_names = 'N/A';
         my $names_in_event_sub = sub {
             tyler_log($self,'names start');
@@ -459,6 +474,7 @@ sub chat {
     my $id = $self->param('id');
     my $text = $self->param('text');
     my $sticky = $self->param('sticky');
+    my $token = $self->param('token');
     my ($item, $team);
 
     if ($type eq 'event') {
@@ -466,18 +482,25 @@ sub chat {
         $team = $item->team if $item;
     } elsif ($type eq 'puzzle') {
         $item = $self->db->resultset('Puzzle')->find($id);
-        $team = $item->rounds->first->event->team if $item;
+        $team = $item->rounds->first->event->team if ($item && ! $token);
     }
     my $chat = $item->chat if $item;
     unless ($item) { $self->render_exception('Bad chat request: no item'); return; }
     unless ($chat) { $self->render_exception('Bad chat request: no chat'); return; }
-    unless ($team) { $self->render_exception('Bad chat request: no team'); return; }
-    my $access = 0;
-    eval {
-        $access = $team->has_access($self->session->{userid},$self->session->{token});
-    };
-    unless ($access) { $self->render_exception('Bad chat request: no access'); return; }
-
+    if ($token) {
+        my $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+        if (! $puzzle or $puzzle->id != $id or $type ne 'puzzle') {
+            $self->render_exception('Bad chat request: token does not match');
+            return;
+        }
+    } else {
+        unless ($team) { $self->render_exception('Bad chat request: no team'); return; }
+        my $access = 0;
+        eval {
+            $access = $team->has_access($self->session->{userid},$self->session->{token});
+        };
+        unless ($access) { $self->render_exception('Bad chat request: no access'); return; }
+    }
     if ($text =~ /\S/) {
         if ($sticky) {
             $chat->add_of_type('sticky',$text,$self->session->{userid});

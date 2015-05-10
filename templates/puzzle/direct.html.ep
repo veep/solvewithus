@@ -38,6 +38,14 @@
     <div id="everything" class="span3">
       <div id="small_screen_toggle_container"><input id="small_screen_toggle" type="checkbox" <%= $small_screen %> />Small screen optimize</div>
       <!--sidebar content-->
+      <div class="hide_on_small_screen">
+        <ul class="breadcrumb">
+          <li><%= link_to 'Solvewith.us' => '/' %> <span class="divider">/</span></li>
+% if ($current) {
+          <li><%= $current->display_name %>
+% }
+          </li></ul>
+      </div>
       <div id="chat-box" >
         <div class="navbar chat-header hide_on_small_screen">
           <div class="navbar-inner">
@@ -129,6 +137,8 @@ resize_chat_box($('#chat-box'));
      Jump to Google Doc
    </a>
 </div>
+
+<div id="hidden_token" style="display: none"><%= $token %></div>
 
 % if (!defined($toggle_small)) {
 %=javascript begin

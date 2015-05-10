@@ -94,6 +94,8 @@ sub startup {
       ->name('stream')->to(controller => 'updates', action => 'getstream');
   $r->route('/stream/event/:event_id/puzzle/:puzzle_id/:last', event_id => qr/\d+/, puzzle_id => qr/\d+/)
       ->name('combined stream')->to(controller => 'updates', action => 'getstream');
+  $r->route('/stream/puzzle/:puzzle_id/token/:token/:last', puzzle_id => qr/\d+/)
+      ->name('puzzle stream')->to(controller => 'updates', action => 'getstream');
 
   $r->route('/chat')->to(controller => 'updates', action => 'chat');
   $r->route('/chat/unstick')->to(controller => 'updates', action => 'unstick');

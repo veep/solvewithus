@@ -11,8 +11,13 @@ $(document).ready(
                 var pieces = $(this).attr("id").split("-");
                 var puzzle_id =  pieces[pieces.length - 1];
                 var type =  pieces[pieces.length - 2];
-                console.log( { text: text, type: type, id: puzzle_id } );
-                $.post('/chat', { text: text, type: type, id: puzzle_id });
+                var send_chat_data = { text: text, type: type, id: puzzle_id };
+                var token = $("#hidden_token").text();
+                if (token) {
+                    send_chat_data.token = token;
+                }
+                console.log( send_chat_data );
+                $.post('/chat', send_chat_data );
                 var textdiv = $(this).parents('.control-group').prev();
                 textdiv.scrollTop(textdiv.prop("scrollHeight") - textdiv.height() );
                 return false;
@@ -130,7 +135,7 @@ function setup_chat_text_boxes () {
             chats.push( new Array($(this), type, puzzle_id));
         }
     );
-    setup_combined_chat_filler(chats);
+    setup_combined_chat_filler(chats,$("#hidden_token").text());
     $(".chat-sticky-messages").on('click','.trash-sticky-message',function (event) {
         var msgid = $(this).data('msgid');
         remove_sticky_message($(this));
@@ -183,11 +188,10 @@ function check_eventsources() {
 
 var last_seen_id = 0;
 
-function setup_combined_chat_filler (chats) {
+function setup_combined_chat_filler (chats, token) {
     var stream_url = '/stream';
     $.each(chats, function (i, chatbox) {
         stream_url = Array(stream_url, chatbox[1], chatbox[2]).join('/');
-
         if (chatbox[1] === 'puzzle') {
             var puzzle_id = chatbox[2];
             $(chatbox[0]).parent().on('puzzleurl',function(event, url) {
@@ -234,6 +238,10 @@ function setup_combined_chat_filler (chats) {
         });
     });
 
+    if (token) {
+        stream_url = Array(stream_url, 'token', token).join('/');
+    }
+    
     stream_url = Array(stream_url, last_seen_id).join('/');
 
     event_source[ 'combined' ] = new EventSource(stream_url);
