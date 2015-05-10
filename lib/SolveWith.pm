@@ -140,10 +140,12 @@ sub startup {
                    my $self = shift;
                    return if $self->req->url->path eq '/oauth2callback';
                    return if $self->res->code;
-                   my $onwelcome = $self->req->url->path eq '/welcome'
+                   my $onwelcome = (
+                       $self->req->url->path eq '/welcome'
                        || $self->req->url->path eq '/solvepad'
+                       || $self->req->url->path eq '/testsolve_url'
                        || $self->req->url->path =~ q,^/replay,
-                       ;
+                   );
                    return if $onwelcome;
                    my $notoken = (not $self->session->{token} or length($self->session->{token}) == 0);
                    my $onroot = $self->req->url->path eq '/';
