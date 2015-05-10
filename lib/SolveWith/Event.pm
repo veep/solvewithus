@@ -47,13 +47,15 @@ sub all {
 
   my $user = $self->db->resultset('User')->find($self->session->{userid});
 
-  my @puz = $self->db->resultset('Puzzle')->search(
+  my @token_puzzles = $self->db->resultset('Puzzle')->search(
       {
           'puzzle_users.user_id' => $user->id,
           'messages.type' => 'direct_token',
       },
       {
           join => [ 'puzzle_users', {'chat' => 'messages'} ],
+          select => [ 'display_name', 'messages.text' ],
+          as => [ 'display_name', 'token' ],
       }
   )->all();
   my @teams;
@@ -76,7 +78,7 @@ sub all {
   }
   $self->stash(user => $user);
   $self->stash(teams => \@teams);
-  $self->stash(token_puzzles => \@puz);
+  $self->stash(token_puzzles => \@token_puzzles);
 }
 
 sub add {

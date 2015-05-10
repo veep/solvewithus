@@ -8,7 +8,27 @@
     <div class="pull-right"><a href="/reset" class="btn">Reset Login</a><br/>(may just return here)</div>
     <P>Events you have access to as <B><%= $user->google_name %></B>:</P>
   </div>
-<ul class="thumbnails">
+  <ul class="thumbnails">
+% if (@{$token_puzzles}) {
+    <li class="span4">
+      <div class="thumbnail">
+        <div class="caption">
+          <div>
+            <h3>Standalone Puzzles</h3>
+            <ul>
+              % for my $puz  (@$token_puzzles) {
+              <li>
+                %= link_to puzzle_direct => { token => $puz->get_column('token') } => begin
+                <B><%= $puz->display_name %></b>
+              </li>
+                % end
+              % }
+            </ul>
+         </div>
+        </div>
+     </div>
+   </li>
+% } 
 % for my $team (@$teams) {
    <li class="span4">
      <div class="thumbnail">

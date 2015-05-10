@@ -312,7 +312,10 @@ sub direct {
   my $self = shift;
   my $token = $self->stash('token');
   my $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
-  return $self->redirect_to('events') unless $puzzle;
+  return $self->redirect_to('events') unless $puzzle && $self->session->{userid};
+  my $logged_in_row = $puzzle->find_or_create_related('puzzle_users',{user_id => $self->session->{userid}});
+  $logged_in_row->timestamp(scalar time);
+  $logged_in_row->update;
   my @info = $puzzle->chat->search_related('messages',
                                            { type => 'puzzleinfo', },
                                            {order_by => 'id'});
