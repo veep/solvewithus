@@ -40,34 +40,46 @@ sub modal {
     my $self = shift;
     my $form = $self->param('formname');
     my $id = $self->param('puzzleid');
+    my $token = $self->param('token');
     my ($puzzle, $remove_id);
     my $json = Mojo::JSON->new();
 
-    if ($id) {
+    if ($token) {
+        $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+    } elsif ($id) {
         $puzzle = $self->db->resultset('Puzzle')->find($id);
-    } else {
-        $remove_id = $self->param('remove');
+    }
+    if ( $remove_id = $self->param('remove') ) {
         if ($remove_id) {
             my $message = $self->db->resultset('Message')->find($remove_id);
+            my $puzzle_from_message;
             if ($message) {
-                $puzzle = $message->chat->puzzle;
+                $puzzle_from_message = $message->chat->puzzle;
+            }
+            if ($puzzle && $puzzle_from_message && ($puzzle->id != $puzzle_from_message->id)) {
+                return $self->render(text => 'There has been a problem.', status => 500);
+            }
+            if ($puzzle_from_message) {
+                $puzzle = $puzzle_from_message;
             }
         }
     }
     if (!$puzzle) {
         return $self->render(text => 'There has been a problem.', status => 500);
     }
-    my $event = $puzzle->rounds->first->event;
-    my $team = $event->team;
-    my $access = 0;
-    eval {
-        $access = $team->has_access($self->session->{userid},$self->session->{token});
-    };
-    if ($@) {
-        warn $@;
+    my ($event,$team);
+    if (! $token) {
+        $event = $puzzle->rounds->first->event;
+        $team = $event->team;
+        my $access = 0;
+        eval {
+            $access = $team->has_access($self->session->{userid},$self->session->{token});
+        };
+        if ($@) {
+            warn $@;
+        }
+        return $self->render(text => 'There has been a problem.', status => 500) unless $access;
     }
-    return $self->render(text => 'There has been a problem.', status => 500) unless $access;
-
 
     if ($form and $form eq 'Puzzle Info') {
         my $url = $self->param('url');
@@ -94,26 +106,30 @@ sub modal {
         my $newsolution = $self->param('newsolution');
         if (defined($newsolution) and $newsolution =~ /\S/) {
             $puzzle->chat->add_of_type('solution',$newsolution,$self->session->{userid});
-            $event->chat->add_of_type('puzzle',join(
-                '','<B>Puzzle Solved: </B><a href="/puzzle/',
-                $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
-                ' Solution: ', Mojo::Util::html_escape($newsolution)
-            ),$self->session->{userid});
+            if ($event) {
+                $event->chat->add_of_type('puzzle',join(
+                    '','<B>Puzzle Solved: </B><a href="/puzzle/',
+                    $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
+                    ' Solution: ', Mojo::Util::html_escape($newsolution)
+                ),$self->session->{userid});
+            }
         }
-        my @round_ids = $self->param('puzzle-round');
-        my @new_rounds = $self->db->resultset('Round')->search(
-            {
-                id => [ -1, @round_ids ],
-                event_id => $event->id,
-            } );
-        if (! @new_rounds) {
-            @new_rounds = $self->db->resultset('Round')->search(
-            {
-                display_name => '_catchall',
-                event_id => $event->id,
-            } );
+        if (! $token) {
+            my @round_ids = $self->param('puzzle-round');
+            my @new_rounds = $self->db->resultset('Round')->search(
+                {
+                    id => [ -1, @round_ids ],
+                    event_id => $event->id,
+                } );
+            if (! @new_rounds) {
+                @new_rounds = $self->db->resultset('Round')->search(
+                    {
+                        display_name => '_catchall',
+                        event_id => $event->id,
+                    } );
+            }
+            $puzzle->set_rounds(\@new_rounds);
         }
-        $puzzle->set_rounds(\@new_rounds);
         my $status_msg = $puzzle->chat->get_latest_of_type('state');
         my $newstate = $self->param('puzzle-status');
         my $oldstate = ($status_msg ? $status_msg->text : 'open');
@@ -122,13 +138,15 @@ sub modal {
             $puzzle->set_column('state',$newstate);
             $puzzle->update;
         }
-        my $priority_msg = $puzzle->chat->get_latest_of_type('priority');
-        my $newpriority = $self->param('puzzle-priority');
-        my $oldpriority = ($priority_msg ? $priority_msg->text : 'normal');
-        if ($newpriority ne $oldpriority  and $newpriority =~ m/^(normal|low|high)$/) {
-            $puzzle->chat->add_of_type('priority',$newpriority,$self->session->{userid});
+        if (! $token) {
+            my $priority_msg = $puzzle->chat->get_latest_of_type('priority');
+            my $newpriority = $self->param('puzzle-priority');
+            my $oldpriority = ($priority_msg ? $priority_msg->text : 'normal');
+            if ($newpriority ne $oldpriority  and $newpriority =~ m/^(normal|low|high)$/) {
+                $puzzle->chat->add_of_type('priority',$newpriority,$self->session->{userid});
+            }
+            SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
         }
-        SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
         return $self->render(text => 'OK', status => 200);
     }
     if ($form and $form eq 'event_puzzle_priority') {
@@ -207,16 +225,27 @@ sub spreadsheet_url_direct {
 sub infomodal {
     my $self = shift;
     my $id = $self->stash('id');
-    my $puzzle = $self->db->resultset('Puzzle')->find($id);
-    return $self->redirect_to('about:blank') unless $puzzle;
-    my $access = 0;
+    my $token = $self->stash('token');
+    my $puzzle;
     my $event;
-    eval {
-        $event = $puzzle->rounds->first->event;
-        $access = $event->team->has_access($self->session->{userid},$self->session->{token});
-    };
-    if ($@ or not $access) {
-        return $self->redirect_to('about:blank');
+    if ($token) {
+        $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
+        if ($puzzle->id != $id) {
+            undef $puzzle;
+        }
+    } else {
+        $puzzle = $self->db->resultset('Puzzle')->find($id);
+    }
+    return $self->redirect_to('about:blank') unless $puzzle;
+    if (! $token) {
+        my $access = 0;
+        eval {
+            $event = $puzzle->rounds->first->event;
+            $access = $event->team->has_access($self->session->{userid},$self->session->{token});
+        };
+        if ($@ or not $access) {
+            return $self->redirect_to('about:blank');
+        }
     }
     my $url;
     my $latest_url = $puzzle->chat->get_latest_of_type('puzzleurl');
@@ -233,20 +262,23 @@ sub infomodal {
                                             {order_by => 'id'});
     my $status_msg = $puzzle->chat->get_latest_of_type('state');
     my $priority_msg = $puzzle->chat->get_latest_of_type('priority');
-    my @rounds  = $event->rounds->search(
-        {
-            state => ['open', 'closed'],
-            display_name => { '!=', '_catchall'},
-        },
-        { order_by => 'id' },
-    );
-    my @open_rounds  = $event->rounds->search(
-        {
-            state => ['open'],
-            display_name => { '!=', '_catchall'},
-        },
-        { order_by => 'id' },
-    );
+    my (@rounds, @open_rounds);
+    if (! $token) {
+        @rounds  = $event->rounds->search(
+            {
+                state => ['open', 'closed'],
+                display_name => { '!=', '_catchall'},
+            },
+            { order_by => 'id' },
+        );
+        @open_rounds  = $event->rounds->search(
+            {
+                state => ['open'],
+                display_name => { '!=', '_catchall'},
+            },
+            { order_by => 'id' },
+        );
+    }
     $self->render('puzzle/info-modal', current => $puzzle,
                   url => $url,
                   latest_url => $latest_url,

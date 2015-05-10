@@ -18,10 +18,5 @@
         $("#infoModal").on('hidden', function(e) {
              $(this).find('h3').html("Loading...");
         });
-        $('.modal-form').on('submit', function(e) {
-            e.preventDefault();
-            jQuery.post('/puzzle/modal', $(this).serialize());
-            $('.modal').modal('hide');
-        });
 
 %end

@@ -1,6 +1,11 @@
 % use Mojo::Util qw/html_escape/;
 <input type="hidden" name="formname" value="Puzzle Info">
 <input type="hidden" name="puzzleid" value="<%= $current->id %>">
+% my $token_string;
+% if ($token) {
+<input type="hidden" name="token" value="<%= $token %>">
+% $token_string = $token;
+% }
 <table class="table" style="margin: 0px;">
   <thead><tr><th>Type</th><th>Value</th><th>By</th><th>When</th><th>Actions</th></tr></thead>
 % if ($latest_url) {
@@ -11,7 +16,7 @@
       </small>
     </td>
     <td><a href="#" class="btn btn-mini"
-           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_url->id %> }, 
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_url->id %>, token: '<%= $token_string %>' }, 
                          function() {$('#infoModal').modal('hide');});return false;"
                     >Remove</a></td>
 % } else {
@@ -30,7 +35,7 @@
       </small>
     </td>
     <td><a href="#" class="btn btn-mini"
-           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_summary->id %> }, 
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $latest_summary->id %>, token: '<%= $token_string %>' }, 
                          function() {$('#infoModal').modal('hide');});return false;"
                     >Remove</a></td>
 % } else {
@@ -54,7 +59,7 @@
       </small>
     </td>
     <td><a href="#" class="btn btn-mini"
-           onclick="jQuery.post('/puzzle/modal', {remove: <%= $message->id %> }, 
+           onclick="jQuery.post('/puzzle/modal', {remove: <%= $message->id %>, token: '<%= $token_string %>' }, 
                          function() {$('#infoModal').modal('hide');});return false;"
                     >Remove</a></td>
   </tr>
@@ -180,4 +185,4 @@ $('#infoModal').css({
 });
 $('#infoModal').find('h3').html("&quot;<%= $current->display_name %>&quot; Information");
 %end
-    
+

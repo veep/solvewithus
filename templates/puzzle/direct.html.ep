@@ -66,7 +66,7 @@
               <small>
                 <span class="puzzle-link-default-<%= $current->id %>">
                   <a class="muted" href="#" 
-                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal', id => $current->id); %>'});$('#infoModal').modal('show');false;"
+                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal_token', id => $current->id, token => $token); %>'});$('#infoModal').modal('show');false;"
                     >
                     Link to Puzzle
                   </a>
@@ -76,7 +76,7 @@
                 <br/>
                 <span id="puzzle-info-link-<%= $current->id %>">
                   <a href="#" class="btn btn-info btn-mini puzzle-info-button"
-                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal', id => $current->id); %>'});$('#infoModal').modal('show');false;"
+                     onclick="$('#infoModal').modal({remote: false});$('#infoModal').modal('hide');$('#infoModal').modal({remote: '<%== url_for ('infomodal_token', id => $current->id, token => $token); %>'});$('#infoModal').modal('show');false;"
                     >
                     <i class="icon-edit"></i> Info / Status
                   </a>
@@ -88,7 +88,7 @@
         <div class="show_on_small_screen small-screen-header">
           <span class="puzzle-link-default-<%= $current->id %>">
             <a "muted" href="#" data-toggle="modal" 
-               data-remote="<%== url_for ('infomodal', id => $current->id); %>"
+               data-remote="<%== url_for ('infomodal_token', id => $current->id, token => $token); %>"
               data-target="#infoModal">
               <%= $current->display_name %>
             </a>
