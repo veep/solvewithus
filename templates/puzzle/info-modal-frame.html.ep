@@ -1,5 +1,5 @@
 <div class="modal hide" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModal" aria-hidden="true">
-  <form id="infoForm" class="modal-form form-inline" action="/puzzle/modal" data-remote="true" method="POST">
+  <form id="infoForm" class="puzzle-modal-form modal-form form-inline" action="/puzzle/modal" data-remote="true" method="POST">
     <input type="hidden" name="last-button" value="">
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
@@ -17,6 +17,11 @@
 
         $("#infoModal").on('hidden', function(e) {
              $(this).find('h3').html("Loading...");
+        });
+        $('.puzzle-modal-form').on('submit', function(e) {
+            e.preventDefault();
+            jQuery.post('/puzzle/modal', $(this).serialize());
+            $('.modal').modal('hide');
         });
 
 %end

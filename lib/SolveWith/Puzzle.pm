@@ -288,6 +288,7 @@ sub infomodal {
                   messages => $messages_rs,
                   rounds => \@rounds,
                   open_rounds => \@open_rounds,
+                  token => $token,
               );
 }
 
