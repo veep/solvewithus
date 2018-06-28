@@ -17,6 +17,8 @@ $App::Daemon::logfile    = $FindBin::Bin . "/../log/give-puzzle-ss.log";
 $App::Daemon::pidfile    = $FindBin::Bin . "/give-puzzle-ss-$puzzle_id.pid";
 daemonize();
 
+my $config = do $FindBin::Bin . "/../solve_with.conf";
+
 my $logger = Log::Log4perl->get_logger('house.bedrm.desk.topdrwr');
 
 $logger->info('starting',$puzzle_id, $token);
@@ -57,9 +59,9 @@ if ($url) {
 } else {
     my $mail = new Mail::SendEasy( smtp => 'localhost' );
     my $status = $mail->send(
-        from    => '***REMOVED***' ,
+        from    => $config->{from_email},
         from_title => 'Solvewith.us Spreadsheet Creation Script' ,
-        to      => 'ecp@prestemon.com' ,
+        to      => $config->{owner_email},
         subject => $puzzle->display_name . " SS creation failed" ,
         msg     => "I could not create the SS for puzzle id $puzzle_id\n$@\n" ,
     ) ;

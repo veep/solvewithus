@@ -18,7 +18,7 @@ sub startup {
   my $self = shift;
   $self->helper(db => sub { $self->app->schema });
   $self->plugin('Config');
-  $self->secret("***REMOVED***");
+  $self->secret($self->config->{secret_phrase});
   $self->sessions->default_expiration(3000000);
 
   if ($self->mode eq 'production') {
@@ -164,15 +164,15 @@ sub startup {
 
 sub oauth_client {
     my ($self,$ws,$scope_key) = @_;
-    my $scope = $self->stash->{config}->{scope};
+    my $scope = $self->config->{scope};
     if ($scope_key) {
-        if ($self->stash->{config}->{$scope_key}) {
-            $scope = $self->stash->{config}->{$scope_key};
+        if ($self->config->{$scope_key}) {
+            $scope = $self->config->{$scope_key};
         }
     }
     my $cl = Net::OAuth2::Client->new(
-        $self->stash->{config}->{client_id},
-        $self->stash->{config}->{client_secret},
+        $self->config->{client_id},
+        $self->config->{client_secret},
         site => 'https://www.googleapis.com',
         authorize_url => 'https://accounts.google.com/o/oauth2/auth',
         access_token_url => 'https://accounts.google.com/o/oauth2/token',

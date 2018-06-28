@@ -16,10 +16,11 @@ my $access_token_file = "$rootdir/access_token";
 
 {
     my $_service;
+    my $config = do $conf;
     sub _service {
         return $_service //= Net::Google::DocumentsList->new(
-            username => '***REMOVED***',
-            password => '***REMOVED***',
+            username => $config->{service_username},
+            password => $config->{service_password},
         );
     }
 }

@@ -15,6 +15,8 @@ $App::Daemon::logfile    = $FindBin::Bin . "/../log/give-folder.log";
 $App::Daemon::pidfile    = $FindBin::Bin . "/give-folder-$type-$obj_id.pid";
 daemonize();
 
+my $config = do $FindBin::Bin . "/../solve_with.conf";
+
 my $lock = $FindBin::Bin . '/do-google-docs-stuff.lock';
 my $lock_fh;
 open ($lock_fh, ">>", $lock) || die "Can't open $lock";
@@ -44,10 +46,10 @@ eval {
 if (! $url) {
     my $mail = new Mail::SendEasy( smtp => 'localhost' );
     my $status = $mail->send(
-        from    => '***REMOVED***' ,
+        from    => $config->{from_email},
         from_title => 'Solvewith.us Folder Creation Script' ,
-        to      => 'ecp@prestemon.com' ,
-        subject => "$type $obj_id foldre failed" ,
+        to      => $config->{owner_email},
+        subject => "$type $obj_id folder failed" ,
         msg     => "I could not create the folder for $type $obj_id\n\n$@" ,
     ) ;
     print "$$ Email status: $status\n";
