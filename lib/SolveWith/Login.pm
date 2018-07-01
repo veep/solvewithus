@@ -5,7 +5,7 @@ use Mojo::Base 'Mojolicious::Controller';
 sub homepage {
   my $self = shift;
 
-  return $self->redirect_to($self->url_for('event'));
+  return $self->redirect_to($self->url_for('/event'));
 }
 
 sub welcome {

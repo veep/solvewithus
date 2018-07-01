@@ -32,6 +32,15 @@ sub startup {
       $self->cache->clear();
   }
 
+  $self->app->hook (
+      before_dispatch => sub {
+          my $c = shift;
+          if ($c->req->headers->header('X-Forwarded-Proto') eq 'https') {
+              $c->req->url->base->scheme('https');
+          }
+      }
+  );
+
   # Routes
   my $r = $self->routes;
 

@@ -45,6 +45,12 @@ sub single {
 sub all {
   my $self = shift;
 
+  if (! $self->req->is_secure) {
+      $self->app->log->info("Bouncing " . $self->session->{userid} . " to https event");
+      $self->req->url->base->scheme('https');
+      return $self->redirect_to($self->url_for('event'));
+  }
+
   my $user = $self->db->resultset('User')->find($self->session->{userid});
 
   my @token_puzzles = $self->db->resultset('Puzzle')->search(

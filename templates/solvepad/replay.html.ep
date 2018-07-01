@@ -1,8 +1,8 @@
 % layout 'default';
 % title 'Solvepad Replay: ' . $puzzle->display;
 %= stylesheet '/solvepad.css'
-%= javascript 'http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
-%= javascript "http://d3js.org/d3.v3.min.js"
+%= javascript '//ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js'
+%= javascript "//d3js.org/d3.v3.min.js"
 %= javascript '/solvepad_puzzle.js' . '?' . app->code_version
 %= javascript '/js/jintervals-0.7-min.js'
 
