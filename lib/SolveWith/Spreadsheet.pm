@@ -72,10 +72,10 @@ sub find_a_thing {
     my $access_token = get_current_solvewithus_access_token();
     my $req = HTTP::Request->new('GET');
     my $uri = URI->new('https://www.googleapis.com/drive/v2/files');
-    $uri->query('q=' . uri_escape('title=' . "'$name'" . ' and ' .
-                                  ($mime ? 'mimeType=' . "'$mime'" . ' and ' : ' ') .
-                                  'trashed=false' .
-                                  ($parentid ? " and '$parentid' in parents" : ' ')
+    $uri->query('q=' . uri_escape_utf8('title=' . "'$name'" . ' and ' .
+                                       ($mime ? 'mimeType=' . "'$mime'" . ' and ' : ' ') .
+                                       'trashed=false' .
+                                       ($parentid ? " and '$parentid' in parents" : ' ')
                               )
             );
     $req->uri($uri);
@@ -162,9 +162,9 @@ sub token_puzzles_folder_id {
     if ($tokens_id) {
         warn "Found tokens id: $tokens_id" if $debug;
     } else {
-        warn "Creating Token Puzzles folder\n" if $debug;
-        my $info = add_a_folder('root','Token Puzzles');
-        $tokens_id = $info->{id};
+        warn "Would have created Token Puzzles folder\n" if $debug;
+#        my $info = add_a_folder('root','Token Puzzles');
+#        $tokens_id = $info->{id};
     }
     return $tokens_id;
 }
@@ -202,8 +202,8 @@ sub team_auth_spreadsheet {
         $team_auth_sheet_info = add_a_sheet($auths_id, $ss_name);
         give_group_permission($team_auth_sheet_info->{id},$group_email,'reader');
     }
-    die unless $team_auth_sheet_info->{weblink};
-    return $team_auth_sheet_info->{weblink};
+    die unless $team_auth_sheet_info->{id};
+    return $team_auth_sheet_info->{id};
 }
 
 #    my $auth = auth_folder();

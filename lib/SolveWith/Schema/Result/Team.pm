@@ -39,7 +39,7 @@ sub new {
     $_[0]->{chat_id} = $chat->id;
     my $spreadsheet_url = SolveWith::Spreadsheet::team_auth_spreadsheet($_[0]->{google_group});
     $chat->set_spreadsheet($spreadsheet_url);
-    my $share_folder = SolveWith::Spreadsheet::team_folder($_[0]->{google_group});
+    my $share_folder = SolveWith::Spreadsheet::team_folder_id($_[0]->{google_group});
     $chat->set_folder($share_folder);
     return $self->next::method( @_ );
 }
@@ -58,8 +58,13 @@ sub has_access {
     warn "User $userid not in group " . $self->google_group . " list\n" if $debug;
 
     my $spreadsheet = $self->chat->get_spreadsheet;
-    return 0 unless $spreadsheet && $spreadsheet =~ /key=([^&]+)/;
-    my $key = $1;
+    return 0 unless $spreadsheet;
+    my $key;
+    if ( $spreadsheet =~ /key=([^&]+)/) {
+        $key = $1;
+    } else {
+        $key = $spreadsheet;
+    }
 
     warn "Got ss $spreadsheet\n" if $debug;
     my $success = 0;
