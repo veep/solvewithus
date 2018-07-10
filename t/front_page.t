@@ -12,6 +12,6 @@ $t->get_ok('/')
     ->header_like(Location => qr,/welcome$,);
 $t->get_ok('/welcome')
     ->status_is(200)
-    ->content_like(qr/This is currently a private site/);
+    ->content_like(qr/Welcome to Solvewith.us/);
 
 done_testing;
