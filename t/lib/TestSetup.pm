@@ -45,4 +45,22 @@ sub setup_testuser {
         }
     );
 }
+
+sub setup_testteam {
+    my $app = shift;
+    my %options = (
+        name => 'team ' . int(rand(100000000)),
+        group => 'group' . int(rand(100000000)),
+        @_,
+    );
+    return $app->db->resultset('Team')->create(
+        {
+            display_name => $options{name},
+            google_group => $options{group},
+            no_spreadsheet => 1,
+        }
+    );
+}
+
 1;
+

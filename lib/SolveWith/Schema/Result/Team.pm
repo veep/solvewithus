@@ -37,10 +37,12 @@ sub new {
     my $self = shift;
     my $chat = $_[0]->{-result_source}->schema->resultset('Chat')->create({});
     $_[0]->{chat_id} = $chat->id;
-    my $spreadsheet_url = SolveWith::Spreadsheet::team_auth_spreadsheet($_[0]->{google_group});
-    $chat->set_spreadsheet($spreadsheet_url);
-    my $share_folder = SolveWith::Spreadsheet::team_folder_id($_[0]->{google_group});
-    $chat->set_folder($share_folder);
+    if (! delete $_[0]->{no_spreadsheet}) {
+        my $spreadsheet_url = SolveWith::Spreadsheet::team_auth_spreadsheet($_[0]->{google_group});
+        $chat->set_spreadsheet($spreadsheet_url);
+        my $share_folder = SolveWith::Spreadsheet::team_folder_id($_[0]->{google_group});
+        $chat->set_folder($share_folder);
+    }
     return $self->next::method( @_ );
 }
 
