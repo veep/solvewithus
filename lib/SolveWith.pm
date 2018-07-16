@@ -6,18 +6,34 @@ use SolveWith::Schema;
 use Data::Dump qw/ddx/;
 use CHI;
 
-has schema => sub {
-  return SolveWith::Schema->connect('dbi:SQLite:db/puzzles.db', undef, undef, {sqlite_unicode => 1});
-};
 
 my $code_version = 0;           # 0 means "always return scalar time"
 
 
+my $config;
+
+has schema => sub {
+    my $db_file = 'db/puzzles.db';
+    if ($config->{db_file}) {
+        $db_file = $config->{db_file};
+    }
+    return SolveWith::Schema->connect('dbi:SQLite:' . $db_file,
+                                      undef, undef, {sqlite_unicode => 1});
+};
 # This method will run once at server start
 sub startup {
   my $self = shift;
+  if ($self->mode eq 'testing') {
+      if ($ENV{MOJO_TESTING_CONFIG} && -r $ENV{MOJO_TESTING_CONFIG}) {
+          $config = $self->plugin('Config',{file => $ENV{MOJO_TESTING_CONFIG}});
+      } else {
+          die "need testing config file in MOJO_TESTING_CONFIG";
+      }
+  } else {
+      $config = $self->plugin('Config');
+  }
   $self->helper(db => sub { $self->app->schema });
-  $self->plugin('Config');
+
   $self->secret($self->config->{secret_phrase});
   $self->sessions->default_expiration(3000000);
 
@@ -156,6 +172,13 @@ sub startup {
                        || $self->req->url->path =~ q,^/replay,
                    );
                    return if $onwelcome;
+                   if ($self->app->mode eq 'testing') {
+                       if ($self->cookie('test_userid')) {
+                           $self->app->log->warn('got cookie');
+                           $self->session->{token} = $self->cookie('test_userid');
+                           $self->session->{userid} = $self->cookie('test_userid');
+                       }
+                   }
                    my $notoken = (not $self->session->{token} or length($self->session->{token}) == 0);
                    my $onroot = $self->req->url->path eq '/';
                    return $self->redirect_to('/welcome') if $notoken and $onroot;
