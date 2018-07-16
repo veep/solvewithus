@@ -1,1 +1,6 @@
 /solve_with.conf
+*~
+db/puzzles.db
+script/*.lock
+script/*.pid
+
