@@ -34,7 +34,12 @@ sub startup {
   }
   $self->helper(db => sub { $self->app->schema });
 
-  $self->secret($self->config->{secret_phrase});
+  eval {
+      $self->secret($self->config->{secret_phrase});
+  };
+  if ($@) {
+      $self->secrets([$self->config->{secret_phrase}]);
+  }
   $self->sessions->default_expiration(3000000);
 
   if ($self->mode eq 'production') {
@@ -161,7 +166,7 @@ sub startup {
               return $self->redirect_to($nexturl);
           });
 
-  $self->hook( after_static_dispatch => sub {
+  $self->hook( before_dispatch => sub {
                    my $self = shift;
                    return if $self->req->url->path eq '/oauth2callback';
                    return if $self->res->code;
@@ -174,7 +179,6 @@ sub startup {
                    return if $onwelcome;
                    if ($self->app->mode eq 'testing') {
                        if ($self->cookie('test_userid')) {
-                           $self->app->log->warn('got cookie');
                            $self->session->{token} = $self->cookie('test_userid');
                            $self->session->{userid} = $self->cookie('test_userid');
                        }

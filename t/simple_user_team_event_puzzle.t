@@ -25,18 +25,26 @@ sub clean_cookies : Test(setup) {
 sub user_with_team_goes_to_events_page : Test(no_plan) {
     my $user = TestSetup::setup_testuser($APP->app);
     my $team = TestSetup::setup_testteam($APP->app);
-    $JAR->add(
-        Mojo::Cookie::Response->new(
-            name => 'test_userid',
-            value => $user->id,
-            domain => 'localhost',
-            path => '/',
-        )
-      );
-
+    foreach my $host ('localhost','127.0.0.1') {
+        $JAR->add(
+            Mojo::Cookie::Response->new(
+                name => 'test_userid',
+                value => $user->id,
+                domain => $host,
+                path => '/',
+            )
+          );
+    }
     $team->add_to_users($user, {member => 1});
 
-    $APP->ua->app_url('https');
+    eval {
+        # 5.14 / Mojo from 2012
+        $APP->ua->app_url('https');
+    };
+    if ($@) {
+        # Ok, that failed, try 5.28 & Mojo from 2018
+        $APP->ua->server->url('https');
+    };
 
     my $res = $APP->get_ok('/')
     ->status_is(302)
