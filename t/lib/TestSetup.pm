@@ -6,6 +6,8 @@ use feature 'state';
 use File::Temp;
 use File::Basename qw/dirname/;
 
+use Mojo::Cookie::Response;
+
 sub setup_config {
     $ENV{MOJO_MODE} = 'testing';
 
@@ -44,6 +46,22 @@ sub setup_testuser {
             display_name => $options{user},
         }
     );
+}
+
+sub setup_logged_in_user {
+    my ($test_obj) = shift;
+    my $user = setup_testuser($test_obj->app);
+    foreach my $host ('localhost','127.0.0.1') {
+        $test_obj->ua->cookie_jar->add(
+            Mojo::Cookie::Response->new(
+                name => 'test_userid',
+                value => $user->id,
+                domain => $host,
+                path => '/',
+            )
+          );
+    }
+    return $user;
 }
 
 sub setup_testteam {

@@ -4,22 +4,20 @@ use base qw(Test::Class);
 use common::sense;
 use Test::More;
 use Test::Mojo;
-use Mojo::Cookie::Response;
 use File::Basename qw/dirname/;
 
 use lib dirname(__FILE__);
 require 'lib/TestSetup.pm';
 
-my ($APP, $JAR);
+my ($APP);
 
 sub create_config: Test(startup) {
     TestSetup::setup_config();
     $APP = Test::Mojo->new('SolveWith');
-    $JAR = $APP->ua->cookie_jar;
 }
 
 sub clean_cookies : Test(setup) {
-    $JAR->empty();
+    $APP->ua->cookie_jar->empty();
 }
 
 sub logged_out : Test(no_plan) {
@@ -30,17 +28,8 @@ sub logged_out : Test(no_plan) {
 }
 
 sub logged_in_gets_you_to_empty_events_page : Test(no_plan) {
-    my $user = TestSetup::setup_testuser($APP->app);
-    foreach my $host ('localhost','127.0.0.1') {
-        $JAR->add(
-            Mojo::Cookie::Response->new(
-                name => 'test_userid',
-                value => $user->id,
-                domain => $host,
-                path => '/',
-            )
-          );
-    }
+    my $user = TestSetup::setup_logged_in_user($APP);
+
     $APP->ua->max_redirects(0);
     my $res = $APP->get_ok('/')
     ->status_is(302)
