@@ -23,7 +23,7 @@ sub setup_config {
     system("sqlite3 $db_filename < " . dirname(__FILE__) . '/schema.sql');
     my $db_config = 'db_file => "' . $db_filename . '"';
 
-    my $config = '{ ' . $db_config . ' }';
+    my $config = '{ ' . $db_config . ', secret_phrase => "test secret" }';
 #    warn '# '. $config;
     print $config_temp $config;
     $config_temp->close;
