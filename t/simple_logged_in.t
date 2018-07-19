@@ -14,6 +14,7 @@ my ($APP);
 sub create_config: Test(startup) {
     TestSetup::setup_config();
     $APP = Test::Mojo->new('SolveWith');
+    TestSetup::use_https($APP);
 }
 
 sub clean_cookies : Test(setup) {
@@ -36,14 +37,6 @@ sub logged_in_gets_you_to_empty_events_page : Test(no_plan) {
     ->header_like(Location => qr(/event$) , '/ goes to event page with login');
 
     $APP->ua->max_redirects(1);
-    eval {
-        # 5.14 / Mojo from 2012
-        $APP->ua->app_url('https');
-    };
-    if ($@) {
-        # Ok, that failed, try 5.28 & Mojo from 2018
-        $APP->ua->server->url('https');
-    };
     my $res = $APP->get_ok('/')
     ->status_is(302)
     ->header_like(Location => qr(/thanks$) , '/ goes to thanks page logged in with no teams');

@@ -14,6 +14,7 @@ my ($APP);
 sub create_config: Test(startup) {
     TestSetup::setup_config();
     $APP = Test::Mojo->new('SolveWith');
+    TestSetup::use_https($APP);
 }
 
 sub clean_cookies : Test(setup) {
@@ -24,15 +25,6 @@ sub user_with_team_goes_to_events_page : Test(no_plan) {
     my $team = TestSetup::setup_testteam($APP->app);
     my $user = TestSetup::setup_logged_in_user($APP);
     $team->add_to_users($user, {member => 1});
-
-    eval {
-        # 5.14 / Mojo from 2012
-        $APP->ua->app_url('https');
-    };
-    if ($@) {
-        # Ok, that failed, try 5.28 & Mojo from 2018
-        $APP->ua->server->url('https');
-    };
 
     my $res = $APP->get_ok('/')
     ->status_is(302)

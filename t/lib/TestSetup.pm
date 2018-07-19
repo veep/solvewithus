@@ -8,6 +8,18 @@ use File::Basename qw/dirname/;
 
 use Mojo::Cookie::Response;
 
+sub use_https {
+    my $test_obj = shift;
+    eval {
+        # 5.14 / Mojo from 2012
+        $test_obj->ua->app_url('https');
+    };
+    if ($@) {
+        # Ok, that failed, try 5.28 & Mojo from 2018
+        $test_obj->ua->server->url('https');
+    };
+}
+
 sub setup_config {
     $ENV{MOJO_MODE} = 'testing';
 
