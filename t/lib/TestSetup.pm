@@ -18,6 +18,32 @@ sub use_https {
         # Ok, that failed, try 5.28 & Mojo from 2018
         $test_obj->ua->server->url('https');
     };
+    foreach my $host ('localhost','127.0.0.1') {
+        $test_obj->ua->cookie_jar->add(
+            Mojo::Cookie::Response->new(
+                name => 'test_https',
+                value => 1,
+                domain => $host,
+                path => '/',
+            )
+          );
+    }
+    if ($test_obj->can('driver')) {
+        $test_obj->driver->add_cookie(
+            'test_https',
+            '1',
+            '/',
+            '127.0.0.1',
+        );
+    }
+}
+
+sub clear_cookies {
+    my $test_obj = shift;
+    $test_obj->ua->cookie_jar->empty();
+    if ($test_obj->can('driver')) {
+        $test_obj->driver->delete_all_cookies();
+    }
 }
 
 sub setup_config {
@@ -72,6 +98,14 @@ sub setup_logged_in_user {
                 path => '/',
             )
           );
+    }
+    if ($test_obj->can('driver')) {
+        $test_obj->driver->add_cookie(
+            'test_userid',
+            $user->id,
+            '/',
+            '127.0.0.1',
+        );
     }
     return $user;
 }

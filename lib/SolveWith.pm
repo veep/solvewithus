@@ -56,7 +56,9 @@ sub startup {
   $self->app->hook (
       before_dispatch => sub {
           my $c = shift;
-          if ($c->req->headers->header('X-Forwarded-Proto') || 'none' eq 'https') {
+          if ($c->app->mode eq 'testing' && $c->cookie('test_https')) {
+              $c->req->url->base->scheme('https');
+          } elsif ($c->req->headers->header('X-Forwarded-Proto') || 'none' eq 'https') {
               $c->req->url->base->scheme('https');
           }
       }
