@@ -74,7 +74,7 @@ sub add_puzzle {
     my $rv = $self->add_to_puzzles(@args);
     if ($rv) {
         my $puzzle = $args[0];
-        $self->event->chat->add_of_type('puzzle',join('','<B>New Puzzle: </B><a href="/puzzle/',$puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a> created and added to "',Mojo::Util::html_escape($self->display_name),'"'),0);
+        $self->event->chat->add_of_type('puzzle',join('','<B>New Puzzle: </B><a href="/puzzle/',$puzzle->id,'">',Mojo::Util::xml_escape($puzzle->display_name),'</a> created and added to "',Mojo::Util::xml_escape($self->display_name),'"'),0);
     }
     return $rv;
 }

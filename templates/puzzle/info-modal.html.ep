@@ -1,4 +1,3 @@
-% use Mojo::Util qw/html_escape/;
 <input type="hidden" name="formname" value="Puzzle Info">
 <input type="hidden" name="puzzleid" value="<%= $current->id %>">
 % my $token_string;

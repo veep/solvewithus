@@ -109,8 +109,8 @@ sub modal {
             if ($event) {
                 $event->chat->add_of_type('puzzle',join(
                     '','<B>Puzzle Solved: </B><a href="/puzzle/',
-                    $puzzle->id,'">',Mojo::Util::html_escape($puzzle->display_name),'</a>',
-                    ' Solution: ', Mojo::Util::html_escape($newsolution)
+                    $puzzle->id,'">',Mojo::Util::xml_escape($puzzle->display_name),'</a>',
+                    ' Solution: ', Mojo::Util::xml_escape($newsolution)
                 ),$self->session->{userid});
             }
         }
@@ -162,10 +162,10 @@ sub modal {
                 }
                 $event->chat->add_of_type('puzzlejson',
                                           $json->encode({ type => 'priority',
-                                                          puzzle => Mojo::Util::html_escape($puzzle->display_name),
+                                                          puzzle => Mojo::Util::xml_escape($puzzle->display_name),
                                                           puzzleid => $puzzle->id,
-                                                          round =>  Mojo::Util::html_escape($round_name),
-                                                          text => Mojo::Util::html_escape($pri)}),
+                                                          round =>  Mojo::Util::xml_escape($round_name),
+                                                          text => Mojo::Util::xml_escape($pri)}),
                                           ,$self->session->{userid},
                                       );
 #                SolveWith::Event->expire_puzzle_table_cache($self, $event->id);

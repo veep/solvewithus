@@ -1,4 +1,3 @@
-% use Mojo::Util qw/html_escape/;
 <input type="hidden" name="formname" value="Event Info">
 <input type="hidden" name="id" value="<%= $current->id %>">
 <input type="hidden" name="type" value="event">

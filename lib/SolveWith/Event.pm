@@ -246,7 +246,7 @@ sub modal {
                 if ($round && $round->event->id == $event_id) {
                     for my $puzzle ($round->puzzles) {
                         if (lc($puzzle->display_name) eq lc($new_name)) {
-                            my $round_name = Mojo::Util::html_escape($round->display_name);
+                            my $round_name = Mojo::Util::xml_escape($round->display_name);
                             if ($round_name eq '_catchall') {
                                 $round_name = 'The top level';
                             } else {
@@ -269,7 +269,7 @@ sub modal {
                         my $url_msg = $puzzle->chat->get_latest_of_type('puzzleurl');
                         my $puz_url = ($url_msg ? $url_msg->text : '');
                         if ($puz_url && $new_url eq $puz_url) {
-                            $self->render(text => '&quot;' . Mojo::Util::html_escape($puzzle->display_name) . '&quot;' . 
+                            $self->render(text => '&quot;' . Mojo::Util::xml_escape($puzzle->display_name) . '&quot;' . 
                                           " already has that url.", status => 500);
                             return;
                         }

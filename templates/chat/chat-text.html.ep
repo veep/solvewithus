@@ -1,8 +1,8 @@
 % use URI::Find::Schemeless;
-% use Mojo::Util qw/html_escape/;
+% use Mojo::Util qw/xml_escape/;
 % my $finder = URI::Find::Schemeless->new(
 %             sub { my($uri, $orig_uri) = @_; return join('','<a target="_blank" href="', 
-%                   html_escape($uri), '">', html_escape($orig_uri) , '</a>'); 
+%                   xml_escape($uri), '">', xml_escape($orig_uri) , '</a>'); 
 %         });
-% $finder->find( \$string, \&Mojo::Util::html_escape);
+% $finder->find( \$string, \&Mojo::Util::xml_escape);
 <%== $string %>
