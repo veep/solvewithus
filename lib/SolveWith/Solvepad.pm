@@ -513,7 +513,11 @@ sub updates {
            zmq_close($publisher);
            zmq_close($subscriber);
 #           zmq_ctx_destroy($zmq_context);
-           Mojo::IOLoop->drop($watch);
+           if (Mojo::IOLoop->can('remove')) {
+               Mojo::IOLoop->remove($watch);
+           } else {
+               Mojo::IOLoop->drop($watch);
+           }
        }
    );
 }

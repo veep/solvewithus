@@ -1,6 +1,6 @@
 package SolveWith::Updates;
 use Mojo::Base 'Mojolicious::Controller';
-use Mojo::JSON qw/encode_json/;
+use Mojo::JSON;
 use Encode qw/encode decode/;
 use SolveWith::Event;
 use Time::HiRes;
@@ -97,7 +97,7 @@ sub getstream {
                         target_id => $puzzle_id,
                     })
                     :
-                    encode_json(
+                    Mojo::JSON::encode_json(
                         {
                             type => 'loggedin',
                             text => $new_text,
@@ -121,7 +121,13 @@ sub getstream {
                   for my $loop_id (@waits_and_loops) {
                       $loop_id //= '';
                       $self->app->log->debug("remove IO Loop $loop_id");
-                      Mojo::IOLoop->drop($loop_id) if $loop_id;
+                      if ($loop_id) {
+                          if (Mojo::IOLoop->can('remove')) {
+                              Mojo::IOLoop->remove($loop_id);
+                          } else {
+                              Mojo::IOLoop->drop($loop_id);
+                          }
+                      }
                   }
               });
     my $backlog_sent = 0;
@@ -163,7 +169,7 @@ sub getstream {
                         divhtml => $table_html . $first_time_html,
                     };
                     $self->write( "data: "
-                                  . ($json ? $json->encode($output_hash) : encode_json($output_hash))
+                                  . ($json ? $json->encode($output_hash) : Mojo::JSON::encode_json($output_hash))
                                   . "\n\n"
                               );
                 }
@@ -187,7 +193,7 @@ sub getstream {
                         divhtml => $form_round_list_html,
                     };
                     $self->write( "data: " .
-                                  ($json ? $json->encode($output_hash) : encode_json($output_hash)) .
+                                  ($json ? $json->encode($output_hash) : Mojo::JSON::encode_json($output_hash)) .
                                   "\n\n");
                 }
             });
@@ -202,7 +208,7 @@ sub getstream {
                         status => { map { $_->message_id->id => $_->status } @sticky_statuses },
                     })
                     :
-                    encode_json({
+                    Mojo::JSON::encode_json({
                         type => 'sticky_status',
                         status => { map { $_->message_id->id => $_->status } @sticky_statuses },
                     })
@@ -267,7 +273,7 @@ sub getstream {
                             type => 'done', target_type => 'event', target_id => $event_id,
                         })
                     :
-                    encode_json(
+                    Mojo::JSON::encode_json(
                         {
                             type => 'done', target_type => 'event', target_id => $event_id,
                         })
@@ -284,7 +290,7 @@ sub getstream {
                             type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
                         })
                     :
-                    encode_json(
+                    Mojo::JSON::encode_json(
                         {
                             type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
                         })
@@ -327,7 +333,7 @@ sub getstream {
                             target_id => $event_id,
                         })
                         :
-                        encode_json({
+                        Mojo::JSON::encode_json({
                             type => 'loggedin',
                             text => $new_text,
                             target_type => 'event',
@@ -395,7 +401,7 @@ sub _get_rendered_message {
     }
     $output_hash->{target_type} = $target_type;
     $output_hash->{target_id} = $target_id;
-    return ($json ? $json->encode($output_hash) : encode_json($output_hash));
+    return ($json ? $json->encode($output_hash) : Mojo::JSON::encode_json($output_hash));
 }
 
 # sub getnew {

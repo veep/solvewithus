@@ -19,9 +19,8 @@ EOF
 $ENV{MOJO_APP} ||= 'SolveWith';
 
 # Start commands
-eval {
-    Mojolicious::Commands->start;
-};
-if ($@) {
+if (Mojolicious::Commands->can('start_app')) {
     Mojolicious::Commands->start_app($ENV{MOJO_APP});
+} else {
+    Mojolicious::Commands->start;
 }
