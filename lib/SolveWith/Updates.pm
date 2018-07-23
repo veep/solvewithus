@@ -1,5 +1,6 @@
 package SolveWith::Updates;
 use Mojo::Base 'Mojolicious::Controller';
+use Mojo::JSON qw/encode_json/;
 use Encode qw/encode decode/;
 use SolveWith::Event;
 use Time::HiRes;
@@ -55,7 +56,10 @@ sub getstream {
     $self->res->headers->header('X-Accel-Buffering' => 'no');
     my $stream = Mojo::IOLoop->stream($self->tx->connection)->timeout(120);
 
-    my $json = Mojo::JSON->new();
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
     my $cache;
     eval { $cache = $self->app->cache; };
     $cache //= CHI->new( driver => 'Memory', global => 1 );
@@ -82,14 +86,26 @@ sub getstream {
             my $new_text = join(", ", @logged_in);
             if ($new_text ne $last_set_of_names) {
                 $last_set_of_names = $new_text;
-                my $output = "data: " .
-                             $json->encode({
-                                 type => 'loggedin',
-                                 text => $new_text,
-                                 target_type => 'puzzle',
-                                 target_id => $puzzle_id,
-                             })
-                             ."\n\n";
+                my $output =
+                "data: " .
+                (
+                    $json ?
+                    $json->encode({
+                        type => 'loggedin',
+                        text => $new_text,
+                        target_type => 'puzzle',
+                        target_id => $puzzle_id,
+                    })
+                    :
+                    encode_json(
+                        {
+                            type => 'loggedin',
+                            text => $new_text,
+                            target_type => 'puzzle',
+                            target_id => $puzzle_id,
+                        })
+                )
+                . "\n\n";
                 $self->write($output);
                 $self->app->log->debug($output);
             }
@@ -146,7 +162,10 @@ sub getstream {
                         divname => "event-puzzle-table-$event_id",
                         divhtml => $table_html . $first_time_html,
                     };
-                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                    $self->write( "data: "
+                                  . ($json ? $json->encode($output_hash) : encode_json($output_hash))
+                                  . "\n\n"
+                              );
                 }
                 $self->app->log->debug('table html loop: ' . (Time::HiRes::time - $st));
             };
@@ -167,17 +186,27 @@ sub getstream {
                         divname => "form-round-list",
                         divhtml => $form_round_list_html,
                     };
-                    $self->write( "data: " . $json->encode($output_hash) . "\n\n");
+                    $self->write( "data: " .
+                                  ($json ? $json->encode($output_hash) : encode_json($output_hash)) .
+                                  "\n\n");
                 }
             });
         my $sticky_status_sub = sub {
             tyler_log($self,'sticky loop start');
             if (my @sticky_statuses = $user->user_messages()) {
                 my $output = "data: " .
-                $json->encode({
-                    type => 'sticky_status',
-                    status => { map { $_->message_id->id => $_->status } @sticky_statuses },
-                })
+                (
+                    $json ?
+                    $json->encode({
+                        type => 'sticky_status',
+                        status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+                    })
+                    :
+                    encode_json({
+                        type => 'sticky_status',
+                        status => { map { $_->message_id->id => $_->status } @sticky_statuses },
+                    })
+                )
                 ."\n\n";
                 if ($output ne $last_sticky_status) {
                     $self->write($output);
@@ -229,16 +258,38 @@ sub getstream {
             $last_update = $message->id;
         }
         if ($event_sent) {
-            $self->write( "data: " . $json->encode(
-                {
-                    type => 'done', target_type => 'event', target_id => $event_id,
-                }) . "\n\n");
+            $self->write(
+                "data: " .
+                (
+                    $json ?
+                    $json->encode(
+                        {
+                            type => 'done', target_type => 'event', target_id => $event_id,
+                        })
+                    :
+                    encode_json(
+                        {
+                            type => 'done', target_type => 'event', target_id => $event_id,
+                        })
+                )
+                . "\n\n");
         }
         if ($puzzle_sent) {
-            $self->write( "data: " . $json->encode(
-                {
-                    type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
-                }) . "\n\n");
+            $self->write(
+                "data: " .
+                (
+                    $json ?
+                    $json->encode(
+                        {
+                            type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
+                        })
+                    :
+                    encode_json(
+                        {
+                            type => 'done', target_type => 'puzzle', target_id => $puzzle_id,
+                        })
+                )
+                . "\n\n");
         }
         if (time - $last_update_time > 15) {
             $last_update_time = time;
@@ -267,13 +318,23 @@ sub getstream {
                 if ($new_text ne $last_set_of_names) {
                     $last_set_of_names = $new_text;
                     my $output = "data: " .
-                    $json->encode({
-                        type => 'loggedin',
-                        text => $new_text,
-                        target_type => 'event',
-                        target_id => $event_id,
-                    })
-                    ."\n\n";
+                    (
+                        $json ?
+                        $json->encode({
+                            type => 'loggedin',
+                            text => $new_text,
+                            target_type => 'event',
+                            target_id => $event_id,
+                        })
+                        :
+                        encode_json({
+                            type => 'loggedin',
+                            text => $new_text,
+                            target_type => 'event',
+                            target_id => $event_id,
+                        })
+                    )
+                    . "\n\n";
                     $self->write($output);
                     $self->app->log->debug($output);
                 }
@@ -334,7 +395,7 @@ sub _get_rendered_message {
     }
     $output_hash->{target_type} = $target_type;
     $output_hash->{target_id} = $target_id;
-    return $json->encode($output_hash);
+    return ($json ? $json->encode($output_hash) : encode_json($output_hash));
 }
 
 # sub getnew {
