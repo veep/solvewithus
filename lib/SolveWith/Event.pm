@@ -171,7 +171,11 @@ sub modal {
             if ($new_url) {
                 $new_url =~ s/^\s+//;
                 $new_url =~ s/\s+$//;
-                $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+                if ($self->can('render_to_string')) {
+                    $new_url = $self->render_to_string("chat/chat-text", partial => 1, string => $new_url);
+                } else {
+                    $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+                }
                 chomp($new_url);
             }
             my $create_meta = $self->param('create-puzzle-for-meta');
@@ -231,7 +235,11 @@ sub modal {
             my $new_url = $self->param('PuzzleURL') || '';
             $new_url =~ s/^\s+//;
             $new_url =~ s/\s+$//;
-            $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+            if ($self->can('render_to_string')) {
+                $new_url = $self->render_to_string("chat/chat-text", partial => 1, string => $new_url);
+            } else {
+                $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
+            }
             chomp($new_url);
             my @round_ids = $self->param('round_ids');
             if (!@round_ids) {
@@ -400,10 +408,19 @@ sub status {
         if (! $open_puzzles_html) {
 
             my $st = Time::HiRes::time;
-            $open_puzzles_html = $self->render('puzzle/tree_ul',
-                                               tree => $event->get_puzzle_tree($self->app),
-                                               current_id => undef,
-                                               partial => 1);
+            if ($self->can('render_to_string')) {
+                $open_puzzles_html = $self->render_to_string(
+                    'puzzle/tree_ul',
+                    tree => $event->get_puzzle_tree($self->app),
+                    current_id => undef,
+                    partial => 1);
+            } else {
+                $open_puzzles_html = $self->render(
+                    'puzzle/tree_ul',
+                    tree => $event->get_puzzle_tree($self->app),
+                    current_id => undef,
+                    partial => 1);
+            }
             $cache->set($key, $open_puzzles_html, {expires_in => 120, expires_variance => .9 });
             $self->app->log->info(join(" ","Status time for ", $id, $self->session->{userid}, Time::HiRes::time - $st));
         }
@@ -427,7 +444,12 @@ sub get_puzzle_table_html {
     $self->stash(tree => $event->get_puzzle_tree($self->app));
     $self->stash(currenttime => (scalar time));
     $self->app->log->info(join(" ","Unrendered tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
-    my $tree = $self->render('event/puzzle_table', partial=>1);
+    my $tree;
+    if ($self->can('render_to_string')) {
+        $tree = $self->render_to_string('event/puzzle_table', partial=>1);
+    } else {
+        $tree = $self->render('event/puzzle_table', partial=>1);
+    }
     $self->app->log->info(join(" ","Tree time for", $event->id, $self->session->{userid}, Time::HiRes::time - $st));
     $cache->set($key, $tree, {expires_in => 10});
 }
@@ -441,7 +463,11 @@ sub get_form_round_list_html {
                            {expires_in => 1, busy_lock => 60},
                            sub {
                                $self->stash(event => $event);
-                               return $self->render('event/form_round_list', partial=>1);
+                               if ($self->can('render_to_string')) {
+                                   return $self->render_to_string('event/form_round_list', partial=>1);
+                               } else {
+                                   return $self->render('event/form_round_list', partial=>1);
+                               }
                            }
                        );
 }
@@ -456,7 +482,12 @@ sub expire_puzzle_table_cache {
     my $st = Time::HiRes::time;
     $self->stash(tree => $event->get_puzzle_tree($self->app));
     $self->stash(currenttime => (scalar time));
-    my $tree =  $self->render('event/puzzle_table', partial=>1);
+    my $tree;
+    if ($self->can('render_to_string')) {
+        $tree = $self->render_to_string('event/puzzle_table', partial=>1);
+    } else {
+        $tree = $self->render('event/puzzle_table', partial=>1);
+    }
     $self->app->log->info(join(" ","Expire Tree time for", $self->session->{userid}, Time::HiRes::time - $st));
 
     my $key = 'puzzle_table '  . $event->id . ' all_html';

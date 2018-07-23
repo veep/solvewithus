@@ -84,7 +84,12 @@ sub modal {
     if ($form and $form eq 'Puzzle Info') {
         my $url = $self->param('url');
         if (defined($url) && $url =~ /\S/) {
-            my $url_encoded = $self->render("chat/chat-text", partial => 1, string => $url);
+            my $url_encoded;
+            if ($self->can('render_to_string')) {
+                $url_encoded = $self->render_to_string("chat/chat-text", partial => 1, string => $url);
+            } else {
+                $url_encoded = $self->render("chat/chat-text", partial => 1, string => $url);
+            }
             my $old_url = $puzzle->chat->get_latest_of_type('puzzleurl');
             if (!defined($old_url) or $old_url->text ne $url_encoded) {
                 $puzzle->chat->add_of_type('puzzleurl',$url_encoded,$self->session->{userid});
@@ -92,7 +97,12 @@ sub modal {
         }
         my $summary = $self->param('summary');
         if (defined($summary) && $summary =~ /\S/) {
-            my $summary_encoded = $self->render("chat/chat-text", partial => 1, string => $summary);
+            my $summary_encoded;
+            if ($self->can('render_to_string')) {
+                $summary_encoded = $self->render_to_string("chat/chat-text", partial => 1, string => $summary);
+            } else {
+                $summary_encoded = $self->render("chat/chat-text", partial => 1, string => $summary);
+            }
             my $old_summary = $puzzle->chat->get_latest_of_type('summary');
             if (!defined($old_summary) or $old_summary->text ne $summary_encoded) {
                 $puzzle->chat->add_of_type('summary',$summary_encoded,$self->session->{userid});

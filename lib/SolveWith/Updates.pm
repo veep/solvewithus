@@ -158,8 +158,15 @@ sub getstream {
                 if ($table_html ne $last_puzzle_table_html) {
                     my $first_time_html = '';
                     if (! $last_puzzle_table_html) {
-                        $first_time_html = $self->render("event/hide_show", partial => 1, 
-                                                         hide_closed => $self->session->{hide_closed} || '');
+                        if ($self->can('render_to_string')) {
+                            $first_time_html = $self->render_to_string(
+                                "event/hide_show", partial => 1,
+                                hide_closed => $self->session->{hide_closed} || '');
+                        } else {
+                            $first_time_html = $self->render(
+                                "event/hide_show", partial => 1,
+                                hide_closed => $self->session->{hide_closed} || '');
+                        }
                     }
                     $last_puzzle_table_html = $table_html;
                     $last_update_time = time;
@@ -359,8 +366,14 @@ sub _get_rendered_message {
 
     my $output_hash;
     if ($message->type eq 'puzzle') {
+        my $text;
+        if ($self->can('render_to_string')) {
+            $text = $self->render_to_string("chat/puzzle-message", partial => 1, message => $message);
+        } else {
+            $text = $self->render("chat/puzzle-message", partial => 1, message => $message);
+        }
         $output_hash = { timestamp => $message->timestamp,
-                         text => $self->render("chat/puzzle-message", partial => 1, message => $message),
+                         text => $text,
                          type => 'rendered',
                          id => $message->id,
                      };
@@ -391,8 +404,17 @@ sub _get_rendered_message {
     } else {
         $output_hash = { map { ($_ => $message->$_)} qw/type id text timestamp/ };
         if ($output_hash->{type} eq 'chat' or $output_hash->{type} eq 'sticky') {
-            $output_hash->{text} = $self->render("chat/chat-text",
-                                                 partial => 1, string => $output_hash->{text});
+            if ($self->can('render_to_string')) {
+                $output_hash->{text} = $self->render_to_string(
+                    "chat/chat-text",
+                    partial => 1, string => $output_hash->{text},
+                );
+            } else {
+                $output_hash->{text} = $self->render(
+                    "chat/chat-text",
+                    partial => 1, string => $output_hash->{text}
+                );
+            }
             chomp $output_hash->{text};
         }
         if (my $user = $message->user) {
