@@ -146,7 +146,6 @@ sub startup {
               warn $@ if $@;
               if ($user_info_response &&  $user_info_response->is_success) {
                   my $user_info = decode_json( $user_info_response->decoded_content);
-                  ddx $user_info;
                   die unless $user_info->{id};
                   if (my $user = $self->db->resultset('User')->find_or_create( {google_id => $user_info->{id}})) {
                       $user->display_name($user_info->{name});
