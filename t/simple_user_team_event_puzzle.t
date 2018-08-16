@@ -22,7 +22,7 @@ sub clean_cookies : Test(setup) {
 }
 
 sub user_with_team_goes_to_events_page : Test(no_plan) {
-    my $team = TestSetup::setup_testteam($APP->app);
+    my $team = TestSetup::setup_test_team($APP->app);
     my $user = TestSetup::setup_logged_in_user($APP);
     $team->add_to_users($user, {member => 1});
 
@@ -39,7 +39,7 @@ sub user_with_team_goes_to_events_page : Test(no_plan) {
 }
 
 sub user_with_team_can_add_event_in_ui : Test(no_plan) {
-    my $team = TestSetup::setup_testteam($APP->app);
+    my $team = TestSetup::setup_test_team($APP->app);
     my $user = TestSetup::setup_logged_in_user($APP);
     $team->add_to_users($user, {member => 1});
 

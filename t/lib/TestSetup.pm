@@ -110,7 +110,7 @@ sub setup_logged_in_user {
     return $user;
 }
 
-sub setup_testteam {
+sub setup_test_team {
     my $app = shift;
     my %options = (
         name => 'team ' . int(rand(100000000)),
@@ -124,6 +124,20 @@ sub setup_testteam {
             no_spreadsheet => 1,
         }
     );
+}
+
+sub setup_test_event {
+    my $app = shift;
+    my %options = (
+        name => 'event ' . int(rand(100000000)),
+        @_,
+    );
+    die "Need team to create test_event" unless $options{team};
+    my $event = $options{team}->find_or_create_related ('events', {
+        display_name => $options{name},
+    });
+    $event->state('open');
+    return $event;
 }
 
 1;

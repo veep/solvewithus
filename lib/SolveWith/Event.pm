@@ -241,7 +241,8 @@ sub modal {
                 $new_url = $self->render("chat/chat-text", partial => 1, string => $new_url);
             }
             chomp($new_url);
-            my @round_ids = $self->param('round_ids');
+
+            my @round_ids = grep {defined($_)} $self->param('round_ids');
             if (!@round_ids) {
                 my $catchall = $event->find_or_create_related ('rounds', {
                     display_name => '_catchall',
