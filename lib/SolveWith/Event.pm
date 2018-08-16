@@ -296,7 +296,11 @@ sub modal {
                 if ($new_url) {
                     $puzzle->chat->add_of_type('puzzleurl',$new_url,$self->session->{userid});
                 }
-                SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                if ($self->app->mode ne 'testing') {
+                    SolveWith::Spreadsheet::trigger_puzzle_spreadsheet($self, $puzzle);
+                } else {
+                    $self->app->log->info('In "testing" mode, skipping puzzle spreadsheet');
+                }
                 SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
                 $self->render(text => 'OK', status => 200);
                 return;
