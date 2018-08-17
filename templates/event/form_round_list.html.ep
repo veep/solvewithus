@@ -1,8 +1,12 @@
-% if (scalar $event->rounds > 1) {
+% my @live_rounds;
+% for my $round (sort {$a->id <=> $b->id} $event->rounds) {
+%    next if $round->state eq 'dead' or $round->state eq 'closed' or $round->display_name eq '_catchall';
+%    push @live_rounds, $round;
+% }
+% if (@live_rounds) {
 <label class="control-label" for="round_id">Rounds</label>
 <div class="controls">
-  %   for my $round (sort {$a->id <=> $b->id} $event->rounds) {
-    %      next if $round->state eq 'dead' or $round->state eq 'closed' or $round->display_name eq '_catchall';
+% for my $round (@live_rounds) {
     <label class="checkbox">
       <input name="round_ids" value="<%= $round->id %>" type="checkbox"> <%= $round->display_name %>
     </label>

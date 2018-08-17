@@ -16,6 +16,7 @@ sub create_config: Test(startup) {
     }
 
     $self->{mojo_test} = Test::Mojo->with_roles("+Selenium")->new('SolveWith')->setup_or_skip_all;
+    $self->{mojo_test}->set_window_size([1200,800]);
 }
 
 sub clean_cookies : Test(setup) {

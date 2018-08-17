@@ -69,7 +69,7 @@ sub all {
   while (my $team = $gs->next) {
       my $has_access = 0;
       eval {
-          warn join(" ","Trying access with", $self->session->{userid}, $self->session->{token}, "\n");
+#          warn join(" ","Trying access with", $self->session->{userid}, $self->session->{token}, "\n");
           $has_access = $team->has_access($self->session->{userid},$self->session->{token});
       };
       if ($@) {
