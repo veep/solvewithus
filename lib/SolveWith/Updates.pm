@@ -30,20 +30,11 @@ sub _check_access {
     return "OK!";
 }
 
-sub tyler_log {
-    my $self = shift;
-    return;
-    if ($self->session->{userid} == 1 or $self->session->{userid} == 28) {
-        $self->app->log->info(join(" ",$self->session->{userid},@_));
-    }
-}
-
 sub getstream {
     my $self = shift;
     $self->res->headers->add(Pragma => 'no-cache');
     $self->res->headers->add('Cache-Control' => 'no-cache, no-store');
     return unless _check_access($self);
-    tyler_log($self,'done with access');
     my $event_id = $self->stash('event_id');
     my $puzzle_id = $self->stash('puzzle_id');
     my $token = $self->stash('token');
@@ -66,14 +57,12 @@ sub getstream {
     my @waits_and_loops;
     my $user = $self->db->resultset('User')->find($self->session->{userid});
     my $last_sticky_status = '';
-    tyler_log($self,'starting loops');
 
     if ($puzzle_id) {
         # every 10 seconds send current logged in status
         my $puzzle = $self->db->resultset('Puzzle')->find($puzzle_id);
         my $last_set_of_names = 'N/A';
         my $logged_in_puzzle_loop = sub {
-            tyler_log($self,'loggedin start');
             if (! $cache->get(join(' ','in puzzle',$puzzle_id,$self->session->{userid}))) {
                 $cache->set(join(' ','in puzzle',$puzzle_id,$self->session->{userid}),1,25);
                 $puzzle->expire_users_live_cache($cache);
@@ -109,7 +98,6 @@ sub getstream {
                 $self->write($output);
                 $self->app->log->debug($output);
             }
-            tyler_log($self,'loggedin end');
         };
         push @waits_and_loops, Mojo::IOLoop->recurring(
             10 => $logged_in_puzzle_loop
@@ -205,7 +193,6 @@ sub getstream {
                 }
             });
         my $sticky_status_sub = sub {
-            tyler_log($self,'sticky loop start');
             if (my @sticky_statuses = $user->user_messages()) {
                 my $output = "data: " .
                 (
@@ -226,7 +213,6 @@ sub getstream {
                     $last_sticky_status = $output;
                 }
             }
-            tyler_log($self,'sticky loop end');
         };
         &$sticky_status_sub;
         push @waits_and_loops, Mojo::IOLoop->recurring(
@@ -316,7 +302,6 @@ sub getstream {
     if (! $token) {
         my $last_set_of_names = 'N/A';
         my $names_in_event_sub = sub {
-            tyler_log($self,'names start');
             if (! $cache->get(join(' ','in event',$event_id,$self->session->{userid}))) {
                 $cache->set(join(' ','in event',$event_id,$self->session->{userid}),1,25);
                 $event->expire_users_live_cache($cache);
@@ -352,7 +337,6 @@ sub getstream {
                     $self->app->log->debug($output);
                 }
             }
-            tyler_log($self,'names end');
         };
         &$names_in_event_sub;
         push @waits_and_loops, Mojo::IOLoop->recurring(
