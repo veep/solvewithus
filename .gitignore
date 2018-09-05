@@ -4,3 +4,6 @@ db/puzzles.db
 script/*.lock
 script/*.pid
 
+/public/puzimg/*
+db/
+/access_token
