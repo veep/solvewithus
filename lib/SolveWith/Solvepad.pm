@@ -8,6 +8,7 @@ use Mojo::IOLoop;
 use Time::HiRes;
 use Data::Dump qw/pp/;
 use Storable qw/dclone/;
+use Mojo::JSON;
 
 sub intro {
     my $self = shift;
@@ -101,7 +102,11 @@ sub puzzle {
     $self->stash('share_key' => $puzzle->get_share_key);
     $self->stash('recommend_key' => $puzzle->get_recommend_key);
     $self->stash('replay_key' => $puzzle->get_player_key);
-    $self->stash('root' => $self->app->static->root);
+    if ($self->app->static->can('root')) {
+      $self->stash('root' => $self->app->static->root);
+    } else {
+      $self->stash('root' => ${$self->app->static->paths}[0]);
+    }
 }
 
 sub share {
@@ -382,14 +387,16 @@ sub updates {
     my $last_change_seen = 0;
     my %state;
     my $last_ts = 0;
-    my $json = Mojo::JSON->new();
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
 
     $self->_clean_state($puzzle, \%state);
 
-    $self->send_message(
-        $json->encode({ values => [values %state]})
-    );
-
+    $self->send({json =>
+                 { values => [values %state]}
+             });
     send_state_if_updated($self,\%state, $puzzle, \$last_ts, $last_change_seen);
 
     my $zmq_context = zmq_init();
@@ -403,7 +410,9 @@ sub updates {
     $self->on(
         message => sub {
             my $message = $_[1];
-            my $message_data = $json->decode($message);
+            my $message_data = $json ?
+            $json->decode($message)
+                : Mojo::JSON::decode_json($message);
             if (exists $message_data->{change_number}) {
                 $last_change_seen = $message_data->{change_number};
             }
@@ -524,7 +533,6 @@ sub updates {
 
 sub send_state_if_updated {
     my ($self,$state,$puzzle,$tsref, $last_change_seen) = @_;
-    my $json = Mojo::JSON->new();
 
     my $updated = 0;
 
@@ -593,11 +601,10 @@ sub send_state_if_updated {
         }
     }
     if ($updated) {
-        $self->send_message(
-            $json->encode({values => [values %$state],
-                           change_number => $last_change_seen,
-                       })
-        );
+        $self->send({json =>
+                     {values => [values %$state],
+                      change_number => $last_change_seen,
+                  }});
     }
 }
 
