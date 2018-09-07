@@ -45,7 +45,7 @@
                 <input name="create-puzzle-for-meta" type="checkbox"> Also create a "Round Name - META" puzzle.
               </label>
               <button type="submit" class="btn btn-small btn-primary">Add Round</button>
-              <button type="button" class="btn btn-small cancel-button">Cancel</button>
+              <button type="button" class="btn btn-small add-a-round-button">Cancel</button>
             </div>
           </div>
         </form>
@@ -72,7 +72,7 @@
           <div class="control-group">
             <div class="controls">
               <button type="submit" class="btn btn-small btn-primary">Add Puzzle</button>
-              <button type="submit" class="btn btn-small cancel-button">Cancel</button>
+              <button type="button" class="btn btn-small add-a-puzzle-button">Cancel</button>
             </div>
           </div>
         </form>
