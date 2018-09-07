@@ -377,7 +377,11 @@ sub replay_updates {
             push @results, { ts => $update->ts, type => 'new_state', values => dclone($new_state) };
         }
     }
-    return $self->render_json(\@results);
+    if ($self->can('render_json')) {
+        return $self->render_json(\@results);
+    } else {
+        return $self->render(json => \@results);
+    }
 }
 
 sub updates {

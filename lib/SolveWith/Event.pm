@@ -431,7 +431,11 @@ sub status {
         }
         push @results, {type => 'tree_html', content => $open_puzzles_html };
     }
-    $self->render_json(\@results);
+    if ($self->can('render_json')) {
+        $self->render_json(\@results);
+    } else {
+        $self->render(json => \@results);
+    }
 }
 
 sub get_puzzle_table_html {
