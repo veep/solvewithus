@@ -10,7 +10,7 @@ use Mail::SendEasy;
 use Fcntl qw(:flock);
 use App::Daemon qw(daemonize);
 use Mojo::UserAgent;
-use JSON::XS;
+use Mojo::JSON;
 use Mojo::Util qw/md5_sum/;
 use Cwd qw/realpath/;
 
@@ -70,8 +70,13 @@ if ($file_output =~ / (\d+) x (\d+)/) {
     $source->update;
 }
 
+my $json;
+if (Mojo::JSON->can('new')) {
+    $json = Mojo::JSON->new();
+}
+
 my $hotspots = `$FindBin::Bin/analyze-image $dest`;
-my $data = decode_json $hotspots;
+my $data = $json ? $json->decode($hotspots) : decode_json $hotspots;
 my $rs = $schema->resultset('SolvepadHotspot');
 my %uuid_to_id;
 for my $found (@$data) {

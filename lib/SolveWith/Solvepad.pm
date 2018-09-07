@@ -9,6 +9,7 @@ use Time::HiRes;
 use Data::Dump qw/pp/;
 use Storable qw/dclone/;
 use Mojo::JSON;
+use Cwd qw/realpath/;
 
 sub intro {
     my $self = shift;
@@ -103,9 +104,9 @@ sub puzzle {
     $self->stash('recommend_key' => $puzzle->get_recommend_key);
     $self->stash('replay_key' => $puzzle->get_player_key);
     if ($self->app->static->can('root')) {
-      $self->stash('root' => $self->app->static->root);
+        $self->stash('root' => $self->app->static->root);
     } else {
-      $self->stash('root' => ${$self->app->static->paths}[0]);
+        $self->stash('root' => realpath(${$self->app->static->paths}[0]));
     }
 }
 
@@ -184,7 +185,12 @@ sub replay {
     $self->stash('puzzle' => $puzzle);
     $self->stash('player_key' => $puzzle->get_player_key);
     $self->stash('recommend_key' => $puzzle->get_recommend_key);
-    $self->stash('root' => $self->app->static->root);
+    if ($self->app->static->can('root')) {
+        $self->stash('root' => $self->app->static->root);
+    } else {
+        $self->stash('root' => realpath(${$self->app->static->paths}[0]));
+    }
+
 }
 
 sub close_open {
