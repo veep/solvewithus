@@ -49,7 +49,7 @@ if (! $image) {
 }
 my $checksum = md5_sum($image);
 if ($checksum ne $source->checksum) {
-    die "Checksums don't match: $checksum vs " . md5_sum($image);
+    die "Checksums don't match: $checksum vs " . $source->checksum;
 }
 
 my $fh;
@@ -76,7 +76,7 @@ if (Mojo::JSON->can('new')) {
 }
 
 my $hotspots = `$FindBin::Bin/analyze-image $dest`;
-my $data = $json ? $json->decode($hotspots) : decode_json $hotspots;
+my $data = $json ? $json->decode($hotspots) : Mojo::JSON::decode_json($hotspots);
 my $rs = $schema->resultset('SolvepadHotspot');
 my %uuid_to_id;
 for my $found (@$data) {

@@ -263,7 +263,7 @@ sub create {
         );
     }
 
-    my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
+    my $rootdir = realpath(Mojo::Home->new->detect('SolveWith')->to_string);
     $self->app->log->info("Starting find-hotspots for " . $url . ' from ' . $rootdir);
     my @cmd = ("$rootdir/script/find-hotspots",$source->id);
     if ($url eq 'upload') {
