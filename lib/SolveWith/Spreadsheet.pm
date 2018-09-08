@@ -7,6 +7,7 @@ use LWP::UserAgent;
 use HTTP::Request::Common;
 use URI::Escape;
 use Mojo::JSON;
+use Cwd qw/realpath/;
 
 my $debug = 1;
 
@@ -49,8 +50,15 @@ sub get_current_solvewithus_access_token {
                               ],
                           );
     if ($res->is_success) {
-        my $json = Mojo::JSON->new;
-        $access_token = $json->decode($res->content)->{access_token};
+        my $json;
+        if (Mojo::JSON->can('new')) {
+            $json = Mojo::JSON->new();
+        }
+        $access_token = (
+            $json ?
+            $json->decode($res->content)->{access_token} :
+            (Mojo::JSON::decode_json($res->content))->{access_token}
+        );
         warn "new access token: $access_token";
         write_file($access_token_file,$access_token);
         return $access_token;
@@ -84,8 +92,15 @@ sub find_a_thing {
     my $ua = LWP::UserAgent->new;
     my $response = $ua->request($req);
     return unless $response->is_success;
-    my $json = Mojo::JSON->new;
-    my $item = $json->decode($response->content)->{items}[0];
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
+    my $item = (
+        $json ?
+        $json->decode($response->content)->{items}[0] :
+        Mojo::JSON::decode_json($response->content)->{items}[0]
+    );
     return( { id => $item->{id}, weblink => $item->{alternateLink} });
 }
 
@@ -108,14 +123,21 @@ sub add_a_thing {
     $req->uri('https://www.googleapis.com/drive/v2/files?pinned=true');
     $req->header('Content-Type' => 'application/json');
     $req->header(Authorization => "Bearer $access_token");
-    my $json = Mojo::JSON->new;
-    $req->content($json->encode({ mimeType => $mime, title => $name, parents => [ {id => $parentid} ]}));
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
+    if ($json) {
+        $req->content($json->encode({ mimeType => $mime, title => $name, parents => [ {id => $parentid} ]}));
+    } else {
+        $req->content(Mojo::JSON::encode_json({ mimeType => $mime, title => $name, parents => [ {id => $parentid} ]}));
+    }
     warn $req->as_string;
     my $ua = LWP::UserAgent->new;
     my $response = $ua->request($req);
     warn $response->content;
     die unless $response->is_success;
-    my $item = $json->decode($response->content);
+    my $item = ($json ? $json->decode($response->content) : Mojo::JSON::decode_json($response->content));
     return( { id => $item->{id}, weblink => $item->{alternateLink} });
 }
 
@@ -256,7 +278,7 @@ sub round_folder_id {
 
 sub trigger_puzzle_spreadsheet {
     my ($c, $puzzle, $token) = @_;
-    my $rootdir = Mojo::Home->new->detect('SolveWith')->to_string;
+    my $rootdir = realpath(Mojo::Home->new->detect('SolveWith')->to_string);
     my $token_debug_string = $token ? ' with token: ' . $token : '';
     if ($c) {
         $c->app->log->info("Starting SS for " . $puzzle->id . ' from ' . $rootdir . $token_debug_string);
@@ -307,12 +329,23 @@ sub give_group_permission {
     $req->uri('https://www.googleapis.com/drive/v2/files/' . $id . '/permissions?' . 'sendNotificationEmails=false');
     $req->header('Content-Type' => 'application/json');
     $req->header(Authorization => "Bearer $access_token");
-    my $json = Mojo::JSON->new;
-    $req->content($json->encode({
-        role => $role,
-        type => 'group',
-        value => $email,
-    }));
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
+    if ($json) {
+        $req->content($json->encode({
+            role => $role,
+            type => 'group',
+            value => $email,
+        }));
+    } else {
+        $req->content(Mojo::JSON::encode_json({
+            role => $role,
+            type => 'group',
+            value => $email,
+        }));
+    }
     warn $req->as_string if $debug;
     warn $req->content if $debug;
     my $ua = LWP::UserAgent->new;
@@ -340,12 +373,23 @@ sub give_user_permission {
     $req->uri('https://www.googleapis.com/drive/v2/files/' . $id . '/permissions?' . 'sendNotificationEmails=false');
     $req->header('Content-Type' => 'application/json');
     $req->header(Authorization => "Bearer $access_token");
-    my $json = Mojo::JSON->new;
-    $req->content($json->encode({
-        role => $role,
-        type => 'user',
-        value => $email,
-    }));
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
+    if ($json) {
+        $req->content($json->encode({
+            role => $role,
+            type => 'user',
+            value => $email,
+        }));
+    } else {
+        $req->content(Mojo::JSON::encode_json({
+            role => $role,
+            type => 'user',
+            value => $email,
+        }));
+    }
     warn $req->uri if $debug;
     warn $req->content if $debug;
     my $ua = LWP::UserAgent->new;
