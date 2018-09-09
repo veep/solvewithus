@@ -42,8 +42,10 @@ sub modal {
     my $id = $self->param('puzzleid');
     my $token = $self->param('token');
     my ($puzzle, $remove_id);
-    my $json = Mojo::JSON->new();
-
+    my $json;
+    if (Mojo::JSON->can('new')) {
+        $json = Mojo::JSON->new();
+    }
     if ($token) {
         $puzzle = $self->db->resultset('Puzzle')->find_by_token($token);
     } elsif ($id) {
@@ -170,13 +172,16 @@ sub modal {
                 if ($round ne '_catchall') {
                     $round_name = $round;
                 }
+                my $puzzle_json_data = {
+                    type => 'priority',
+                    puzzle => Mojo::Util::xml_escape($puzzle->display_name),
+                    puzzleid => $puzzle->id,
+                    round =>  Mojo::Util::xml_escape($round_name),
+                    text => Mojo::Util::xml_escape($pri),
+                };
                 $event->chat->add_of_type('puzzlejson',
-                                          $json->encode({ type => 'priority',
-                                                          puzzle => Mojo::Util::xml_escape($puzzle->display_name),
-                                                          puzzleid => $puzzle->id,
-                                                          round =>  Mojo::Util::xml_escape($round_name),
-                                                          text => Mojo::Util::xml_escape($pri)}),
-                                          ,$self->session->{userid},
+                                          ($json ? $json->encode($puzzle_json_data) : Mojo::JSON::encode_json($puzzle_json_data)),
+                                          $self->session->{userid},
                                       );
 #                SolveWith::Event->expire_puzzle_table_cache($self, $event->id);
             }
