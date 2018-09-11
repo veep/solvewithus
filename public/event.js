@@ -57,6 +57,12 @@ $(document).ready(
             }).find('.alert').alert('close');
             return false;
         });
+        $(".hide-add-a-round-button").click(function() {
+            $("#new-round-form-well").slideUp('fast').find('.alert').alert('close');
+        });
+        $(".hide-add-a-puzzle-button").click(function() {
+            $("#new-puzzle-form-well").slideUp('fast').find('.alert').alert('close');
+        });
     }
 );
 
