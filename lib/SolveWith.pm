@@ -43,9 +43,10 @@ sub startup {
   $self->sessions->default_expiration(3000000);
 
   if ($self->mode eq 'production') {
-      my $cmd = '/usr/bin/svnversion ' . $self->static->root;
-      my $svnrev = `$cmd`;
-      if ($svnrev =~ m,(\d+)\D*$,) {
+      my $cmd = 'cd ' . Mojo::Home->new->detect('SolveWith')->to_string .
+                ' && git rev-parse --short HEAD ';
+      my $vcrev = `$cmd`;
+      if ($vcrev =~ m,(\w+)\W*$,) {
           $code_version=$1;
           warn "Code version: $code_version\n";
       }
