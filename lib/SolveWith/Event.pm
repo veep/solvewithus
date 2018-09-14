@@ -44,11 +44,10 @@ sub single {
 
 sub all {
   my $self = shift;
-
   if (! $self->req->is_secure) {
-      $self->app->log->info("Bouncing " . $self->session->{userid} . " to https event");
+      $self->app->log->info("Bouncing " . $self->session->{userid} . " to https event " . $self->url_for('event')->to_abs);
       $self->req->url->base->scheme('https');
-      return $self->redirect_to($self->url_for('event'));
+      return $self->redirect_to($self->url_for('event')->to_abs);
   }
 
   my $user = $self->db->resultset('User')->find($self->session->{userid});
