@@ -136,7 +136,7 @@ resize_chat_box($('#chat-box'));
 %=javascript begin
 $(document).ready(
   function () {
-    if ($(window).height() < 1000) {
+    if ($(window).height() < 700) {
       $('#small_screen_toggle').click();
       resize_chat_box($('#chat-box'));
        setTimeout(function () {
