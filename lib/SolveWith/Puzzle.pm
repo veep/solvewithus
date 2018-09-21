@@ -112,7 +112,7 @@ sub modal {
         }
         my $newinfo = $self->param('newinfo');
         if (defined($newinfo) and $newinfo =~ /\S/) {
-            my $encoded = $self->render("chat/chat-text", partial => 1, string => $newinfo);
+            my $encoded = $self->render_to_string("chat/chat-text", partial => 1, string => $newinfo);
             $puzzle->chat->add_of_type('puzzleinfo',$encoded,$self->session->{userid});
         }
         my $newsolution = $self->param('newsolution');
