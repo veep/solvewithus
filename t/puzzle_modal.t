@@ -55,6 +55,30 @@ sub add_solution_in_puzzle_modal : Test(no_plan) {
     );
 }
 
+sub add_url_in_puzzle_modal : Test(no_plan) {
+    my $self = shift;
+    my $t = $self->{mojo_test};
+    _make_event_and_go_there($t);
+    my $puzzle_number = _add_puzzle_and_go_there($t);
+    note $puzzle_number;
+
+    $t->wait_for('#puzzle-info-link-'.$puzzle_number.' > a');
+    $t->click_ok('#puzzle-info-link-'.$puzzle_number.' > a');
+
+    $t->wait_for('input[name=url]');
+    $t->send_keys_ok('input[name=url]','http://example.com/');
+    $t->send_keys_ok('input[name=url]', KEYS->{'enter'});
+
+    $t->wait_until(
+        sub {
+            my $text  = $t->driver->get_text('#chat-text-puzzle-' . $puzzle_number);
+            note $text;
+            return $text =~ m,URL +http://example\.com/,;
+        },
+        { timeout => 10},
+    );
+}
+
 sub change_mode_in_puzzle_modal : Test(no_plan) {
     my $self = shift;
     my $t = $self->{mojo_test};
