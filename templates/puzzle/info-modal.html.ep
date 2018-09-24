@@ -90,7 +90,7 @@
   <td>&nbsp;</td>
   <td>&nbsp;</td>
 % }
-  <td><button class="btn btn-mini">Change</button></td>
+  <td><button id="change-puzzle-status" class="btn btn-mini">Change</button></td>
 </tr>
 <tr><td><b>Priority</b></td>
   <td>

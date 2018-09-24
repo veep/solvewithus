@@ -55,6 +55,43 @@ sub add_solution_in_puzzle_modal : Test(no_plan) {
     );
 }
 
+sub change_mode_in_puzzle_modal : Test(no_plan) {
+    my $self = shift;
+    my $t = $self->{mojo_test};
+    _make_event_and_go_there($t);
+    my $puzzle_number = _add_puzzle_and_go_there($t);
+    note $puzzle_number;
+
+    $t->wait_for('#puzzle-info-link-'.$puzzle_number.' > a');
+    $t->click_ok('#puzzle-info-link-'.$puzzle_number.' > a');
+
+    $t->wait_for('#puzzle-status-is-closed');
+    $t->click_ok('#puzzle-status-is-closed');
+    $t->click_ok('#change-puzzle-status');
+    $t->wait_until(
+        sub {
+            my $text  = $t->driver->get_text('#chat-text-puzzle-' . $puzzle_number);
+            note $text;
+            return $text =~ m/Puzzle Closed/;
+        },
+        { timeout => 10},
+    );
+    $t->wait_for('#puzzle-info-link-'.$puzzle_number.' > a');
+    $t->click_ok('#puzzle-info-link-'.$puzzle_number.' > a');
+
+    $t->wait_for('#puzzle-status-is-open');
+    $t->click_ok('#puzzle-status-is-open');
+    $t->click_ok('#change-puzzle-status');
+    $t->wait_until(
+        sub {
+            my $text  = $t->driver->get_text('#chat-text-puzzle-' . $puzzle_number);
+            note $text;
+            return $text =~ m/Puzzle Opened/;
+        },
+        { timeout => 10},
+    );
+}
+
 sub _make_event_and_go_there {
     my ($t) = @_;
     my $user = TestSetup::setup_logged_in_user($t);
